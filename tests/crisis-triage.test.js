@@ -138,8 +138,10 @@ const base = {
     await page.click('#btn-start');
     await page.fill('#what', a.what || 'A doctored screenshot is going around.');
     await page.click('#btn-next');
+    await page.waitForTimeout(300);
     await page.selectOption('#where', a.where || 'facebook-group');
     await page.click('#btn-next');
+    await page.waitForTimeout(300);
     await page.check('#spread-' + (a.spread || 'many-groups'));
     await page.waitForTimeout(650);            // auto-advance on click
     await page.check('#truth-' + (a.truth || 'false'));
@@ -147,6 +149,7 @@ const base = {
     if ((a.truth || 'false') === 'partly') {
       await page.fill('#truePart', a.truePart || 'The core is right.');
       await page.click('#btn-next');
+      await page.waitForTimeout(300);
     }
     await page.check('#harm-' + (a.harm || 'serious'));
     await page.waitForTimeout(650);
@@ -166,7 +169,7 @@ const base = {
   check('report hidden before start', await page.locator('#report').isHidden());
 
   await page.click('#btn-start');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
   check('start opens the wizard', await page.locator('#wizard').isVisible());
   check('one question at a time', await page.locator('.question').count() === 1, 
     'got ' + await page.locator('.question').count());
@@ -178,15 +181,15 @@ const base = {
   // Required questions block progress.
   await page.fill('#what', 'A doctored screenshot is going around.');
   await page.click('#btn-next');            // past the optional free-text
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(400);
   await page.click('#btn-next');            // "where" is required and unanswered
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(400);
   check('required question blocks continue', await page.locator('#step-error').isVisible());
   check('still on the same question', (await page.locator('.q-label').textContent()).indexOf('surface') !== -1);
 
   await page.selectOption('#where', 'facebook-group');
   await page.click('#btn-next');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
   check('answering clears the error', await page.locator('#step-error').isHidden());
 
   // Clicking a radio advances on its own.
@@ -198,14 +201,14 @@ const base = {
 
   // Back works.
   await page.click('#btn-back');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
   check('back returns to the previous question',
     (await page.locator('.q-label').textContent()).indexOf('gone') !== -1);
   check('previous answer is still selected', await page.isChecked('#spread-many-groups'));
 
   // The conditional question only exists for "partly true".
   await page.click('#btn-next');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
   await page.check('#truth-partly');
   await page.waitForTimeout(650);
   check('partly true inserts the follow-up question', await page.locator('#truePart').count() === 1);
@@ -214,7 +217,7 @@ const base = {
     await page.locator('#progress-count').textContent());
 
   await page.click('#btn-back');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
   await page.check('#truth-false');
   await page.waitForTimeout(650);
   check('follow-up disappears again', await page.locator('#truePart').count() === 0);
@@ -234,6 +237,68 @@ const base = {
   await page.fill('#daysOut', '21');
   await page.click('#btn-next');
   await page.waitForTimeout(300);
+
+  // --- back always works (regression) -------------------------------------
+  //
+  // Bug: choosing an option queued an auto-advance in two chained timers, and
+  // Back only cancelled the first. Pressing Back in the window between them
+  // dragged the user forward again — so Back appeared broken on every radio
+  // question, which is every question after the second.
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await page.click('#btn-start');
+  await page.waitForTimeout(400);
+  check('back on the first question is available',
+    !(await page.locator('#btn-back').isDisabled()));
+  check('back on the first question is labelled for the intro',
+    /Back to start/.test(await page.locator('#btn-back').textContent()));
+  await page.click('#btn-back');
+  await page.waitForTimeout(400);
+  check('back from the first question reaches the intro',
+    await page.locator('#intro').isVisible());
+
+  // Walk to a radio question and race Back against the pending advance.
+  // 100ms and 300ms both land while the advance is still pending (it commits at
+  // 260ms + 170ms). Anything closer to 430ms is genuinely ambiguous — by then
+  // the advance may have legitimately completed, and going back one step is the
+  // correct answer rather than a bug.
+  for (const waitMs of [100, 250, 300]) {
+    await page.click('#btn-start');
+    await page.waitForTimeout(350);
+    await page.click('#btn-next');
+    await page.waitForTimeout(400);
+    await page.selectOption('#where', 'facebook-group');
+    await page.click('#btn-next');
+    await page.waitForTimeout(400);
+
+    await page.check('#spread-many-groups');
+    await page.waitForTimeout(waitMs);
+    await page.click('#btn-back');
+    await page.waitForTimeout(900);         // long enough for any orphan timer
+    check('back wins over a pending auto-advance (' + waitMs + 'ms)',
+      /Question 2/.test(await page.locator('#progress-label').textContent()),
+      await page.locator('#progress-label').textContent());
+
+    await page.reload();
+    await page.waitForTimeout(300);
+  }
+
+  // Back all the way out from deep in the flow.
+  await runWizard(page, {});
+  await page.locator('.summary-list button.link').last().click();
+  await page.waitForTimeout(400);
+  let guard = 0;
+  while (await page.locator('#wizard').isVisible() && guard++ < 15) {
+    await page.click('#btn-back');
+    await page.waitForTimeout(300);
+  }
+  check('back repeatedly walks all the way out to the intro',
+    await page.locator('#intro').isVisible(), 'gave up after ' + guard);
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
 
   // --- the report ---------------------------------------------------------
 
@@ -262,7 +327,7 @@ const base = {
   // Walk forward again to get back to the report.
   for (let i = 0; i < 12 && await page.locator('#wizard').isVisible(); i++) {
     await page.click('#btn-next');
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(400);
   }
   check('can walk back to the report', await page.locator('#report').isVisible());
 
@@ -404,6 +469,11 @@ const base = {
   check('every field has a label', unlabeled.length === 0, unlabeled.join(', '));
 
   // --- motion -------------------------------------------------------------
+
+  check('forward and back animate in opposite directions', await page.evaluate(() => {
+    const host = document.getElementById('step');
+    return host.getAttribute('data-dir') !== null;
+  }));
 
   check('buttons acknowledge a press', await page.evaluate(() => {
     const b = document.getElementById('btn-print');

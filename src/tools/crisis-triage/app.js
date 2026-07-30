@@ -161,7 +161,7 @@
 
   // ---- the wizard --------------------------------------------------------
 
-  function renderStep() {
+  function renderStep(dir) {
     var list = steps();
     if (step >= list.length) step = list.length - 1;
     if (step < 0) step = 0;
@@ -177,6 +177,7 @@
     fill.style.width = pct + '%';
     fill.parentNode.setAttribute('aria-valuenow', String(pct));
 
+    host.setAttribute('data-dir', dir === 'back' ? 'back' : 'fwd');
     var card = el('div', { class: 'question', 'data-q': q.id });
 
     if (q.type === 'radio') {
@@ -240,7 +241,7 @@
 
     host.appendChild(card);
 
-    document.getElementById('btn-back').disabled = step === 0;
+    document.getElementById('btn-back').textContent = step === 0 ? 'Back to start' : 'Back';
     document.getElementById('btn-next').textContent =
       step === list.length - 1 ? 'See my read' : 'Continue';
   }
@@ -253,46 +254,63 @@
     });
   }
 
-  var advanceTimer = null;
+  // Every navigation goes through here. One place to cancel from, so a pending
+  // auto-advance can never fire after the user has chosen to go somewhere else.
+  var timers = [];
+
+  function cancelPending() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    document.getElementById('step').classList.remove('is-leaving-fwd', 'is-leaving-back');
+  }
+
   function queueAdvance() {
-    clearTimeout(advanceTimer);
-    var host = document.getElementById('step');
-    advanceTimer = setTimeout(function () {
-      host.classList.add('is-leaving');
-      setTimeout(function () { host.classList.remove('is-leaving'); next(); }, 160);
-    }, 260);
+    cancelPending();
+    timers.push(setTimeout(function () { next(); }, 260));
   }
 
   function clearError() { show('step-error', false); }
 
+  // Slide the current question out, swap it, let the new one slide in from the
+  // side it came from. Direction carries meaning: forward and back look different.
+  function transitionTo(target, dir) {
+    cancelPending();
+    var host = document.getElementById('step');
+    host.classList.add(dir === 'back' ? 'is-leaving-back' : 'is-leaving-fwd');
+    timers.push(setTimeout(function () {
+      host.classList.remove('is-leaving-fwd', 'is-leaving-back');
+      step = target;
+      renderStep(dir);
+      focusStep();
+    }, 170));
+  }
+
   function next() {
-    clearTimeout(advanceTimer);
     var list = steps();
     var q = list[step];
     if (q.required && !val(q.id)) {
+      cancelPending();
       show('step-error', true);
       return;
     }
     clearError();
-    if (step >= steps().length - 1) {
+    if (step >= list.length - 1) {
+      cancelPending();
       finish();
       return;
     }
-    step += 1;
-    renderStep();
-    focusStep();
+    transitionTo(step + 1, 'fwd');
   }
 
   function back() {
-    clearTimeout(advanceTimer);
     clearError();
+    // Back always goes somewhere. From the first question that means the intro.
     if (step === 0) {
+      cancelPending();
       goto('intro');
       return;
     }
-    step -= 1;
-    renderStep();
-    focusStep();
+    transitionTo(step - 1, 'back');
   }
 
   function focusStep() {
@@ -321,7 +339,7 @@
     show('intro', v === 'intro');
     show('wizard', v === 'wizard');
     show('report', v === 'report');
-    if (v === 'wizard') renderStep();
+    if (v === 'wizard') { cancelPending(); renderStep('fwd'); }
     if (v === 'report') renderReport();
     window.scrollTo(0, 0);
   }

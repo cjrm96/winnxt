@@ -411,6 +411,7 @@
 .handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
 
 .brand-line strong { letter-spacing: 0.12em; }
+.brand-blurb { max-width: 34rem; margin-bottom: 0.7em; }
 
 /* ---- evidence ----------------------------------------------------------- */
 
@@ -522,9 +523,28 @@
 
 /* ---- motion ------------------------------------------------------------- */
 
-/* Each question arrives; it does not just appear. */
-.question { animation: slide-in 0.34s var(--ease-out) both; }
-#step.is-leaving { opacity: 0; transform: translateX(-10px); transition: all 0.22s var(--ease-out); }
+/* Each question arrives from the direction you travelled, and the one you left
+   goes the other way. Forward and back should not look identical. */
+#step[data-dir="fwd"] .question { animation: step-in-fwd 0.36s var(--ease-out) both; }
+#step[data-dir="back"] .question { animation: step-in-back 0.36s var(--ease-out) both; }
+
+#step.is-leaving-fwd,
+#step.is-leaving-back {
+  transition: opacity 0.17s var(--ease-out), transform 0.17s var(--ease-out);
+  opacity: 0;
+}
+#step.is-leaving-fwd { transform: translateX(-22px); }
+#step.is-leaving-back { transform: translateX(22px); }
+
+@keyframes step-in-fwd {
+  from { opacity: 0; transform: translateX(26px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes step-in-back {
+  from { opacity: 0; transform: translateX(-26px); }
+  to   { opacity: 1; transform: none; }
+}
 
 .option { transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.24s var(--ease-spring); }
 .option:active { transform: scale(0.99); }
@@ -544,7 +564,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .question, #read > *, #plan > *, .option[data-selected] { animation: none; }
-  #step.is-leaving { opacity: 1; transform: none; }
+  #step.is-leaving-fwd, #step.is-leaving-back { opacity: 1; transform: none; transition: none; }
   .cta-link:hover { transform: none; }
 }
 
