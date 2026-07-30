@@ -864,6 +864,47 @@ const base = {
   check('business run gets a business case, not four political ones',
     /Tesla|Pepsi/.test(businessCopy), (businessCopy.match(/.{0,40}(Tesla|Pepsi).{0,40}/) || [''])[0]);
 
+  // Precedent must never argue with the verdict above it. Cases were being
+  // selected by the call and by the quadrant independently and concatenated,
+  // so a report headed "do not publish yet" carried four cases about
+  // disclosing everything at once.
+  const coherence = await page.evaluate(() => {
+    const disclosureNow = ['Johnson & Johnson', 'Richard Nixon', 'Anthony Weiner',
+      'Mitt Romney', 'Maple Leaf Foods', 'BP', 'Bud Light', 'John Kerry'];
+    const run = (over) => {
+      const a = Object.assign({ context: 'political', where: 'facebook-group', spread: 'few',
+        truth: 'true', harm: 'some', fault: 'accidental', proof: 'yes', safety: 'no',
+        daysOut: '60' }, over);
+      const r = window.CrisisLogic.assess(a);
+      return {
+        publish: r.call.publish,
+        who: window.CrisisEvidence.forAssessment(r, a).cases.map(c => c.who)
+      };
+    };
+    const quiet = [
+      run({}),                                                   // hold
+      run({ truth: 'false', harm: 'none', spread: 'many-groups' }), // say nothing
+      run({ context: 'business' }),                              // hold, business
+      run({ truth: 'false', spread: 'few', harm: 'some' })       // hold
+    ];
+    return {
+      quiet,
+      leaked: quiet.filter(x => x.who.some(w => disclosureNow.indexOf(w) !== -1))
+    };
+  });
+  check('a hold or stay-quiet call never cites a disclose-now case',
+    coherence.leaked.length === 0, JSON.stringify(coherence.leaked));
+  check('quiet calls still cite something', coherence.quiet.every(x => x.who.length > 0),
+    JSON.stringify(coherence.quiet.map(x => x.who)));
+
+  const volume = await page.evaluate(() => {
+    const a = { context: 'political', where: 'facebook-group', spread: 'many-groups',
+      truth: 'true', harm: 'serious', fault: 'accidental', proof: 'yes', safety: 'no', daysOut: '60' };
+    return window.CrisisEvidence.forAssessment(window.CrisisLogic.assess(a), a).cases.length;
+  });
+  check('the precedent list stays a set of examples, not an anthology',
+    volume <= 4, String(volume));
+
   // The business case is chosen by the same decision the political ones are.
   const bizCases = await page.evaluate(() => {
     const pick = (over) => {
@@ -894,6 +935,28 @@ const base = {
     bigCases.bizPreventable.some(w => /BP/.test(w)), bigCases.bizPreventable.join(' | '));
   check('campaigns get a national-scale example, not only local ones',
     bigCases.campaign.some(w => /Romney/.test(w)), bigCases.campaign.join(' | '));
+
+  // The vacuum case is about the response, not the underlying decision, and it
+  // must never reach the political context where it would read as a signal
+  // rather than as guidance.
+  const vacuum = await page.evaluate(() => {
+    const pick = (over) => {
+      const a = Object.assign({ where: 'social', spread: 'many-groups', truth: 'true',
+        harm: 'serious', fault: 'accidental', proof: 'yes', safety: 'no', daysOut: '60' }, over);
+      const found = window.CrisisEvidence.forAssessment(window.CrisisLogic.assess(a), a).cases;
+      const one = found.filter(c => /Bud Light/.test(c.who));
+      return { names: found.map(c => c.who), one: JSON.stringify(one) };
+    };
+    return { business: pick({ context: 'business' }), political: pick({ context: 'political' }) };
+  });
+  check('business gets the vacuum case for a true damaging story',
+    vacuum.business.names.some(w => /Bud Light/.test(w)), vacuum.business.names.join(' | '));
+  check('the vacuum case never reaches the political context',
+    !vacuum.political.names.some(w => /Bud Light/.test(w)), vacuum.political.names.join(' | '));
+  check('the vacuum case is written about the response, not the partnership',
+    /two weeks|fortnight/.test(vacuum.business.one) &&
+    !/\btrans\b|\bLGBT|\bwoke\b|\bgender\b/i.test(vacuum.business.one),
+    vacuum.business.one.slice(0, 90));
 
   check('a true damaging one shows a different business case',
     !bizCases.trueDoes.some(w => /Pepsi/.test(w)), bizCases.trueDoes.join(' | '));

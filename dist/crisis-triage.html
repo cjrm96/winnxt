@@ -2329,6 +2329,23 @@ main[data-view="wizard"] .site-foot { display: none; }
         outcome: 'It is taught as the model for owning a preventable failure. Public trust in the brand recovered substantially within roughly a year, in a category where a listeria death toll would normally be terminal.'
       }
     ],
+    // The cost of a vacuum. Written about the response and nothing else: the
+    // decision this tool is about is what a company does in the fortnight
+    // after a story breaks, not what it did before. Business context only, so
+    // a candidate is never handed a culture-war example as though it were
+    // guidance about their own race.
+    businessVacuum: [
+      {
+        who: 'Bud Light',
+        year: 2023,
+        what: 'A sponsored social post triggered a large, organised boycott. The company said almost nothing for about two weeks, then issued a statement that named nobody and took no position. Sales fell sharply and the brand lost the top spot in its category.',
+        lesson: 'Saying nothing is not neutral once a story is moving. The silence gets filled by whoever is loudest, and a statement written to offend nobody ends up reassuring nobody.',
+        background: 'A single paid post in April 2023 became the focus of a sustained boycott campaign amplified by prominent figures. The company had a fortnight in which the story was still about a marketing decision rather than about the company itself.',
+        reaction: 'The boycott held and grew. In the vacuum, both sides wrote the company\'s position for it: one read the silence as endorsement, the other read it as retreat. Retailers reported steep declines within weeks.',
+        handling: 'The eventual statement was short, mentioned nobody by name, and said the company had never intended to be part of a divisive discussion. Two marketing executives were placed on leave. Later executive comments were widely read as distancing. The person at the centre said publicly that the company never contacted her.',
+        outcome: 'The brand lost its position as the best-selling beer in the United States that year and did not recover it in the years that followed. It is the reference case for what a fortnight of silence costs, and for what happens when a statement is engineered to avoid saying anything at all.'
+      }
+    ],
     // The same quadrant, handled the other way.
     businessBotched: [
       {
@@ -2392,61 +2409,65 @@ main[data-view="wizard"] .site-foot { display: none; }
   };
 
   // Which evidence belongs on this particular report.
+  //
+  // Precedent follows the CALL, not the quadrant. Those two come apart more
+  // often than they look: a story can be true and damaging, which argues for
+  // full disclosure, while also being almost unseen, which argues for holding.
+  // Selecting on both and concatenating produced a report headed "do not
+  // publish yet" over four cases about saying everything at once, which is
+  // worse than no precedent at all.
+  //
+  // Citations are different. They justify how the situation was read, so they
+  // still track the quadrant.
   function forAssessment(r, answers) {
     var cites = [];
     var cases = [];
-
     var publish = r.call.publish;
     var q = r.quadrantKey;
+    var business = answers.context === 'business';
 
     if (publish === 'no') {
       cites.push(CITES.streisand, CITES.illusory);
-      cases = cases.concat(CASES.sayNothing);
+      cases = CASES.sayNothing.slice();
     } else if (publish === 'hold') {
       cites.push(CITES.streisand, CITES.timing);
-      cases = cases.concat(CASES.hold);
+      cases = CASES.hold.slice();
     } else if (publish === 'preempt') {
       cites.push(CITES.thunder, CITES.timing);
-      cases = cases.concat(CASES.preempt);
-    }
-
-    if (q === 'true-does') {
+      cases = CASES.preempt.slice();
+    } else if (q === 'true-does') {
       cites.push(CITES.imageRepair, CITES.thunder);
-      cases = cases.concat(CASES.trueDoes);
-      // A national-scale campaign example alongside the local ones, so the
-      // pattern does not look like something that only happens to small races.
-      if (answers.context !== 'business') cases = cases.concat(CASES.campaignTrueDoes);
+      cases = business
+        ? (answers.fault === 'preventable'
+            ? CASES.businessRebuild.concat(CASES.businessBotched)
+            : CASES.businessVacuum.concat(CASES.businessDemo))
+        : CASES.trueDoes.concat(CASES.campaignTrueDoes);
     } else if (q === 'false-does') {
       cites.push(CITES.sandwich, CITES.denialRisk, CITES.correctionsWork);
-      cases = cases.concat(CASES.falseDoes);
+      cases = business ? CASES.businessFalse.slice() : CASES.falseDoes.slice();
     } else if (q === 'true-doesnt') {
-      cases = cases.concat(CASES.trueDoesnt);
+      cases = business ? CASES.businessDemo.slice() : CASES.trueDoesnt.slice();
     } else if (q === 'false-doesnt') {
       cites.push(CITES.illusory);
     }
 
-    cites.push(CITES.scct, CITES.scctTest);
-    cites.push(CITES.cerc);
+    cites.push(CITES.scct, CITES.scctTest, CITES.cerc);
 
-    if (answers.context === 'business') {
-      // Match the business case to the same decision the political ones are
-      // matched to, rather than bolting one on regardless of the outcome.
-      if (q === 'false-does') cases = cases.concat(CASES.businessFalse);
-      else if (q === 'true-does' && answers.fault === 'preventable') {
-        cases = cases.concat(CASES.businessRebuild, CASES.businessBotched);
-      } else cases = cases.concat(CASES.businessDemo);
-    } else if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
-      cases = cases.concat(CASES.localPattern);
+    // Where to answer only matters once answering is the plan.
+    if (publish === 'yes' || publish === 'preempt') {
+      if (r.channel) cases = cases.concat(CASES.channel);
+      if (!business && (answers.where === 'facebook-group' || answers.where === 'neighborhood-app')) {
+        cases = cases.concat(CASES.localPattern);
+      }
     }
-    if (publish !== 'no' && r.channel) {
-      cases = cases.concat(CASES.channel);
-    }
+
     if (answers.safety === 'yes') {
       cites.push(CITES.harassment);
       cases = CASES.safety.concat(cases);
     }
 
-    return { citations: dedupe(cites), cases: dedupe(cases) };
+    // Four is enough to make the pattern. More reads as an anthology.
+    return { citations: dedupe(cites), cases: dedupe(cases).slice(0, 4) };
   }
 
   function dedupe(list) {
