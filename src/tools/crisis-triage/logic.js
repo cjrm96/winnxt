@@ -129,13 +129,10 @@
   function responseCall(a) {
     var q = quadrantKey(a.truth, a.harm);
 
-    if (a.safety === 'yes') {
-      return {
-        verdict: 'Handle the safety part first',
-        line: 'Before anything else: document it, report it, and tell someone. The communications question can wait an hour.',
-        publish: 'later'
-      };
-    }
+    // Safety used to return here and replace the verdict, which meant a
+    // candidate being threatened got a warning instead of a communications
+    // plan. The warning is now an interruption they acknowledge on the way in,
+    // and it still leads the ordered plan below, so the read survives.
 
     if (q === 'false-doesnt') {
       return {

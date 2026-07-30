@@ -81,7 +81,6 @@
       id: 'where', type: 'select', required: true,
       short: 'Where it surfaced',
       label: 'Where did it surface?',
-      help: 'The pattern is almost always a local Facebook group first and everything else second.',
       options: [
         ['facebook-group', 'A local Facebook group'],
         ['neighborhood-app', 'Nextdoor or a neighborhood app'],
@@ -448,7 +447,11 @@
     show('intro', v === 'intro');
     show('wizard', v === 'wizard');
     show('report', v === 'report');
-    if (v !== 'report') hideVerdictBar();
+    if (v !== 'report') {
+      hideVerdictBar();
+      var dlg = document.getElementById('safety-modal');
+      if (dlg && dlg.open && dlg.close) dlg.close();
+    }
     if (v === 'wizard') { cancelPending(); renderStep('fwd'); }
     if (v === 'report') renderReport();
     window.scrollTo(0, 0);
@@ -566,6 +569,7 @@
     renderSources(r);
     renderHandoff();
     setupVerdictBar(r);    // after the hero exists, since that is what gets observed
+    maybeWarnAboutSafety();
   }
 
   // The report runs to several screens. Once the verdict scrolls away the
@@ -596,6 +600,20 @@
     }, { rootMargin: '-8px 0px 0px 0px', threshold: 0 });
 
     verdictObserver.observe(hero);
+  }
+
+  // Shown once on arrival at the report, then dismissed. The same guidance
+  // stays in the report body, so acknowledging it does not lose it.
+  function maybeWarnAboutSafety() {
+    var dlg = document.getElementById('safety-modal');
+    if (!dlg) return;
+    if (state.answers.safety !== 'yes') {
+      if (dlg.open) dlg.close();
+      return;
+    }
+    if (dlg.open) return;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');       // very old browsers get it inline
   }
 
   function hideVerdictBar() {
@@ -834,6 +852,13 @@
       document.getElementById(id).addEventListener('click', function () {
         goto('wizard');
       });
+    });
+
+    document.getElementById('btn-safety-ack').addEventListener('click', function () {
+      var dlg = document.getElementById('safety-modal');
+      if (dlg.close) dlg.close();
+      else dlg.removeAttribute('open');
+      focusEl(document.getElementById('report-heading'));
     });
 
     document.getElementById('verdict-bar').addEventListener('click', function () {

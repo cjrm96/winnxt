@@ -10,8 +10,8 @@
 
 <header class="masthead">
   <div class="masthead-meta mono no-print">
-    <span><span class="blink"></span>Crisis triage / v1</span>
-    <span class="masthead-meta-right">A WINNXT tool</span>
+    <span><span class="blink"></span>Crisis triage</span>
+    <span class="masthead-meta-right">A WINNXT Studios tool</span>
   </div>
   <img data-inline-svg class="logo-lockup" src="../../shared/brand/winnxt-lockup.svg" alt="WINNXT, securing your next win">
 </header>
@@ -84,6 +84,20 @@
   </nav>
   <p class="note step-error" id="step-error" hidden>Pick an answer to keep going.</p>
 </section>
+
+<!-- Safety is an interruption, not a substitute for the report. -->
+<dialog id="safety-modal" class="safety-modal no-print" aria-labelledby="safety-modal-title">
+  <p class="eyebrow">Stop</p>
+  <h2 id="safety-modal-title">Safety comes before messaging</h2>
+  <p>You said someone is unsafe. That is not a communications problem and this tool cannot help you with it.</p>
+  <ul>
+    <li>Document everything now. Screenshots with dates, messages, names.</li>
+    <li>Report it to law enforcement.</li>
+    <li>Tell your family, and whoever runs your events.</li>
+  </ul>
+  <p class="note">Threats against local officials are common, and most of them come from people who are not physically present. That does not make them harmless. This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.</p>
+  <button type="button" id="btn-safety-ack" class="has-arrow">I understand, show my read</button>
+</dialog>
 
 <!-- The report. -->
 <section id="report" class="stage-panel" hidden>

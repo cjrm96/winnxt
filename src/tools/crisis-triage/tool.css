@@ -684,6 +684,28 @@ main[data-view="wizard"] .site-foot { display: none; }
 .sources li { margin-bottom: 0.5em; }
 .source-ref { display: block; font-size: 0.82rem; line-height: 1.5; color: var(--ink-soft); }
 
+/* ---- safety interstitial ------------------------------------------------ */
+
+.safety-modal {
+  width: min(34rem, calc(100vw - 2rem));
+  padding: var(--space-l);
+  border: 1px solid var(--line-strong);
+  border-top: 3px solid var(--danger);
+  background: var(--bg);
+  color: var(--ink-soft);
+}
+
+.safety-modal::backdrop {
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.safety-modal .eyebrow { color: var(--danger); }
+.safety-modal .eyebrow::before { background: var(--danger); }
+.safety-modal h2 { color: var(--ink); margin-bottom: var(--space); }
+.safety-modal ul { padding-left: 1.2em; margin-bottom: var(--space); }
+.safety-modal li { color: var(--ink); margin-bottom: 0.5em; }
+.safety-modal .note { margin-bottom: var(--space-l); }
+
 /* ---- sticky verdict ----------------------------------------------------- */
 
 /* Seven screens of report. Once the hero is gone the answer has to come back. */

@@ -106,10 +106,14 @@ const base = {
 
   // --- safety -------------------------------------------------------------
 
+  // Safety used to replace the verdict, so a candidate being threatened got a
+  // warning instead of a communications plan. It is an interruption now.
   r = await assess({ safety: 'yes' });
-  check('safety comes before messaging', /safety/i.test(r.call.verdict), r.call.verdict);
+  check('safety no longer suppresses the communications read',
+    !/safety/i.test(r.call.verdict), r.call.verdict);
+  check('the read is still a real call', r.call.verdict.length > 0 && !!r.call.line, r.call.verdict);
   check('safety escalates risk', r.riskKey === 'high' || r.riskKey === 'extreme', r.riskKey);
-  check('safety step is first in the plan', /Document everything/.test(r.sequence[0].what), r.sequence[0].what);
+  check('safety step is still first in the plan', /Document everything/.test(r.sequence[0].what), r.sequence[0].what);
 
   // --- donts --------------------------------------------------------------
 
@@ -257,6 +261,9 @@ const base = {
   await page.click('#btn-start');
   await page.waitForTimeout(400);
   check('start opens the wizard', await page.locator('#wizard').isVisible());
+  check('the masthead credits WINNXT Studios',
+    /A WINNXT Studios tool/.test(await page.locator('.masthead').textContent()),
+    await page.locator('.masthead').textContent());
   check('the first question is the political-or-business filter',
     /what kind of crisis/i.test(await page.locator('.q-label').textContent()),
     await page.locator('.q-label').textContent());
@@ -649,6 +656,44 @@ const base = {
   await page.waitForTimeout(300);
   await runWizard(page, {});
 
+  // --- the safety interstitial --------------------------------------------
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, { safety: 'no' });
+  check('no interruption when nobody is unsafe',
+    !(await page.evaluate(() => document.getElementById('safety-modal').open)));
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, { safety: 'yes' });
+  check('an unsafe answer interrupts on arrival',
+    await page.evaluate(() => document.getElementById('safety-modal').open));
+  const modalText = await page.locator('#safety-modal').textContent();
+  check('the interruption says to document and report',
+    /Document everything/.test(modalText) && /law enforcement/.test(modalText));
+  check('the interruption disclaims legal advice', /not legal advice/.test(modalText));
+
+  // The report is underneath, complete, not replaced.
+  await page.click('#btn-safety-ack');
+  await page.waitForTimeout(400);
+  check('acknowledging closes the interruption',
+    !(await page.evaluate(() => document.getElementById('safety-modal').open)));
+  check('the communications read is underneath it',
+    await page.locator('.verdict').count() === 1);
+  const safeVerdict = await page.locator('.verdict').textContent();
+  check('the read is a real call, not a safety warning',
+    !/safety/i.test(safeVerdict), safeVerdict);
+  check('the plan survived', await page.locator('.sequence li').count() >= 6);
+  check('the safety guidance also stays in the report',
+    await page.locator('.safety').count() === 1);
+  check('the safety step leads the plan',
+    /Document everything/.test(await page.locator('.sequence li').first().textContent()));
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
+
   // --- the sticky verdict -------------------------------------------------
   //
   // The report runs to several screens. The answer has to stay reachable.
@@ -687,9 +732,11 @@ const base = {
 
   // The brand sets section labels in flame red with a 40px rule, so red here
   // is correct. What still matters is that they are rationed.
-  const eyebrowColour = await page.locator('.eyebrow').first().evaluate(e => getComputedStyle(e).color);
+  // Scoped to the report: the safety interstitial deliberately uses the danger
+  // red rather than the brand flame.
+  const eyebrowColour = await page.locator('#plan .eyebrow').first().evaluate(e => getComputedStyle(e).color);
   check('eyebrows use the brand flame', eyebrowColour === 'rgb(201, 48, 44)', eyebrowColour);
-  const rule = await page.locator('.eyebrow').first().evaluate(e =>
+  const rule = await page.locator('#plan .eyebrow').first().evaluate(e =>
     getComputedStyle(e, '::before').backgroundColor + ' ' + getComputedStyle(e, '::before').width);
   check('eyebrows carry the brand rule', /rgb\(201, 48, 44\) 40px/.test(rule), rule);
   const eyebrowCount = await page.locator('#report .eyebrow').count();
