@@ -16,7 +16,7 @@
   /* text */
   --ink: #15181c;          /* 16.4:1 on paper, 17.3:1 on surface */
   --ink-soft: #55606c;     /* 6.6:1 on paper, 7.0:1 on surface  */
-  --ink-faint: #6c7783;    /* 4.6:1 on paper — smallest text still passes AA */
+  --ink-faint: #606b77;    /* 5.2:1 on paper, 4.8:1 on the softest fill */
 
   /* surfaces */
   --bg: #fbfaf8;           /* the page: warm paper */

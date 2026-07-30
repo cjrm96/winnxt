@@ -27,7 +27,13 @@ header {
 }
 
 .privacy { border-left-color: var(--ok); }
-.first { border-left-color: var(--warn); color: var(--ink); }
+.first {
+  border-left-color: var(--warn);
+  color: var(--ink);
+  background: var(--warn-soft);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  padding: 0.6em 0.9em 0.6em 0.9em;
+}
 
 /* ---- storage panel ------------------------------------------------------ */
 
@@ -103,6 +109,19 @@ header {
 .question .radio:hover { background: var(--bg-soft); }
 .question .radio:has(input:checked) { background: var(--accent-soft); font-weight: 600; }
 
+/* On a phone the hanging indent costs more width than it buys in clarity. */
+@media (max-width: 33.99rem) {
+  .help,
+  .question > select,
+  .question > textarea,
+  .question > input,
+  .question .radio { margin-left: 0; }
+  .question > select,
+  .question > textarea,
+  .question > input { width: 100%; }
+  .question .radio { padding-left: 0.5em; }
+}
+
 /* ---- the read ----------------------------------------------------------- */
 
 .read.incomplete {
@@ -174,6 +193,7 @@ header {
 }
 
 .read-row h3 { margin: 0 0 0.35em; }
+.read-row h3 + .note { margin-bottom: 0.8em; }
 
 .headline {
   font-size: 1.14rem;
@@ -264,7 +284,7 @@ header {
   content: counter(step);
   position: absolute;
   left: 0;
-  top: 0.05em;
+  top: -0.05em;
   width: 1.65rem;
   height: 1.65rem;
   display: flex;
