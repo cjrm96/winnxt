@@ -178,6 +178,17 @@
 
 .optional { margin-top: var(--space-s); font-size: 0.85rem; color: var(--ink-faint); }
 
+/* Caveat under a field — quieter than the help text above it. */
+.q-note {
+  margin-top: var(--space-s);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  max-width: 30rem;
+  border-left: 2px solid var(--line-strong);
+  padding-left: 0.7em;
+}
+
 .stepnav {
   display: flex;
   gap: 0.6rem;
@@ -187,6 +198,15 @@
 }
 
 .stepnav #btn-next { margin-left: auto; min-width: 9rem; }
+.stepnav #btn-next[hidden] { display: none; }
+
+.step-hint {
+  margin: 0 0 0 auto;
+  align-self: center;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.step-hint[hidden] { display: none; }
 .step-error { color: var(--danger); font-weight: 600; margin-top: var(--space-s); }
 
 /* ---- report ------------------------------------------------------------- */

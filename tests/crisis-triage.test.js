@@ -215,6 +215,10 @@ const base = {
   check('start opens the wizard', await page.locator('#wizard').isVisible());
   check('one question at a time', await page.locator('.question').count() === 1, 
     'got ' + await page.locator('.question').count());
+  const q1 = await page.locator('.question').textContent();
+  check('first question suggests dictation', /microphone/i.test(q1));
+  check('dictation suggestion is caveated', /send the audio off/i.test(q1));
+
   check('progress starts at question 1',
     /Question 1/.test(await page.locator('#progress-label').textContent()));
   check('progress knows the total',
@@ -233,6 +237,35 @@ const base = {
   await page.click('#btn-next');
   await page.waitForTimeout(400);
   check('answering clears the error', await page.locator('#step-error').isHidden());
+
+  // --- Continue only appears when it does something ------------------------
+
+  check('continue is hidden on an unanswered radio question',
+    await page.locator('#btn-next').isHidden());
+  check('a hint explains what to do instead',
+    await page.locator('#step-hint').isVisible());
+  check('back is still available with continue hidden',
+    await page.locator('#btn-back').isVisible());
+
+  // Keyboard users select with arrow keys, which must NOT auto-advance — so
+  // Continue has to appear for them.
+  await page.locator('#spread-few').focus();
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(500);
+  check('arrow keys do not auto-advance',
+    /How far has it actually gone/.test(await page.locator('.q-label').textContent()),
+    await page.locator('.q-label').textContent());
+  check('continue appears once an answer exists',
+    await page.locator('#btn-next').isVisible());
+  check('the hint goes away once answered',
+    await page.locator('#step-hint').isHidden());
+  check('continue works for keyboard users', await (async () => {
+    await page.click('#btn-next');
+    await page.waitForTimeout(400);
+    return /Is it true/.test(await page.locator('.q-label').textContent());
+  })());
+  await page.click('#btn-back');
+  await page.waitForTimeout(400);
 
   // Clicking a radio advances on its own.
   await page.check('#spread-many-groups');

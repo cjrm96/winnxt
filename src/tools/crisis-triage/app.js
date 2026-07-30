@@ -9,7 +9,8 @@
       id: 'what', type: 'textarea', required: false,
       short: 'What happened',
       label: 'What happened?',
-      help: 'Write it the way you would say it out loud. This never leaves your browser.',
+      help: "Write it the way you'd say it out loud. Or don't type at all — tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
+      note: "Dictation belongs to your phone or computer, not to this file, and some of them send the audio off to be transcribed. If that bothers you, type it instead.",
       placeholder: 'A post from 2016 is going around in a local parents group.'
     },
     {
@@ -194,10 +195,17 @@
           state.answers[q.id] = o[0];
           markSelected(opts);
           clearError();
+          updateNav(q);
         });
-        // Advance on an actual click. Keyboard users move through the group
-        // with arrow keys, so auto-advancing on change would trap them.
-        input.addEventListener('click', function () { queueAdvance(); });
+        // Advance on a real pointer click only. Arrow-key selection in a radio
+        // group also fires a click event, so the event has to be interrogated:
+        // detail is 0 for keyboard and programmatic activation, non-zero for an
+        // actual press. Without this, arrow-keying through the options skips
+        // you past them one at a time.
+        input.addEventListener('click', function (e) {
+          if (!e.detail) return;
+          queueAdvance();
+        });
         lab.appendChild(input);
         lab.appendChild(el('span', { class: 'option-text', text: o[1] }));
         opts.appendChild(lab);
@@ -236,6 +244,7 @@
         });
       }
       card.appendChild(field);
+      if (q.note) card.appendChild(el('p', { class: 'q-note', text: q.note }));
       if (!q.required) card.appendChild(el('p', { class: 'optional', text: 'Optional — you can skip this.' }));
     }
 
@@ -244,6 +253,24 @@
     document.getElementById('btn-back').textContent = step === 0 ? 'Back to start' : 'Back';
     document.getElementById('btn-next').textContent =
       step === list.length - 1 ? 'See my read' : 'Continue';
+    updateNav(q);
+  }
+
+  // Choosing an option with the mouse advances on its own, so Continue would
+  // just be a button that does nothing. It stays hidden on those questions
+  // until there is an answer to move on from — which is the case for keyboard
+  // users, who move through a radio group with arrow keys and would otherwise
+  // be stranded, and for anyone who came back to change something.
+  function updateNav(q) {
+    var btn = document.getElementById('btn-next');
+    var last = step === steps().length - 1;
+    var hide = q.type === 'radio' && !val(q.id) && !last;
+    if (hide) btn.setAttribute('hidden', '');
+    else btn.removeAttribute('hidden');
+
+    var hint = document.getElementById('step-hint');
+    if (hide) hint.removeAttribute('hidden');
+    else hint.setAttribute('hidden', '');
   }
 
   function markSelected(opts) {
