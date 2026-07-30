@@ -6,12 +6,17 @@
 /* WINNXT design tokens + base styles. System fonts only — no webfonts, ever. */
 
 /* ---------------------------------------------------------------------------
-   PLACEHOLDER PALETTE — pending the real WINNXT brand values.
+   WINNXT PALETTE — taken from the logo: black wordmark, crimson torch.
    Every colour in every WINNXT tool is defined in this block and its dark-mode
    counterpart below. Nothing else in any stylesheet hardcodes a colour, so the
    entire palette can be swapped by editing these two blocks and nothing else.
-   Current direction: near-monochrome graphite ink on warm paper, with a single
-   deep teal accent. Deliberately non-partisan — no party colours, no flag.
+
+   Contrast ratios below were computed, not estimated. The lowest value in the
+   system is 4.6:1, above the 4.5:1 AA threshold for normal text.
+
+   Note on red: it is the brand colour, so it carries brand and interface
+   weight. --danger is a deeper red so warnings stay distinguishable from
+   ordinary accent, and amber/green remain reserved for caution and safety.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -19,34 +24,35 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* text */
-  --ink: #15181c;          /* 16.4:1 on paper, 17.3:1 on surface */
-  --ink-soft: #55606c;     /* 6.6:1 on paper, 7.0:1 on surface  */
-  --ink-faint: #606b77;    /* 5.2:1 on paper, 4.8:1 on the softest fill */
+  --ink: #111315;          /* 17.9:1 on paper */
+  --ink-soft: #5A6169;     /* 6.0:1 on paper  */
+  --ink-faint: #676E76;    /* 4.9:1 on paper — smallest text still passes AA */
 
   /* surfaces */
-  --bg: #fbfaf8;           /* the page: warm paper */
-  --surface: #ffffff;      /* cards sit above the page */
-  --bg-soft: #f2f1ee;      /* recessed fills, code blocks, tracks */
-  --line: #e2e0db;         /* hairline */
-  --line-strong: #c8c5bd;  /* emphasised hairline */
+  --bg: #FBFAF9;           /* the page */
+  --surface: #FFFFFF;      /* cards sit above the page */
+  --bg-soft: #F4F2F0;      /* recessed fills, code blocks, tracks */
+  --line: #E4E1DE;         /* hairline */
+  --line-strong: #C9C4BF;  /* emphasised hairline */
 
-  /* accent */
-  --accent: #0d5b53;       /* 7.3:1 on surface */
-  --accent-ink: #ffffff;
-  --accent-soft: #eaf2f0;  /* tinted fill behind accent content */
+  /* accent — WINNXT crimson */
+  --accent: #C62B31;       /* 5.5:1 on white */
+  --accent-deep: #A81E24;  /* 7.3:1 — small text and links */
+  --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
+  --accent-soft: #FDF0EF;
 
   /* semantic */
-  --danger: #9d1f27;
-  --danger-soft: #fbeceb;
-  --warn: #7b4e00;
-  --warn-soft: #fbf1de;
-  --ok: #14634a;
-  --ok-soft: #e9f2ee;
+  --danger: #93191F;
+  --danger-soft: #FBEBEA;
+  --warn: #7B4E00;
+  --warn-soft: #FBF1DE;
+  --ok: #14634A;
+  --ok-soft: #E9F2EE;
 
-  --focus: #0d5b53;
-  --focus-ring: rgba(13, 91, 83, 0.28);
-  --shadow: rgba(21, 24, 28, 0.06);
-  --shadow-strong: rgba(21, 24, 28, 0.10);
+  --focus: #C62B31;
+  --focus-ring: rgba(198, 43, 49, 0.26);
+  --shadow: rgba(17, 19, 21, 0.06);
+  --shadow-strong: rgba(17, 19, 21, 0.11);
 
   /* rhythm */
   --space: 1rem;
@@ -65,31 +71,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #edf0f3;          /* 15.1:1 on page */
-    --ink-soft: #a7b1bc;     /* 7.5:1  */
-    --ink-faint: #8c96a1;    /* 5.3:1  */
+    --ink: #EDEFF2;          /* 16.6:1 on page */
+    --ink-soft: #A6ADB5;     /* 8.4:1  */
+    --ink-faint: #8B939B;    /* 6.1:1  */
 
-    --bg: #101317;
-    --surface: #181c21;
-    --bg-soft: #1f242b;
-    --line: #2c323a;
-    --line-strong: #414a55;
+    --bg: #0E1012;
+    --surface: #16191C;
+    --bg-soft: #1E2226;
+    --line: #2B3036;
+    --line-strong: #414850;
 
-    --accent: #5cbdb0;       /* 8.0:1 on surface */
-    --accent-ink: #0a1114;
-    --accent-soft: #17282a;
+    --accent: #F0777A;       /* 6.4:1 on surface */
+    --accent-deep: #F49B9D;
+    --accent-ink: #14090A;
+    --accent-soft: #2A1618;
 
-    --danger: #f0929a;
-    --danger-soft: #2c1a1c;
-    --warn: #e0b264;
-    --warn-soft: #2b2419;
-    --ok: #6fcba4;
-    --ok-soft: #16261f;
+    --danger: #F0777A;
+    --danger-soft: #2C1618;
+    --warn: #E0B264;
+    --warn-soft: #2B2419;
+    --ok: #6FCBA4;
+    --ok-soft: #16261F;
 
-    --focus: #5cbdb0;
-    --focus-ring: rgba(92, 189, 176, 0.32);
-    --shadow: rgba(0, 0, 0, 0.4);
-    --shadow-strong: rgba(0, 0, 0, 0.55);
+    --focus: #F0777A;
+    --focus-ring: rgba(240, 119, 122, 0.34);
+    --shadow: rgba(0, 0, 0, 0.45);
+    --shadow-strong: rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -205,7 +212,7 @@ select {
   appearance: none;
   -webkit-appearance: none;
   /* inline SVG chevron, data: URI only — no remote assets */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2355606c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6169' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85em center;
   padding-right: 2.4em;
@@ -213,7 +220,7 @@ select {
 
 @media (prefers-color-scheme: dark) {
   select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23a7b1bc' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23A6ADB5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
 
@@ -324,6 +331,51 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   .card { padding: var(--space-m) var(--space-l); }
 }
 
+/* ---- shared components -------------------------------------------------- */
+
+/* Small-caps label above a heading. Carries hierarchy without extra weight. */
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--accent-deep);
+  margin: 0 0 var(--space-xs);
+}
+
+.callout {
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  padding: var(--space-s) var(--space);
+  margin-bottom: var(--space-s);
+}
+
+.callout p { font-size: 0.95rem; }
+.callout-warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout-ok { border-left-color: var(--ok); background: var(--ok-soft); }
+.callout-danger { border-left-color: var(--danger); background: var(--danger-soft); }
+
+/* A button that reads as a link — used for inline "change this" affordances. */
+button.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  border-radius: 3px;
+}
+button.link:hover { opacity: 1; color: var(--accent); }
+
+.btn-lg {
+  font-size: 1.05rem;
+  padding: 0.75em 1.9em;
+  min-height: 3em;
+}
+
 /* ---- print -------------------------------------------------------------- */
 
 @media print {
@@ -337,6 +389,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
     --surface: #fff;
     --bg-soft: #fff;
     --accent: #000;
+    --accent-deep: #000;
     --accent-soft: #fff;
     --danger: #000;
     --danger-soft: #fff;
@@ -365,233 +418,293 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 </style>
 <style>
-/* Crisis triage — tool-specific styles. All colour comes from the tokens in
-   shared/styles.css. Nothing here hardcodes a colour. */
+/* Crisis triage — step-by-step wizard, then the report.
+   All colour comes from the tokens in shared/styles.css. Nothing here
+   hardcodes a colour. */
 
-/* ---- header ------------------------------------------------------------- */
+/* ---- masthead ----------------------------------------------------------- */
 
-header {
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  flex-wrap: wrap;
   margin-bottom: var(--space-l);
-  padding-bottom: var(--space-m);
-  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-s);
+  border-bottom: 2px solid var(--ink);
 }
 
-.lede {
-  font-size: 1.13rem;
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Stand-in for the torch until the real logo is embedded as a data URI. */
+.mark {
+  width: 0.5rem;
+  height: 1.15rem;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+/* ---- stage -------------------------------------------------------------- */
+
+.stage-panel[hidden] { display: none; }
+
+#intro .lede {
+  font-size: 1.15rem;
   line-height: 1.45;
   letter-spacing: -0.014em;
   color: var(--ink-soft);
-  max-width: 34rem;
+  max-width: 33rem;
   margin-bottom: var(--space-m);
 }
 
-.privacy,
-.first {
-  border-left: 2px solid var(--line-strong);
-  padding: 0.1em 0 0.1em 0.9em;
-  margin-bottom: 0.7em;
-  max-width: 34rem;
-}
+#intro .btn-lg { margin-top: var(--space-s); }
+#resume-note { margin-top: var(--space-s); }
 
-.privacy { border-left-color: var(--ok); }
-.first {
-  border-left-color: var(--warn);
-  color: var(--ink);
-  background: var(--warn-soft);
-  border-radius: 0 var(--radius-s) var(--radius-s) 0;
-  padding: 0.6em 0.9em 0.6em 0.9em;
-}
+/* ---- progress ----------------------------------------------------------- */
 
-/* ---- storage panel ------------------------------------------------------ */
+.progress { margin-bottom: var(--space-l); }
 
-#storage-panel { background: var(--bg-soft); box-shadow: none; }
-#storage-panel #storage-note { margin-bottom: var(--space); }
-
-.checkbox, .radio {
+.progress-meta {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6em;
-  font-weight: 400;
-  margin-bottom: 0;
-  cursor: pointer;
-}
-
-.checkbox { font-weight: 600; margin-bottom: 0.5em; }
-.checkbox input, .radio input { margin-top: 0.34em; }
-
-/* ---- questions ---------------------------------------------------------- */
-
-#questions { counter-reset: q; }
-
-.question { position: relative; }
-
-.question fieldset { border: 0; padding: 0; margin: 0; }
-
-.question legend,
-.question > label[for] {
-  display: block;
-  counter-increment: q;
-  font-weight: 700;
-  font-size: 1.08rem;
-  line-height: 1.3;
-  letter-spacing: -0.018em;
-  padding: 0;
-  margin-bottom: 0.25em;
-}
-
-.question legend::before,
-.question > label[for]::before {
-  content: counter(q);
-  display: inline-block;
-  min-width: 1.55em;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink-faint);
-}
-
-.help {
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0 0 0.9em 2.05em;
-  max-width: 30rem;
-}
-
-.question > select,
-.question > textarea,
-.question > input {
-  margin-left: 2.05em;
-  width: calc(100% - 2.05em);
-}
-
-.question .radio {
-  padding: 0.5em 0.75em 0.5em 0.7em;
-  margin-left: 2.05em;
-  border-radius: var(--radius-s);
-  transition: background-color 0.12s ease;
-}
-
-.question .radio:hover { background: var(--bg-soft); }
-.question .radio:has(input:checked) { background: var(--accent-soft); font-weight: 600; }
-
-/* On a phone the hanging indent costs more width than it buys in clarity. */
-@media (max-width: 33.99rem) {
-  .help,
-  .question > select,
-  .question > textarea,
-  .question > input,
-  .question .radio { margin-left: 0; }
-  .question > select,
-  .question > textarea,
-  .question > input { width: 100%; }
-  .question .radio { padding-left: 0.5em; }
-}
-
-/* ---- the read ----------------------------------------------------------- */
-
-.read.incomplete {
-  color: var(--ink-soft);
-  background: var(--bg-soft);
-  box-shadow: none;
-  border-style: dashed;
-}
-
-.read.incomplete h2 { color: var(--ink); }
-.read.incomplete ul { margin-bottom: 0; }
-
-.read.risk-high { border-top: 3px solid var(--warn); }
-.read.risk-extreme { border-top: 3px solid var(--danger); }
-
-.read > h2, .plan > h2 {
+  align-items: baseline;
+  gap: 0.4em;
+  margin-bottom: var(--space-xs);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.11em;
   color: var(--ink-faint);
-  margin: 0 0 var(--space-s);
 }
 
-.read.incomplete > h2 { color: var(--ink-faint); }
+#progress-label { color: var(--accent-deep); }
 
-/* the verdict is the one thing that must land instantly */
-
-.verdict-block {
-  border: 0;
-  border-radius: var(--radius-s);
-  background: var(--accent-soft);
-  padding: var(--space-m);
-  margin: 0 0 var(--space-l);
+.progress-track {
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-soft);
+  overflow: hidden;
 }
 
-.verdict {
-  font-size: clamp(1.5rem, 1.15rem + 1.5vw, 2rem);
-  line-height: 1.1;
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+/* ---- the question ------------------------------------------------------- */
+
+#step { min-height: 17rem; }
+
+.question fieldset { border: 0; padding: 0; margin: 0; }
+
+.q-label {
+  display: block;
+  font-size: clamp(1.4rem, 1.15rem + 1vw, 1.85rem);
   font-weight: 700;
-  letter-spacing: -0.032em;
-  margin-bottom: 0.3em;
-  color: var(--accent);
+  line-height: 1.18;
+  letter-spacing: -0.028em;
   text-wrap: balance;
+  padding: 0;
+  margin: 0 0 var(--space-s);
+  max-width: 26rem;
 }
 
-.verdict-block p:last-child {
-  color: var(--ink);
-  max-width: 32rem;
-  margin-bottom: 0;
+.q-label:focus { outline: none; }
+
+.help {
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 0 0 var(--space-m);
+  max-width: 30rem;
 }
 
-.read-row {
+.options { display: grid; gap: 0.5rem; }
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  margin: 0;
+  padding: 0.85em 1em;
+  font-weight: 400;
+  line-height: 1.35;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.option input { margin-top: 0.22em; }
+.option:hover { border-color: var(--line-strong); background: var(--bg-soft); }
+
+.option[data-selected] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.option:has(input:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.optional { margin-top: var(--space-s); font-size: 0.85rem; color: var(--ink-faint); }
+
+.stepnav {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: var(--space-l);
   padding-top: var(--space-m);
   border-top: 1px solid var(--line);
-  margin-bottom: var(--space-m);
 }
 
-.read-row:last-child { margin-bottom: 0; }
+.stepnav #btn-next { margin-left: auto; min-width: 9rem; }
+.step-error { color: var(--danger); font-weight: 600; margin-top: var(--space-s); }
 
-.read-row h3,
-.grid-row dt,
-.sequence .when {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
+/* ---- report ------------------------------------------------------------- */
+
+.report-block {
+  padding: var(--space-m) 0;
+  border-top: 1px solid var(--line);
 }
 
-.read-row h3 { margin: 0 0 0.35em; }
-.read-row h3 + .note { margin-bottom: 0.8em; }
-
-.headline {
-  font-size: 1.14rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  margin-bottom: 0.1em;
-}
-
-.posture {
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 0.4em;
-}
-
-.read-row p:not(.headline):not(.posture):not(.note) {
+.report-block:first-child { border-top: 0; padding-top: 0; }
+.report-block h2 { margin-top: 0; }
+.report-block > p:not(.eyebrow):not(.note):not(.posture) {
   color: var(--ink-soft);
   max-width: 34rem;
 }
 
-.read-row ol { margin: 0.5em 0 0.8em; }
-.read-row ol li { margin-bottom: 0.4em; }
+/* the hero — the one thing that must land instantly */
 
-.grid-row { margin: 0.7em 0 0; }
-.grid-row dt { margin-top: 0.9em; }
+.hero {
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  padding: var(--space-l) var(--space-m);
+  margin-bottom: var(--space-m);
+  text-align: center;
+}
+
+.verdict {
+  font-size: clamp(2rem, 1.4rem + 3vw, 3.1rem);
+  line-height: 1.04;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--accent-deep);
+  margin: 0 0 var(--space-s);
+  text-wrap: balance;
+}
+
+.hero .verdict-line {
+  font-size: 1.05rem;
+  color: var(--ink);
+  max-width: 30rem;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.hero.risk-extreme, .hero.risk-high { box-shadow: inset 0 3px 0 var(--danger); }
+
+/* at-a-glance tiles */
+
+.tiles {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr;
+  margin-bottom: var(--space-m);
+}
+
+@media (min-width: 34rem) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+}
+
+.tile {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  padding: var(--space-s) var(--space);
+}
+
+.tile-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  margin: 0 0 0.2em;
+}
+
+.tile-value {
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* risk meter */
+
+.meter {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin: var(--space-s) 0 var(--space-m);
+}
+
+.meter-seg {
+  padding: 0.45em 0.3em;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  background: var(--bg-soft);
+  border-radius: 3px;
+}
+
+.meter-seg.is-on { background: var(--accent); color: var(--accent-ink); }
+
+.grid-row { margin: 0; }
+.grid-row dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin-top: 0.85em;
+}
 .grid-row dd { margin: 0.05em 0 0; color: var(--ink-soft); }
 
 @media (min-width: 34rem) {
   .grid-row {
     display: grid;
-    grid-template-columns: 7.5rem 1fr;
+    grid-template-columns: 7rem 1fr;
     column-gap: var(--space);
     row-gap: 0.5em;
   }
@@ -599,7 +712,12 @@ header {
   .grid-row dd { margin: 0; }
 }
 
-/* ---- safety ------------------------------------------------------------- */
+.posture { font-weight: 600; color: var(--accent-deep); margin-bottom: 0.4em; }
+
+.skeleton { margin: 0.4em 0 0.8em; padding-left: 1.3em; }
+.skeleton li { margin-bottom: 0.4em; }
+
+/* safety */
 
 .safety {
   border: 0;
@@ -607,29 +725,14 @@ header {
   border-radius: 0 var(--radius-s) var(--radius-s) 0;
   background: var(--danger-soft);
   padding: var(--space) var(--space-m);
-  margin: 0 0 var(--space-l);
+  margin-bottom: var(--space-m);
 }
 
-.safety h2 {
-  margin-top: 0;
-  font-size: 1.05rem;
-  letter-spacing: -0.018em;
-  color: var(--danger);
-}
-
+.safety .eyebrow, .safety h2 { color: var(--danger); }
+.safety h2 { font-size: 1.1rem; }
 .safety p { max-width: 33rem; }
 
-/* ---- the plan ----------------------------------------------------------- */
-
-.plan h2 + .sequence { margin-top: var(--space-s); }
-
-.plan > h2 + * { margin-top: 0; }
-
-.plan > h2:not(:first-child) {
-  margin-top: var(--space-l);
-  padding-top: var(--space-m);
-  border-top: 1px solid var(--line);
-}
+/* the plan */
 
 .sequence {
   list-style: none;
@@ -641,97 +744,198 @@ header {
 .sequence li {
   counter-increment: step;
   position: relative;
-  padding-left: 2.4rem;
+  padding-left: 2.5rem;
   margin-bottom: var(--space);
 }
-
-.sequence li:last-child { margin-bottom: 0; }
 
 .sequence li::before {
   content: counter(step);
   position: absolute;
   left: 0;
-  top: -0.05em;
-  width: 1.65rem;
-  height: 1.65rem;
+  top: 0;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.sequence .when { display: block; margin-bottom: 0.05em; }
+.sequence .when {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+}
 
 .donts { padding-left: 1.15em; }
-.donts li { margin-bottom: 0.6em; color: var(--ink); }
+.donts li { margin-bottom: 0.6em; }
 .donts li::marker { color: var(--danger); }
+
+/* what you told it */
+
+.summary-list { margin: 0; }
+.summary-list dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin-top: 0.8em;
+}
+.summary-list dd {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  flex-wrap: wrap;
+  margin: 0.1em 0 0;
+}
+.summary-value { color: var(--ink); }
+
+@media (min-width: 34rem) {
+  .summary-list {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    column-gap: var(--space);
+    row-gap: 0.45em;
+  }
+  .summary-list dt { margin-top: 0.15em; }
+  .summary-list dd { margin: 0; }
+}
 
 /* ---- footer chrome ------------------------------------------------------ */
 
+.site-foot { margin-top: var(--space-xl); }
+#storage-panel { background: var(--bg-soft); box-shadow: none; }
+#storage-panel #storage-note { margin-bottom: var(--space); }
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  cursor: pointer;
+}
+.checkbox input { margin-top: 0.34em; }
+
 .actions button { margin: 0 0.5em 0.5em 0; }
 .actions button:last-child { margin-right: 0; }
-
-.handoff h2, .actions h2 { margin-top: 0; }
 .handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
 
+.brand-line strong { letter-spacing: 0.12em; }
+
+/* ---- print -------------------------------------------------------------- */
+
 @media print {
-  header { border-bottom: 1px solid var(--line); }
-  .question { break-inside: avoid; }
-  .read-row, .safety, .verdict-block { break-inside: avoid; }
-  .verdict-block { border: 1px solid var(--line); }
-  .safety { border-left: 3px solid var(--line); }
-  .sequence li::before { border: 1px solid var(--line); }
+  .hero {
+    background: none;
+    border: 1px solid var(--line);
+    text-align: left;
+    padding: 10pt;
+  }
+  .verdict { font-size: 24pt; }
+  .report-block, .safety, .tiles, .sequence li { break-inside: avoid; }
+  .safety { border-left: 3px solid var(--line); background: none; }
+  .sequence li::before { border: 1px solid var(--line); background: none; color: var(--ink); }
+  .meter-seg { border: 1px solid var(--line); background: none; }
+  .meter-seg.is-on { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; }
+  .tile { border: 1px solid var(--line); }
 }
 
 </style>
 
 <main>
 
-<header>
-  <h1>Crisis Triage &amp; Rapid Response</h1>
-  <p class="lede">Something just happened. Answer nine questions and get a read: whether to respond at all, where, how, and in what order.</p>
-  <p class="note privacy">This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet off. Close the tab and it is gone unless you turn on saving below.</p>
-  <p class="note first">Before anything else: do not post while you are angry, and do not delete anything that is already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+<header class="masthead no-print">
+  <p class="wordmark"><span class="mark"></span>WINNXT</p>
+  <p class="tagline">Securing your next win</p>
 </header>
 
-<section class="card no-print" id="storage-panel">
-  <label class="checkbox" for="storage-toggle">
-    <input type="checkbox" id="storage-toggle">
-    Save my answers in this browser
-  </label>
-  <p class="note" id="storage-note"></p>
-  <button type="button" class="danger" id="btn-reset">Erase everything</button>
+<!-- Step 0: the door. -->
+<section id="intro" class="stage-panel">
+  <h1>Crisis Triage &amp; Rapid Response</h1>
+  <p class="lede">Something just happened. Nine questions, one at a time, and you get a straight answer: whether to respond at all, where, how, and in what order.</p>
+
+  <div class="callout callout-warn">
+    <p><strong>Before anything else:</strong> don't post while you're angry, and don't delete anything that's already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+  </div>
+
+  <div class="callout callout-ok">
+    <p>This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet turned off. Close the tab and it's gone unless you turn on saving.</p>
+  </div>
+
+  <button type="button" id="btn-start" class="btn-lg">Start</button>
+  <p class="note" id="resume-note" hidden></p>
 </section>
 
-<div id="questions"></div>
+<!-- Steps 1..n: one question at a time. -->
+<section id="wizard" class="stage-panel" hidden>
+  <div class="progress no-print">
+    <div class="progress-meta">
+      <span id="progress-label">Question 1</span>
+      <span id="progress-count"></span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progress through the questions">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
 
-<section id="read" class="card read incomplete"></section>
+  <div id="step" aria-live="polite"></div>
 
-<section id="plan" class="card plan"></section>
-
-<section class="card handoff no-print">
-  <h2>Continue with Claude</h2>
-  <p>This tool tells you what to do. It cannot write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
-  <pre id="handoff-text"></pre>
-  <button type="button" id="btn-copy">Copy this prompt</button>
+  <nav class="stepnav no-print">
+    <button type="button" id="btn-back" class="secondary">Back</button>
+    <button type="button" id="btn-next">Continue</button>
+  </nav>
+  <p class="note step-error" id="step-error" hidden>Pick an answer to keep going.</p>
 </section>
 
-<section class="card no-print actions">
-  <h2>Take it with you</h2>
-  <button type="button" id="btn-print">Print / Save as PDF</button>
-  <button type="button" class="secondary" id="btn-download">Download my answers</button>
+<!-- The report. -->
+<section id="report" class="stage-panel" hidden>
+  <div id="read"></div>
+  <div id="plan"></div>
+
+  <section class="report-block handoff no-print">
+    <p class="eyebrow">Keep going</p>
+    <h2>Continue with Claude</h2>
+    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+    <pre id="handoff-text"></pre>
+    <button type="button" id="btn-copy">Copy this prompt</button>
+  </section>
+
+  <section class="report-block no-print actions">
+    <p class="eyebrow">Take it with you</p>
+    <h2>Save this</h2>
+    <p>Print gives you the whole read on paper. Download saves a copy of your answers as your own record.</p>
+    <button type="button" id="btn-print">Print / Save as PDF</button>
+    <button type="button" class="secondary" id="btn-download">Download my answers</button>
+    <button type="button" class="secondary" id="btn-review">Change an answer</button>
+  </section>
 </section>
 
-<footer class="brand">
-  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
-  We don't believe in fluff, because neither will your voters.<br>
-  <a href="https://www.winnxt.com/">winnxt.com</a></p>
-  <p class="note">This is a communications planning tool, not legal advice. If there is any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — do not rely on this file.</p>
+<footer class="site-foot">
+  <section class="card no-print" id="storage-panel">
+    <label class="checkbox" for="storage-toggle">
+      <input type="checkbox" id="storage-toggle">
+      Save my answers in this browser
+    </label>
+    <p class="note" id="storage-note"></p>
+    <button type="button" class="danger" id="btn-reset">Erase everything</button>
+  </section>
+
+  <div class="brand">
+    <p class="brand-line"><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+    We don't believe in fluff, because neither will your voters.<br>
+    <a href="https://www.winnxt.com/">winnxt.com</a></p>
+    <p class="note">This is a communications planning tool, not legal advice. If there's any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — don't rely on this file.</p>
+  </div>
 </footer>
 
 </main>
@@ -1273,14 +1477,16 @@ header {
   var QUESTIONS = [
     {
       id: 'what', type: 'textarea', required: false,
+      short: 'What happened',
       label: 'What happened?',
       help: 'Write it the way you would say it out loud. This never leaves your browser.',
       placeholder: 'A post from 2016 is going around in a local parents group.'
     },
     {
       id: 'where', type: 'select', required: true,
+      short: 'Where it surfaced',
       label: 'Where did it surface?',
-      help: 'The pattern for local candidates is almost always a neighborhood Facebook group first, everything else second.',
+      help: 'For local candidates the pattern is almost always a neighborhood Facebook group first, everything else second.',
       options: [
         ['facebook-group', 'A local Facebook group'],
         ['neighborhood-app', 'Nextdoor or a neighborhood app'],
@@ -1296,6 +1502,7 @@ header {
     },
     {
       id: 'spread', type: 'radio', required: true,
+      short: 'How far it spread',
       label: 'How far has it actually gone?',
       help: 'Be honest rather than fearful. This drives whether responding helps you or hands it an audience.',
       options: [
@@ -1308,8 +1515,9 @@ header {
     },
     {
       id: 'truth', type: 'radio', required: true,
+      short: 'Is it true',
       label: 'Is it true?',
-      help: 'Answer this one honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
+      help: 'Answer honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
       options: [
         ['true', 'Yes, it is accurate'],
         ['partly', 'Partly — the core is true, some details are wrong'],
@@ -1318,12 +1526,14 @@ header {
     },
     {
       id: 'truePart', type: 'textarea', required: false, showIf: { truth: ['partly'] },
+      short: 'The true part',
       label: 'Which part is true?',
       help: 'The true part is the part that gets reported. Name it now so your response does not lean on the wrong half.',
       placeholder: 'I did miss those meetings. The reason they gave is wrong.'
     },
     {
       id: 'harm', type: 'radio', required: true,
+      short: 'Damage to you',
       label: 'Does it actually damage you with people who might vote for you?',
       help: 'Not whether it is unfair, and not how it makes you feel. Whether it moves votes. Most attacks do not.',
       options: [
@@ -1334,6 +1544,7 @@ header {
     },
     {
       id: 'fault', type: 'radio', required: true,
+      short: 'How it came about',
       label: 'How did this come about?',
       help: 'This decides how much apology is owed. Over-apologizing for something outside your control reads as guilt; under-apologizing for something you chose reads as contempt.',
       options: [
@@ -1344,6 +1555,7 @@ header {
     },
     {
       id: 'proof', type: 'radio', required: true,
+      short: 'Proof you have',
       label: 'Can you prove your side right now?',
       help: 'A document, a record, a dated receipt, or a person who will say so by name.',
       options: [
@@ -1354,6 +1566,7 @@ header {
     },
     {
       id: 'safety', type: 'radio', required: true,
+      short: 'Anyone unsafe',
       label: 'Is anyone unsafe?',
       help: 'Threats, harassment, anything aimed at your home or your family. This changes the order of what you do next.',
       options: [
@@ -1363,13 +1576,16 @@ header {
     },
     {
       id: 'daysOut', type: 'number', required: false,
-      label: 'Days until the election',
-      help: 'Leave blank if you are not sure. Close to election day, the same crisis is a bigger problem because there is less time to recover.',
+      short: 'Days to election',
+      label: 'How many days until the election?',
+      help: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
       placeholder: 'e.g. 21'
     }
   ];
 
-  var state = { answers: {} };
+  var state = { answers: {}, seen: false };
+  var step = 0;
+  var view = 'intro';
 
   function val(id) {
     return state.answers[id] === undefined ? '' : state.answers[id];
@@ -1382,21 +1598,19 @@ header {
     });
   }
 
+  function steps() {
+    return QUESTIONS.filter(visible);
+  }
+
   function missing() {
-    return QUESTIONS.filter(function (q) {
-      return q.required && visible(q) && !val(q.id);
-    });
+    return steps().filter(function (q) { return q.required && !val(q.id); });
   }
 
   function hasData() {
-    return Object.keys(state.answers).some(function (k) {
-      return state.answers[k];
-    });
+    return Object.keys(state.answers).some(function (k) { return state.answers[k]; });
   }
 
-  function persist() {
-    store.save(state);
-  }
+  function persist() { store.save({ answers: state.answers, seen: state.seen }); }
 
   // ---- dom helpers -------------------------------------------------------
 
@@ -1411,156 +1625,293 @@ header {
     return node;
   }
 
-  function onChange(id, value) {
-    state.answers[id] = value;
-    persist();
-    render();
+  function show(id, on) {
+    var node = document.getElementById(id);
+    if (on) node.removeAttribute('hidden');
+    else node.setAttribute('hidden', '');
   }
 
-  // ---- questions ---------------------------------------------------------
+  // ---- the wizard --------------------------------------------------------
 
-  function renderQuestions() {
-    var root = document.getElementById('questions');
-    root.textContent = '';
+  function renderStep() {
+    var list = steps();
+    if (step >= list.length) step = list.length - 1;
+    if (step < 0) step = 0;
 
-    QUESTIONS.forEach(function (q) {
-      if (!visible(q)) return;
-      var card = el('div', { class: 'card question', 'data-q': q.id });
+    var q = list[step];
+    var host = document.getElementById('step');
+    host.textContent = '';
 
-      if (q.type === 'radio') {
-        var fs = el('fieldset');
-        fs.appendChild(el('legend', { text: q.label }));
-        if (q.help) fs.appendChild(el('p', { class: 'help', text: q.help }));
-        q.options.forEach(function (o) {
-          var inputId = q.id + '-' + o[0];
-          var lab = el('label', { class: 'radio', for: inputId });
-          var input = el('input', { type: 'radio', name: q.id, id: inputId, value: o[0] });
-          if (val(q.id) === o[0]) input.checked = true;
-          input.addEventListener('change', function () { onChange(q.id, o[0]); });
-          lab.appendChild(input);
-          lab.appendChild(document.createTextNode(' ' + o[1]));
-          fs.appendChild(lab);
+    document.getElementById('progress-label').textContent = 'Question ' + (step + 1);
+    document.getElementById('progress-count').textContent = 'of ' + list.length;
+    var pct = Math.round((step / list.length) * 100);
+    var fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.parentNode.setAttribute('aria-valuenow', String(pct));
+
+    var card = el('div', { class: 'question', 'data-q': q.id });
+
+    if (q.type === 'radio') {
+      var fs = el('fieldset');
+      fs.appendChild(el('legend', { class: 'q-label', text: q.label }));
+      if (q.help) fs.appendChild(el('p', { class: 'help', text: q.help }));
+      var opts = el('div', { class: 'options' });
+      q.options.forEach(function (o) {
+        var inputId = q.id + '-' + o[0];
+        var lab = el('label', { class: 'option', for: inputId });
+        var input = el('input', { type: 'radio', name: q.id, id: inputId, value: o[0] });
+        if (val(q.id) === o[0]) input.checked = true;
+        input.addEventListener('change', function () {
+          state.answers[q.id] = o[0];
+          persist();
+          markSelected(opts);
+          clearError();
         });
-        card.appendChild(fs);
+        // Advance on an actual click. Keyboard users move through the group
+        // with arrow keys, so auto-advancing on change would trap them.
+        input.addEventListener('click', function () { queueAdvance(); });
+        lab.appendChild(input);
+        lab.appendChild(el('span', { class: 'option-text', text: o[1] }));
+        opts.appendChild(lab);
+      });
+      fs.appendChild(opts);
+      card.appendChild(fs);
+      markSelected(opts);
+    } else {
+      card.appendChild(el('label', { class: 'q-label', for: q.id, text: q.label }));
+      if (q.help) card.appendChild(el('p', { class: 'help', text: q.help }));
+
+      var field;
+      if (q.type === 'select') {
+        field = el('select', { id: q.id });
+        field.appendChild(el('option', { value: '', text: 'Choose one' }));
+        q.options.forEach(function (o) {
+          var opt = el('option', { value: o[0], text: o[1] });
+          if (val(q.id) === o[0]) opt.selected = true;
+          field.appendChild(opt);
+        });
+        field.addEventListener('change', function () {
+          state.answers[q.id] = field.value;
+          persist();
+          clearError();
+        });
+      } else if (q.type === 'textarea') {
+        field = el('textarea', { id: q.id, rows: '4', placeholder: q.placeholder || '' });
+        field.value = val(q.id);
+        field.addEventListener('input', function () {
+          state.answers[q.id] = field.value;
+          persist();
+        });
       } else {
-        card.appendChild(el('label', { for: q.id, text: q.label }));
-        if (q.help) card.appendChild(el('p', { class: 'help', text: q.help }));
-
-        var field;
-        if (q.type === 'select') {
-          field = el('select', { id: q.id });
-          field.appendChild(el('option', { value: '', text: 'Choose one' }));
-          q.options.forEach(function (o) {
-            var opt = el('option', { value: o[0], text: o[1] });
-            if (val(q.id) === o[0]) opt.selected = true;
-            field.appendChild(opt);
-          });
-          field.addEventListener('change', function () { onChange(q.id, field.value); });
-        } else if (q.type === 'textarea') {
-          field = el('textarea', { id: q.id, rows: '3', placeholder: q.placeholder || '' });
-          field.value = val(q.id);
-          field.addEventListener('input', function () {
-            state.answers[q.id] = field.value;
-            persist();
-            renderHandoff();
-          });
-        } else {
-          field = el('input', { type: 'number', id: q.id, min: '0', placeholder: q.placeholder || '' });
-          field.value = val(q.id);
-          field.addEventListener('input', function () { onChange(q.id, field.value); });
-        }
-        card.appendChild(field);
+        field = el('input', { type: 'number', id: q.id, min: '0', inputmode: 'numeric', placeholder: q.placeholder || '' });
+        field.value = val(q.id);
+        field.addEventListener('input', function () {
+          state.answers[q.id] = field.value;
+          persist();
+        });
       }
+      card.appendChild(field);
+      if (!q.required) card.appendChild(el('p', { class: 'optional', text: 'Optional — you can skip this.' }));
+    }
 
-      root.appendChild(card);
+    host.appendChild(card);
+
+    document.getElementById('btn-back').disabled = step === 0;
+    document.getElementById('btn-next').textContent =
+      step === list.length - 1 ? 'See my read' : 'Continue';
+  }
+
+  function markSelected(opts) {
+    Array.prototype.forEach.call(opts.querySelectorAll('.option'), function (lab) {
+      var input = lab.querySelector('input');
+      if (input.checked) lab.setAttribute('data-selected', '');
+      else lab.removeAttribute('data-selected');
     });
   }
 
-  // ---- read --------------------------------------------------------------
+  var advanceTimer = null;
+  function queueAdvance() {
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(function () { next(); }, 280);
+  }
 
-  function renderRead() {
-    var box = document.getElementById('read');
-    box.textContent = '';
+  function clearError() { show('step-error', false); }
 
-    var need = missing();
-    if (need.length) {
-      box.className = 'card read incomplete';
-      box.appendChild(el('h2', { text: 'Your read' }));
-      box.appendChild(el('p', { text: 'Answer these and this fills in:' }));
-      var ul = el('ul');
-      need.forEach(function (q) { ul.appendChild(el('li', { text: q.label })); });
-      box.appendChild(ul);
+  function next() {
+    clearTimeout(advanceTimer);
+    var list = steps();
+    var q = list[step];
+    if (q.required && !val(q.id)) {
+      show('step-error', true);
       return;
     }
+    clearError();
+    if (step >= steps().length - 1) {
+      finish();
+      return;
+    }
+    step += 1;
+    renderStep();
+    focusStep();
+  }
+
+  function back() {
+    clearTimeout(advanceTimer);
+    clearError();
+    if (step === 0) {
+      goto('intro');
+      return;
+    }
+    step -= 1;
+    renderStep();
+    focusStep();
+  }
+
+  function focusStep() {
+    var h = document.querySelector('#step .q-label');
+    if (h) {
+      h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function finish() {
+    var need = missing();
+    if (need.length) {
+      var list = steps();
+      step = list.indexOf(need[0]);
+      renderStep();
+      show('step-error', true);
+      return;
+    }
+    state.seen = true;
+    persist();
+    goto('report');
+  }
+
+  function goto(v) {
+    view = v;
+    show('intro', v === 'intro');
+    show('wizard', v === 'wizard');
+    show('report', v === 'report');
+    if (v === 'wizard') renderStep();
+    if (v === 'report') renderReport();
+    window.scrollTo(0, 0);
+  }
+
+  // ---- the report --------------------------------------------------------
+
+  function labelOf(id) {
+    var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
+    if (!q || !q.options) return val(id);
+    var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
+    return found ? found[1] : val(id);
+  }
+
+  var RISK_ORDER = ['low', 'medium', 'high', 'extreme'];
+  var RISK_SHORT = { low: 'Low', medium: 'Medium', high: 'High', extreme: 'Extreme' };
+
+  function renderReport() {
+    var box = document.getElementById('read');
+    box.textContent = '';
+    if (missing().length) return;
 
     var a = state.answers;
     var r = window.CrisisLogic.assess(a);
-    box.className = 'card read risk-' + r.riskKey;
 
     if (a.safety === 'yes') {
-      var safety = el('div', { class: 'safety' });
+      var safety = el('section', { class: 'report-block safety' });
+      safety.appendChild(el('p', { class: 'eyebrow', text: 'First' }));
       safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
-      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common and they are not something to absorb quietly — most of them come from people who are not physically present, which does not make them harmless.' }));
+      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present — which does not make them harmless.' }));
       safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
       box.appendChild(safety);
     }
 
-    box.appendChild(el('h2', { text: 'Your read' }));
+    // Hero: the call, and nothing competing with it.
+    var hero = el('section', { class: 'report-block hero risk-' + r.riskKey });
+    hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
+    hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
+    hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
+    box.appendChild(hero);
 
-    var verdict = el('div', { class: 'verdict-block' });
-    verdict.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
-    verdict.appendChild(el('p', { text: r.call.line }));
-    box.appendChild(verdict);
+    // At a glance.
+    var tiles = el('section', { class: 'tiles' });
+    tiles.appendChild(tile('Where this sits', r.quadrant.name));
+    tiles.appendChild(tile('Blame', r.scct.type.split('—')[0].trim()));
+    tiles.appendChild(tile('Strategy', r.scct.strategy));
+    box.appendChild(tiles);
 
-    box.appendChild(row('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
-    box.appendChild(row('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
-
-    var riskRow = el('div', { class: 'read-row' });
-    riskRow.appendChild(el('h3', { text: 'Risk level' }));
-    riskRow.appendChild(el('p', { class: 'headline', text: r.risk.name }));
+    // Risk meter.
+    var risk = el('section', { class: 'report-block' });
+    risk.appendChild(el('p', { class: 'eyebrow', text: 'Risk level' }));
+    risk.appendChild(el('h2', { text: r.risk.name }));
+    var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
+    RISK_ORDER.forEach(function (k) {
+      var seg = el('div', { class: 'meter-seg' + (k === r.riskKey ? ' is-on' : '') });
+      seg.appendChild(el('span', { text: RISK_SHORT[k] }));
+      meter.appendChild(seg);
+    });
+    risk.appendChild(meter);
     var dl = el('dl', { class: 'grid-row' });
     [['Prepare', r.risk.prep], ['Watch', r.risk.detect], ['Respond', r.risk.respond], ['Recover', r.risk.recover]]
       .forEach(function (p) {
         dl.appendChild(el('dt', { text: p[0] }));
         dl.appendChild(el('dd', { text: p[1] }));
       });
-    riskRow.appendChild(dl);
-    box.appendChild(riskRow);
+    risk.appendChild(dl);
+    box.appendChild(risk);
+
+    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
+    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
 
     if (r.channel && r.call.publish !== 'no') {
-      var ch = el('div', { class: 'read-row' });
-      ch.appendChild(el('h3', { text: 'Where to answer it' }));
-      ch.appendChild(el('p', { class: 'note', text: 'Answer where it landed. A press release does not reach the people who saw a Facebook post.' }));
+      var ch = el('section', { class: 'report-block' });
+      ch.appendChild(el('p', { class: 'eyebrow', text: 'Where to answer it' }));
+      ch.appendChild(el('h2', { text: 'Answer where it landed' }));
+      ch.appendChild(el('p', { class: 'note', text: 'A press release does not reach the people who saw a Facebook post.' }));
       ch.appendChild(el('p', { text: r.channel }));
       box.appendChild(ch);
     }
 
-    var sk = el('div', { class: 'read-row' });
-    sk.appendChild(el('h3', { text: 'How to build the statement — ' + r.skeleton.title }));
-    var ol = el('ol');
+    var sk = el('section', { class: 'report-block' });
+    sk.appendChild(el('p', { class: 'eyebrow', text: 'How to build the statement' }));
+    sk.appendChild(el('h2', { text: r.skeleton.title }));
+    var ol = el('ol', { class: 'skeleton' });
     r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
     sk.appendChild(ol);
     sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
     box.appendChild(sk);
+
+    renderPlan(r);
+    renderSummary();
+    renderHandoff();
   }
 
-  function row(heading, headline, posture, detail) {
-    var d = el('div', { class: 'read-row' });
-    d.appendChild(el('h3', { text: heading }));
-    d.appendChild(el('p', { class: 'headline', text: headline }));
+  function tile(label, value) {
+    var t = el('div', { class: 'tile' });
+    t.appendChild(el('p', { class: 'tile-label', text: label }));
+    t.appendChild(el('p', { class: 'tile-value', text: value }));
+    return t;
+  }
+
+  function detail(eyebrow, headline, posture, body) {
+    var d = el('section', { class: 'report-block' });
+    d.appendChild(el('p', { class: 'eyebrow', text: eyebrow }));
+    d.appendChild(el('h2', { text: headline }));
     d.appendChild(el('p', { class: 'posture', text: posture }));
-    d.appendChild(el('p', { text: detail }));
+    d.appendChild(el('p', { text: body }));
     return d;
   }
 
-  function renderPlan() {
+  function renderPlan(r) {
     var box = document.getElementById('plan');
     box.textContent = '';
-    if (missing().length) return;
 
-    var r = window.CrisisLogic.assess(state.answers);
-
-    box.appendChild(el('h2', { text: 'What to do, in order' }));
+    var seq = el('section', { class: 'report-block' });
+    seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
+    seq.appendChild(el('h2', { text: 'What to do, in order' }));
     var ol = el('ol', { class: 'sequence' });
     r.sequence.forEach(function (s) {
       var li = el('li');
@@ -1568,31 +1919,50 @@ header {
       li.appendChild(el('span', { class: 'what', text: s.what }));
       ol.appendChild(li);
     });
-    box.appendChild(ol);
+    seq.appendChild(ol);
+    box.appendChild(seq);
 
-    box.appendChild(el('h2', { text: 'What not to do' }));
+    var no = el('section', { class: 'report-block donts-block' });
+    no.appendChild(el('p', { class: 'eyebrow', text: 'Avoid' }));
+    no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
-    box.appendChild(ul);
+    no.appendChild(ul);
+    box.appendChild(no);
+  }
+
+  function renderSummary() {
+    var box = document.getElementById('plan');
+    var wrap = el('section', { class: 'report-block summary' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Based on' }));
+    wrap.appendChild(el('h2', { text: 'What you told it' }));
+
+    var list = el('dl', { class: 'summary-list' });
+    steps().forEach(function (q, i) {
+      if (!val(q.id)) return;
+      var dt = el('dt', { text: q.short });
+      var dd = el('dd');
+      dd.appendChild(el('span', { class: 'summary-value', text: labelOf(q.id) }));
+      var edit = el('button', { type: 'button', class: 'link no-print', text: 'Change' });
+      edit.addEventListener('click', function () {
+        step = i;
+        goto('wizard');
+      });
+      dd.appendChild(edit);
+      list.appendChild(dt);
+      list.appendChild(dd);
+    });
+    wrap.appendChild(list);
+    box.appendChild(wrap);
   }
 
   // ---- handoff -----------------------------------------------------------
 
   function buildHandoff() {
+    if (missing().length) return 'Answer the questions and a ready-to-paste prompt appears here.';
+
     var a = state.answers;
-    var need = missing();
-
-    if (need.length) {
-      return 'Answer the questions above and a ready-to-paste prompt appears here.';
-    }
-
     var r = window.CrisisLogic.assess(a);
-    var labelOf = function (id) {
-      var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
-      if (!q || !q.options) return val(id);
-      var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
-      return found ? found[1] : val(id);
-    };
 
     var asks = [];
     if (r.call.publish === 'no') {
@@ -1672,12 +2042,22 @@ header {
   }
 
   function bindButtons() {
+    document.getElementById('btn-start').addEventListener('click', function () {
+      goto('wizard');
+    });
+    document.getElementById('btn-next').addEventListener('click', next);
+    document.getElementById('btn-back').addEventListener('click', back);
+    document.getElementById('btn-review').addEventListener('click', function () {
+      step = 0;
+      goto('wizard');
+    });
+
     document.getElementById('btn-print').addEventListener('click', function () {
       window.WinnxtExport.print();
     });
 
     document.getElementById('btn-download').addEventListener('click', function () {
-      window.WinnxtExport.downloadJSON('crisis-triage.json', state);
+      window.WinnxtExport.downloadJSON('crisis-triage.json', { answers: state.answers });
     });
 
     document.getElementById('btn-copy').addEventListener('click', function () {
@@ -1691,27 +2071,39 @@ header {
     document.getElementById('btn-reset').addEventListener('click', function () {
       if (!confirm('Erase everything you have entered? This cannot be undone.')) return;
       store.eraseAll();
-      state = { answers: {} };
+      state = { answers: {}, seen: false };
+      step = 0;
       var box = document.getElementById('storage-toggle');
       if (!box.disabled) box.checked = false;
       document.getElementById('storage-note').textContent = 'Nothing is being saved. Close this tab and it is gone.';
-      render();
+      document.getElementById('resume-note').setAttribute('hidden', '');
+      goto('intro');
     });
-  }
-
-  function render() {
-    renderQuestions();
-    renderRead();
-    renderPlan();
-    renderHandoff();
   }
 
   function init() {
     var saved = store.load();
-    if (saved && saved.answers) state = saved;
+    if (saved && saved.answers) {
+      state.answers = saved.answers;
+      state.seen = !!saved.seen;
+    }
+
     bindStorageToggle();
     bindButtons();
-    render();
+
+    if (hasData()) {
+      var note = document.getElementById('resume-note');
+      note.textContent = 'Picking up where you left off — your saved answers are still here.';
+      note.removeAttribute('hidden');
+      document.getElementById('btn-start').textContent =
+        state.seen && !missing().length ? 'See my read' : 'Continue';
+      if (state.seen && !missing().length) {
+        goto('report');
+        return;
+      }
+    }
+
+    goto('intro');
     store.warnOnUnloadWhenOff(hasData);
   }
 

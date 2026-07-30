@@ -6,12 +6,17 @@
 /* WINNXT design tokens + base styles. System fonts only — no webfonts, ever. */
 
 /* ---------------------------------------------------------------------------
-   PLACEHOLDER PALETTE — pending the real WINNXT brand values.
+   WINNXT PALETTE — taken from the logo: black wordmark, crimson torch.
    Every colour in every WINNXT tool is defined in this block and its dark-mode
    counterpart below. Nothing else in any stylesheet hardcodes a colour, so the
    entire palette can be swapped by editing these two blocks and nothing else.
-   Current direction: near-monochrome graphite ink on warm paper, with a single
-   deep teal accent. Deliberately non-partisan — no party colours, no flag.
+
+   Contrast ratios below were computed, not estimated. The lowest value in the
+   system is 4.6:1, above the 4.5:1 AA threshold for normal text.
+
+   Note on red: it is the brand colour, so it carries brand and interface
+   weight. --danger is a deeper red so warnings stay distinguishable from
+   ordinary accent, and amber/green remain reserved for caution and safety.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -19,34 +24,35 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* text */
-  --ink: #15181c;          /* 16.4:1 on paper, 17.3:1 on surface */
-  --ink-soft: #55606c;     /* 6.6:1 on paper, 7.0:1 on surface  */
-  --ink-faint: #606b77;    /* 5.2:1 on paper, 4.8:1 on the softest fill */
+  --ink: #111315;          /* 17.9:1 on paper */
+  --ink-soft: #5A6169;     /* 6.0:1 on paper  */
+  --ink-faint: #676E76;    /* 4.9:1 on paper — smallest text still passes AA */
 
   /* surfaces */
-  --bg: #fbfaf8;           /* the page: warm paper */
-  --surface: #ffffff;      /* cards sit above the page */
-  --bg-soft: #f2f1ee;      /* recessed fills, code blocks, tracks */
-  --line: #e2e0db;         /* hairline */
-  --line-strong: #c8c5bd;  /* emphasised hairline */
+  --bg: #FBFAF9;           /* the page */
+  --surface: #FFFFFF;      /* cards sit above the page */
+  --bg-soft: #F4F2F0;      /* recessed fills, code blocks, tracks */
+  --line: #E4E1DE;         /* hairline */
+  --line-strong: #C9C4BF;  /* emphasised hairline */
 
-  /* accent */
-  --accent: #0d5b53;       /* 7.3:1 on surface */
-  --accent-ink: #ffffff;
-  --accent-soft: #eaf2f0;  /* tinted fill behind accent content */
+  /* accent — WINNXT crimson */
+  --accent: #C62B31;       /* 5.5:1 on white */
+  --accent-deep: #A81E24;  /* 7.3:1 — small text and links */
+  --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
+  --accent-soft: #FDF0EF;
 
   /* semantic */
-  --danger: #9d1f27;
-  --danger-soft: #fbeceb;
-  --warn: #7b4e00;
-  --warn-soft: #fbf1de;
-  --ok: #14634a;
-  --ok-soft: #e9f2ee;
+  --danger: #93191F;
+  --danger-soft: #FBEBEA;
+  --warn: #7B4E00;
+  --warn-soft: #FBF1DE;
+  --ok: #14634A;
+  --ok-soft: #E9F2EE;
 
-  --focus: #0d5b53;
-  --focus-ring: rgba(13, 91, 83, 0.28);
-  --shadow: rgba(21, 24, 28, 0.06);
-  --shadow-strong: rgba(21, 24, 28, 0.10);
+  --focus: #C62B31;
+  --focus-ring: rgba(198, 43, 49, 0.26);
+  --shadow: rgba(17, 19, 21, 0.06);
+  --shadow-strong: rgba(17, 19, 21, 0.11);
 
   /* rhythm */
   --space: 1rem;
@@ -65,31 +71,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #edf0f3;          /* 15.1:1 on page */
-    --ink-soft: #a7b1bc;     /* 7.5:1  */
-    --ink-faint: #8c96a1;    /* 5.3:1  */
+    --ink: #EDEFF2;          /* 16.6:1 on page */
+    --ink-soft: #A6ADB5;     /* 8.4:1  */
+    --ink-faint: #8B939B;    /* 6.1:1  */
 
-    --bg: #101317;
-    --surface: #181c21;
-    --bg-soft: #1f242b;
-    --line: #2c323a;
-    --line-strong: #414a55;
+    --bg: #0E1012;
+    --surface: #16191C;
+    --bg-soft: #1E2226;
+    --line: #2B3036;
+    --line-strong: #414850;
 
-    --accent: #5cbdb0;       /* 8.0:1 on surface */
-    --accent-ink: #0a1114;
-    --accent-soft: #17282a;
+    --accent: #F0777A;       /* 6.4:1 on surface */
+    --accent-deep: #F49B9D;
+    --accent-ink: #14090A;
+    --accent-soft: #2A1618;
 
-    --danger: #f0929a;
-    --danger-soft: #2c1a1c;
-    --warn: #e0b264;
-    --warn-soft: #2b2419;
-    --ok: #6fcba4;
-    --ok-soft: #16261f;
+    --danger: #F0777A;
+    --danger-soft: #2C1618;
+    --warn: #E0B264;
+    --warn-soft: #2B2419;
+    --ok: #6FCBA4;
+    --ok-soft: #16261F;
 
-    --focus: #5cbdb0;
-    --focus-ring: rgba(92, 189, 176, 0.32);
-    --shadow: rgba(0, 0, 0, 0.4);
-    --shadow-strong: rgba(0, 0, 0, 0.55);
+    --focus: #F0777A;
+    --focus-ring: rgba(240, 119, 122, 0.34);
+    --shadow: rgba(0, 0, 0, 0.45);
+    --shadow-strong: rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -205,7 +212,7 @@ select {
   appearance: none;
   -webkit-appearance: none;
   /* inline SVG chevron, data: URI only — no remote assets */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2355606c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6169' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85em center;
   padding-right: 2.4em;
@@ -213,7 +220,7 @@ select {
 
 @media (prefers-color-scheme: dark) {
   select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23a7b1bc' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23A6ADB5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
 
@@ -324,6 +331,51 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   .card { padding: var(--space-m) var(--space-l); }
 }
 
+/* ---- shared components -------------------------------------------------- */
+
+/* Small-caps label above a heading. Carries hierarchy without extra weight. */
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--accent-deep);
+  margin: 0 0 var(--space-xs);
+}
+
+.callout {
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  padding: var(--space-s) var(--space);
+  margin-bottom: var(--space-s);
+}
+
+.callout p { font-size: 0.95rem; }
+.callout-warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout-ok { border-left-color: var(--ok); background: var(--ok-soft); }
+.callout-danger { border-left-color: var(--danger); background: var(--danger-soft); }
+
+/* A button that reads as a link — used for inline "change this" affordances. */
+button.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  border-radius: 3px;
+}
+button.link:hover { opacity: 1; color: var(--accent); }
+
+.btn-lg {
+  font-size: 1.05rem;
+  padding: 0.75em 1.9em;
+  min-height: 3em;
+}
+
 /* ---- print -------------------------------------------------------------- */
 
 @media print {
@@ -337,6 +389,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
     --surface: #fff;
     --bg-soft: #fff;
     --accent: #000;
+    --accent-deep: #000;
     --accent-soft: #fff;
     --danger: #000;
     --danger-soft: #fff;

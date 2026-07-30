@@ -131,52 +131,146 @@ const base = {
   const offense = /amplif\w* unverified|anonymous(ly)? retweet|surrogate attack|oppo(sition)? attack|discredit the opponent/i.test(html);
   check('no offense-side content in the shipped page', !offense);
 
-  // --- the UI -------------------------------------------------------------
+  // --- the wizard ---------------------------------------------------------
 
-  const q = await page.locator('.question').count();
-  check('questions render', q === 9, 'got ' + q);
+  // Walks the wizard the way a buyer does: one question at a time.
+  async function runWizard(page, a) {
+    await page.click('#btn-start');
+    await page.fill('#what', a.what || 'A doctored screenshot is going around.');
+    await page.click('#btn-next');
+    await page.selectOption('#where', a.where || 'facebook-group');
+    await page.click('#btn-next');
+    await page.check('#spread-' + (a.spread || 'many-groups'));
+    await page.waitForTimeout(400);            // auto-advance on click
+    await page.check('#truth-' + (a.truth || 'false'));
+    await page.waitForTimeout(400);
+    if ((a.truth || 'false') === 'partly') {
+      await page.fill('#truePart', a.truePart || 'The core is right.');
+      await page.click('#btn-next');
+    }
+    await page.check('#harm-' + (a.harm || 'serious'));
+    await page.waitForTimeout(400);
+    await page.check('#fault-' + (a.fault || 'victim'));
+    await page.waitForTimeout(400);
+    await page.check('#proof-' + (a.proof || 'yes'));
+    await page.waitForTimeout(400);
+    await page.check('#safety-' + (a.safety || 'no'));
+    await page.waitForTimeout(400);
+    await page.fill('#daysOut', String(a.daysOut === undefined ? 21 : a.daysOut));
+    await page.click('#btn-next');
+    await page.waitForTimeout(300);
+  }
 
-  const readEmpty = await page.locator('#read').textContent();
-  check('read starts incomplete', /Answer these and this fills in/.test(readEmpty));
+  check('starts on the intro, not the questions', await page.locator('#intro').isVisible());
+  check('wizard hidden before start', await page.locator('#wizard').isHidden());
+  check('report hidden before start', await page.locator('#report').isHidden());
+
+  await page.click('#btn-start');
+  await page.waitForTimeout(200);
+  check('start opens the wizard', await page.locator('#wizard').isVisible());
+  check('one question at a time', await page.locator('.question').count() === 1, 
+    'got ' + await page.locator('.question').count());
+  check('progress starts at question 1',
+    /Question 1/.test(await page.locator('#progress-label').textContent()));
+  check('progress knows the total',
+    /of 9/.test(await page.locator('#progress-count').textContent()));
+
+  // Required questions block progress.
+  await page.fill('#what', 'A doctored screenshot is going around.');
+  await page.click('#btn-next');            // past the optional free-text
+  await page.waitForTimeout(150);
+  await page.click('#btn-next');            // "where" is required and unanswered
+  await page.waitForTimeout(150);
+  check('required question blocks continue', await page.locator('#step-error').isVisible());
+  check('still on the same question', (await page.locator('.q-label').textContent()).indexOf('surface') !== -1);
 
   await page.selectOption('#where', 'facebook-group');
+  await page.click('#btn-next');
+  await page.waitForTimeout(200);
+  check('answering clears the error', await page.locator('#step-error').isHidden());
+
+  // Clicking a radio advances on its own.
   await page.check('#spread-many-groups');
+  await page.waitForTimeout(450);
+  check('clicking an option advances automatically',
+    (await page.locator('.q-label').textContent()).indexOf('true') !== -1,
+    await page.locator('.q-label').textContent());
+
+  // Back works.
+  await page.click('#btn-back');
+  await page.waitForTimeout(200);
+  check('back returns to the previous question',
+    (await page.locator('.q-label').textContent()).indexOf('gone') !== -1);
+  check('previous answer is still selected', await page.isChecked('#spread-many-groups'));
+
+  // The conditional question only exists for "partly true".
+  await page.click('#btn-next');
+  await page.waitForTimeout(200);
+  await page.check('#truth-partly');
+  await page.waitForTimeout(450);
+  check('partly true inserts the follow-up question', await page.locator('#truePart').count() === 1);
+  check('total step count grows with it',
+    /of 10/.test(await page.locator('#progress-count').textContent()),
+    await page.locator('#progress-count').textContent());
+
+  await page.click('#btn-back');
+  await page.waitForTimeout(200);
   await page.check('#truth-false');
+  await page.waitForTimeout(450);
+  check('follow-up disappears again', await page.locator('#truePart').count() === 0);
+
   await page.check('#harm-serious');
+  await page.waitForTimeout(400);
   await page.check('#fault-victim');
+  await page.waitForTimeout(400);
   await page.check('#proof-yes');
+  await page.waitForTimeout(400);
   await page.check('#safety-no');
+  await page.waitForTimeout(400);
+  check('last question is reached', await page.locator('#daysOut').count() === 1);
+  check('last button says see my read',
+    /See my read/.test(await page.locator('#btn-next').textContent()));
+
   await page.fill('#daysOut', '21');
-  await page.fill('#what', 'A doctored screenshot is going around.');
+  await page.click('#btn-next');
   await page.waitForTimeout(300);
 
+  // --- the report ---------------------------------------------------------
+
+  check('report replaces the wizard', await page.locator('#report').isVisible());
+  check('wizard is hidden in the report', await page.locator('#wizard').isHidden());
+
   const verdictText = await page.locator('.verdict').textContent();
-  check('UI shows a verdict', /Respond, today/.test(verdictText), verdictText);
+  check('report leads with the verdict', /Respond, today/.test(verdictText), verdictText);
 
-  const seq = await page.locator('.sequence li').count();
-  check('plan renders steps', seq >= 6, 'got ' + seq);
+  check('at-a-glance tiles render', await page.locator('.tile').count() === 3);
+  check('risk meter has four segments', await page.locator('.meter-seg').count() === 4);
+  check('exactly one risk segment is lit', await page.locator('.meter-seg.is-on').count() === 1);
+  check('lit segment matches the risk level',
+    /High/.test(await page.locator('.meter-seg.is-on').textContent()),
+    await page.locator('.meter-seg.is-on').textContent());
 
-  // Conditional question appears only for "partly true"
-  await page.check('#truth-partly');
-  await page.waitForTimeout(200);
-  check('partly true reveals the follow-up', await page.locator('#truePart').count() === 1);
-  await page.check('#truth-false');
-  await page.waitForTimeout(200);
-  check('follow-up hides again', await page.locator('#truePart').count() === 0);
+  check('plan renders steps', await page.locator('.sequence li').count() >= 6);
+  check('what-not-to-do renders', await page.locator('.donts li').count() >= 4);
+  check('summary of answers renders', await page.locator('.summary-list dt').count() >= 8);
+
+  // Editing an answer from the report goes back to that question.
+  await page.locator('.summary-list button.link').first().click();
+  await page.waitForTimeout(250);
+  check('change takes you back to the wizard', await page.locator('#wizard').isVisible());
+
+  // Walk forward again to get back to the report.
+  for (let i = 0; i < 12 && await page.locator('#wizard').isVisible(); i++) {
+    await page.click('#btn-next');
+    await page.waitForTimeout(120);
+  }
+  check('can walk back to the report', await page.locator('#report').isVisible());
 
   const handoff = await page.locator('#handoff-text').textContent();
   check('handoff carries the description', /doctored screenshot/.test(handoff));
-  check('handoff carries the read', /Quadrant: False, and it hurts/.test(handoff), handoff.slice(0, 60));
+  check('handoff carries the read', /Quadrant: False, and it hurts/.test(handoff));
   check('handoff asks for a draft', /Draft a short statement/.test(handoff));
   check('handoff branded', /winnxt\.com/.test(handoff));
-
-  // "Say nothing" changes what the handoff asks for
-  await page.check('#harm-none');
-  await page.check('#spread-many-groups');
-  await page.waitForTimeout(250);
-  const quietHandoff = await page.locator('#handoff-text').textContent();
-  check('say-nothing handoff asks Claude to challenge the call', /Push back on me/.test(quietHandoff));
-  check('say-nothing handoff does not ask for a statement', !/Draft a short statement/.test(quietHandoff));
 
   // --- storage ------------------------------------------------------------
 
@@ -184,23 +278,27 @@ const base = {
   check('nothing saved while storage is off', before === null, String(before));
 
   await page.check('#storage-toggle');
-  await page.check('#harm-serious');
   await page.waitForTimeout(200);
   check('saves once storage is on',
     (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage'))) !== null);
 
   await page.reload();
-  await page.waitForTimeout(300);
-  check('state survives reload', await page.isChecked('#harm-serious'));
+  await page.waitForTimeout(400);
+  check('a finished run reopens on the report', await page.locator('#report').isVisible());
+  check('the verdict survives reload', /Respond, today/.test(await page.locator('.verdict').textContent()));
 
   page.on('dialog', d => d.accept());
   await page.click('#btn-reset');
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(300);
   check('erase clears storage',
     (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage'))) === null);
   check('erase clears consent',
     (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage:consent'))) === null);
-  check('erase resets the form', /Answer these and this fills in/.test(await page.locator('#read').textContent()));
+  check('erase returns to the intro', await page.locator('#intro').isVisible());
+  check('erase forgets the answers', await page.locator('#report').isHidden());
+
+  // Rebuild a run for the presentation checks below.
+  await runWizard(page, {});
 
   // --- presentation -------------------------------------------------------
 

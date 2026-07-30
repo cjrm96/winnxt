@@ -7,46 +7,88 @@
 
 <main>
 
-<header>
-  <h1>Crisis Triage &amp; Rapid Response</h1>
-  <p class="lede">Something just happened. Answer nine questions and get a read: whether to respond at all, where, how, and in what order.</p>
-  <p class="note privacy">This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet off. Close the tab and it is gone unless you turn on saving below.</p>
-  <p class="note first">Before anything else: do not post while you are angry, and do not delete anything that is already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+<header class="masthead no-print">
+  <p class="wordmark"><span class="mark"></span>WINNXT</p>
+  <p class="tagline">Securing your next win</p>
 </header>
 
-<section class="card no-print" id="storage-panel">
-  <label class="checkbox" for="storage-toggle">
-    <input type="checkbox" id="storage-toggle">
-    Save my answers in this browser
-  </label>
-  <p class="note" id="storage-note"></p>
-  <button type="button" class="danger" id="btn-reset">Erase everything</button>
+<!-- Step 0: the door. -->
+<section id="intro" class="stage-panel">
+  <h1>Crisis Triage &amp; Rapid Response</h1>
+  <p class="lede">Something just happened. Nine questions, one at a time, and you get a straight answer: whether to respond at all, where, how, and in what order.</p>
+
+  <div class="callout callout-warn">
+    <p><strong>Before anything else:</strong> don't post while you're angry, and don't delete anything that's already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+  </div>
+
+  <div class="callout callout-ok">
+    <p>This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet turned off. Close the tab and it's gone unless you turn on saving.</p>
+  </div>
+
+  <button type="button" id="btn-start" class="btn-lg">Start</button>
+  <p class="note" id="resume-note" hidden></p>
 </section>
 
-<div id="questions"></div>
+<!-- Steps 1..n: one question at a time. -->
+<section id="wizard" class="stage-panel" hidden>
+  <div class="progress no-print">
+    <div class="progress-meta">
+      <span id="progress-label">Question 1</span>
+      <span id="progress-count"></span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progress through the questions">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
 
-<section id="read" class="card read incomplete"></section>
+  <div id="step" aria-live="polite"></div>
 
-<section id="plan" class="card plan"></section>
-
-<section class="card handoff no-print">
-  <h2>Continue with Claude</h2>
-  <p>This tool tells you what to do. It cannot write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
-  <pre id="handoff-text"></pre>
-  <button type="button" id="btn-copy">Copy this prompt</button>
+  <nav class="stepnav no-print">
+    <button type="button" id="btn-back" class="secondary">Back</button>
+    <button type="button" id="btn-next">Continue</button>
+  </nav>
+  <p class="note step-error" id="step-error" hidden>Pick an answer to keep going.</p>
 </section>
 
-<section class="card no-print actions">
-  <h2>Take it with you</h2>
-  <button type="button" id="btn-print">Print / Save as PDF</button>
-  <button type="button" class="secondary" id="btn-download">Download my answers</button>
+<!-- The report. -->
+<section id="report" class="stage-panel" hidden>
+  <div id="read"></div>
+  <div id="plan"></div>
+
+  <section class="report-block handoff no-print">
+    <p class="eyebrow">Keep going</p>
+    <h2>Continue with Claude</h2>
+    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+    <pre id="handoff-text"></pre>
+    <button type="button" id="btn-copy">Copy this prompt</button>
+  </section>
+
+  <section class="report-block no-print actions">
+    <p class="eyebrow">Take it with you</p>
+    <h2>Save this</h2>
+    <p>Print gives you the whole read on paper. Download saves a copy of your answers as your own record.</p>
+    <button type="button" id="btn-print">Print / Save as PDF</button>
+    <button type="button" class="secondary" id="btn-download">Download my answers</button>
+    <button type="button" class="secondary" id="btn-review">Change an answer</button>
+  </section>
 </section>
 
-<footer class="brand">
-  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
-  We don't believe in fluff, because neither will your voters.<br>
-  <a href="https://www.winnxt.com/">winnxt.com</a></p>
-  <p class="note">This is a communications planning tool, not legal advice. If there is any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — do not rely on this file.</p>
+<footer class="site-foot">
+  <section class="card no-print" id="storage-panel">
+    <label class="checkbox" for="storage-toggle">
+      <input type="checkbox" id="storage-toggle">
+      Save my answers in this browser
+    </label>
+    <p class="note" id="storage-note"></p>
+    <button type="button" class="danger" id="btn-reset">Erase everything</button>
+  </section>
+
+  <div class="brand">
+    <p class="brand-line"><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+    We don't believe in fluff, because neither will your voters.<br>
+    <a href="https://www.winnxt.com/">winnxt.com</a></p>
+    <p class="note">This is a communications planning tool, not legal advice. If there's any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — don't rely on this file.</p>
+  </div>
 </footer>
 
 </main>

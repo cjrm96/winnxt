@@ -4,14 +4,16 @@
   var QUESTIONS = [
     {
       id: 'what', type: 'textarea', required: false,
+      short: 'What happened',
       label: 'What happened?',
       help: 'Write it the way you would say it out loud. This never leaves your browser.',
       placeholder: 'A post from 2016 is going around in a local parents group.'
     },
     {
       id: 'where', type: 'select', required: true,
+      short: 'Where it surfaced',
       label: 'Where did it surface?',
-      help: 'The pattern for local candidates is almost always a neighborhood Facebook group first, everything else second.',
+      help: 'For local candidates the pattern is almost always a neighborhood Facebook group first, everything else second.',
       options: [
         ['facebook-group', 'A local Facebook group'],
         ['neighborhood-app', 'Nextdoor or a neighborhood app'],
@@ -27,6 +29,7 @@
     },
     {
       id: 'spread', type: 'radio', required: true,
+      short: 'How far it spread',
       label: 'How far has it actually gone?',
       help: 'Be honest rather than fearful. This drives whether responding helps you or hands it an audience.',
       options: [
@@ -39,8 +42,9 @@
     },
     {
       id: 'truth', type: 'radio', required: true,
+      short: 'Is it true',
       label: 'Is it true?',
-      help: 'Answer this one honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
+      help: 'Answer honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
       options: [
         ['true', 'Yes, it is accurate'],
         ['partly', 'Partly — the core is true, some details are wrong'],
@@ -49,12 +53,14 @@
     },
     {
       id: 'truePart', type: 'textarea', required: false, showIf: { truth: ['partly'] },
+      short: 'The true part',
       label: 'Which part is true?',
       help: 'The true part is the part that gets reported. Name it now so your response does not lean on the wrong half.',
       placeholder: 'I did miss those meetings. The reason they gave is wrong.'
     },
     {
       id: 'harm', type: 'radio', required: true,
+      short: 'Damage to you',
       label: 'Does it actually damage you with people who might vote for you?',
       help: 'Not whether it is unfair, and not how it makes you feel. Whether it moves votes. Most attacks do not.',
       options: [
@@ -65,6 +71,7 @@
     },
     {
       id: 'fault', type: 'radio', required: true,
+      short: 'How it came about',
       label: 'How did this come about?',
       help: 'This decides how much apology is owed. Over-apologizing for something outside your control reads as guilt; under-apologizing for something you chose reads as contempt.',
       options: [
@@ -75,6 +82,7 @@
     },
     {
       id: 'proof', type: 'radio', required: true,
+      short: 'Proof you have',
       label: 'Can you prove your side right now?',
       help: 'A document, a record, a dated receipt, or a person who will say so by name.',
       options: [
@@ -85,6 +93,7 @@
     },
     {
       id: 'safety', type: 'radio', required: true,
+      short: 'Anyone unsafe',
       label: 'Is anyone unsafe?',
       help: 'Threats, harassment, anything aimed at your home or your family. This changes the order of what you do next.',
       options: [
@@ -94,13 +103,16 @@
     },
     {
       id: 'daysOut', type: 'number', required: false,
-      label: 'Days until the election',
-      help: 'Leave blank if you are not sure. Close to election day, the same crisis is a bigger problem because there is less time to recover.',
+      short: 'Days to election',
+      label: 'How many days until the election?',
+      help: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
       placeholder: 'e.g. 21'
     }
   ];
 
-  var state = { answers: {} };
+  var state = { answers: {}, seen: false };
+  var step = 0;
+  var view = 'intro';
 
   function val(id) {
     return state.answers[id] === undefined ? '' : state.answers[id];
@@ -113,21 +125,19 @@
     });
   }
 
+  function steps() {
+    return QUESTIONS.filter(visible);
+  }
+
   function missing() {
-    return QUESTIONS.filter(function (q) {
-      return q.required && visible(q) && !val(q.id);
-    });
+    return steps().filter(function (q) { return q.required && !val(q.id); });
   }
 
   function hasData() {
-    return Object.keys(state.answers).some(function (k) {
-      return state.answers[k];
-    });
+    return Object.keys(state.answers).some(function (k) { return state.answers[k]; });
   }
 
-  function persist() {
-    store.save(state);
-  }
+  function persist() { store.save({ answers: state.answers, seen: state.seen }); }
 
   // ---- dom helpers -------------------------------------------------------
 
@@ -142,156 +152,293 @@
     return node;
   }
 
-  function onChange(id, value) {
-    state.answers[id] = value;
-    persist();
-    render();
+  function show(id, on) {
+    var node = document.getElementById(id);
+    if (on) node.removeAttribute('hidden');
+    else node.setAttribute('hidden', '');
   }
 
-  // ---- questions ---------------------------------------------------------
+  // ---- the wizard --------------------------------------------------------
 
-  function renderQuestions() {
-    var root = document.getElementById('questions');
-    root.textContent = '';
+  function renderStep() {
+    var list = steps();
+    if (step >= list.length) step = list.length - 1;
+    if (step < 0) step = 0;
 
-    QUESTIONS.forEach(function (q) {
-      if (!visible(q)) return;
-      var card = el('div', { class: 'card question', 'data-q': q.id });
+    var q = list[step];
+    var host = document.getElementById('step');
+    host.textContent = '';
 
-      if (q.type === 'radio') {
-        var fs = el('fieldset');
-        fs.appendChild(el('legend', { text: q.label }));
-        if (q.help) fs.appendChild(el('p', { class: 'help', text: q.help }));
-        q.options.forEach(function (o) {
-          var inputId = q.id + '-' + o[0];
-          var lab = el('label', { class: 'radio', for: inputId });
-          var input = el('input', { type: 'radio', name: q.id, id: inputId, value: o[0] });
-          if (val(q.id) === o[0]) input.checked = true;
-          input.addEventListener('change', function () { onChange(q.id, o[0]); });
-          lab.appendChild(input);
-          lab.appendChild(document.createTextNode(' ' + o[1]));
-          fs.appendChild(lab);
+    document.getElementById('progress-label').textContent = 'Question ' + (step + 1);
+    document.getElementById('progress-count').textContent = 'of ' + list.length;
+    var pct = Math.round((step / list.length) * 100);
+    var fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.parentNode.setAttribute('aria-valuenow', String(pct));
+
+    var card = el('div', { class: 'question', 'data-q': q.id });
+
+    if (q.type === 'radio') {
+      var fs = el('fieldset');
+      fs.appendChild(el('legend', { class: 'q-label', text: q.label }));
+      if (q.help) fs.appendChild(el('p', { class: 'help', text: q.help }));
+      var opts = el('div', { class: 'options' });
+      q.options.forEach(function (o) {
+        var inputId = q.id + '-' + o[0];
+        var lab = el('label', { class: 'option', for: inputId });
+        var input = el('input', { type: 'radio', name: q.id, id: inputId, value: o[0] });
+        if (val(q.id) === o[0]) input.checked = true;
+        input.addEventListener('change', function () {
+          state.answers[q.id] = o[0];
+          persist();
+          markSelected(opts);
+          clearError();
         });
-        card.appendChild(fs);
+        // Advance on an actual click. Keyboard users move through the group
+        // with arrow keys, so auto-advancing on change would trap them.
+        input.addEventListener('click', function () { queueAdvance(); });
+        lab.appendChild(input);
+        lab.appendChild(el('span', { class: 'option-text', text: o[1] }));
+        opts.appendChild(lab);
+      });
+      fs.appendChild(opts);
+      card.appendChild(fs);
+      markSelected(opts);
+    } else {
+      card.appendChild(el('label', { class: 'q-label', for: q.id, text: q.label }));
+      if (q.help) card.appendChild(el('p', { class: 'help', text: q.help }));
+
+      var field;
+      if (q.type === 'select') {
+        field = el('select', { id: q.id });
+        field.appendChild(el('option', { value: '', text: 'Choose one' }));
+        q.options.forEach(function (o) {
+          var opt = el('option', { value: o[0], text: o[1] });
+          if (val(q.id) === o[0]) opt.selected = true;
+          field.appendChild(opt);
+        });
+        field.addEventListener('change', function () {
+          state.answers[q.id] = field.value;
+          persist();
+          clearError();
+        });
+      } else if (q.type === 'textarea') {
+        field = el('textarea', { id: q.id, rows: '4', placeholder: q.placeholder || '' });
+        field.value = val(q.id);
+        field.addEventListener('input', function () {
+          state.answers[q.id] = field.value;
+          persist();
+        });
       } else {
-        card.appendChild(el('label', { for: q.id, text: q.label }));
-        if (q.help) card.appendChild(el('p', { class: 'help', text: q.help }));
-
-        var field;
-        if (q.type === 'select') {
-          field = el('select', { id: q.id });
-          field.appendChild(el('option', { value: '', text: 'Choose one' }));
-          q.options.forEach(function (o) {
-            var opt = el('option', { value: o[0], text: o[1] });
-            if (val(q.id) === o[0]) opt.selected = true;
-            field.appendChild(opt);
-          });
-          field.addEventListener('change', function () { onChange(q.id, field.value); });
-        } else if (q.type === 'textarea') {
-          field = el('textarea', { id: q.id, rows: '3', placeholder: q.placeholder || '' });
-          field.value = val(q.id);
-          field.addEventListener('input', function () {
-            state.answers[q.id] = field.value;
-            persist();
-            renderHandoff();
-          });
-        } else {
-          field = el('input', { type: 'number', id: q.id, min: '0', placeholder: q.placeholder || '' });
-          field.value = val(q.id);
-          field.addEventListener('input', function () { onChange(q.id, field.value); });
-        }
-        card.appendChild(field);
+        field = el('input', { type: 'number', id: q.id, min: '0', inputmode: 'numeric', placeholder: q.placeholder || '' });
+        field.value = val(q.id);
+        field.addEventListener('input', function () {
+          state.answers[q.id] = field.value;
+          persist();
+        });
       }
+      card.appendChild(field);
+      if (!q.required) card.appendChild(el('p', { class: 'optional', text: 'Optional — you can skip this.' }));
+    }
 
-      root.appendChild(card);
+    host.appendChild(card);
+
+    document.getElementById('btn-back').disabled = step === 0;
+    document.getElementById('btn-next').textContent =
+      step === list.length - 1 ? 'See my read' : 'Continue';
+  }
+
+  function markSelected(opts) {
+    Array.prototype.forEach.call(opts.querySelectorAll('.option'), function (lab) {
+      var input = lab.querySelector('input');
+      if (input.checked) lab.setAttribute('data-selected', '');
+      else lab.removeAttribute('data-selected');
     });
   }
 
-  // ---- read --------------------------------------------------------------
+  var advanceTimer = null;
+  function queueAdvance() {
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(function () { next(); }, 280);
+  }
 
-  function renderRead() {
-    var box = document.getElementById('read');
-    box.textContent = '';
+  function clearError() { show('step-error', false); }
 
-    var need = missing();
-    if (need.length) {
-      box.className = 'card read incomplete';
-      box.appendChild(el('h2', { text: 'Your read' }));
-      box.appendChild(el('p', { text: 'Answer these and this fills in:' }));
-      var ul = el('ul');
-      need.forEach(function (q) { ul.appendChild(el('li', { text: q.label })); });
-      box.appendChild(ul);
+  function next() {
+    clearTimeout(advanceTimer);
+    var list = steps();
+    var q = list[step];
+    if (q.required && !val(q.id)) {
+      show('step-error', true);
       return;
     }
+    clearError();
+    if (step >= steps().length - 1) {
+      finish();
+      return;
+    }
+    step += 1;
+    renderStep();
+    focusStep();
+  }
+
+  function back() {
+    clearTimeout(advanceTimer);
+    clearError();
+    if (step === 0) {
+      goto('intro');
+      return;
+    }
+    step -= 1;
+    renderStep();
+    focusStep();
+  }
+
+  function focusStep() {
+    var h = document.querySelector('#step .q-label');
+    if (h) {
+      h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function finish() {
+    var need = missing();
+    if (need.length) {
+      var list = steps();
+      step = list.indexOf(need[0]);
+      renderStep();
+      show('step-error', true);
+      return;
+    }
+    state.seen = true;
+    persist();
+    goto('report');
+  }
+
+  function goto(v) {
+    view = v;
+    show('intro', v === 'intro');
+    show('wizard', v === 'wizard');
+    show('report', v === 'report');
+    if (v === 'wizard') renderStep();
+    if (v === 'report') renderReport();
+    window.scrollTo(0, 0);
+  }
+
+  // ---- the report --------------------------------------------------------
+
+  function labelOf(id) {
+    var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
+    if (!q || !q.options) return val(id);
+    var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
+    return found ? found[1] : val(id);
+  }
+
+  var RISK_ORDER = ['low', 'medium', 'high', 'extreme'];
+  var RISK_SHORT = { low: 'Low', medium: 'Medium', high: 'High', extreme: 'Extreme' };
+
+  function renderReport() {
+    var box = document.getElementById('read');
+    box.textContent = '';
+    if (missing().length) return;
 
     var a = state.answers;
     var r = window.CrisisLogic.assess(a);
-    box.className = 'card read risk-' + r.riskKey;
 
     if (a.safety === 'yes') {
-      var safety = el('div', { class: 'safety' });
+      var safety = el('section', { class: 'report-block safety' });
+      safety.appendChild(el('p', { class: 'eyebrow', text: 'First' }));
       safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
-      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common and they are not something to absorb quietly — most of them come from people who are not physically present, which does not make them harmless.' }));
+      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present — which does not make them harmless.' }));
       safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
       box.appendChild(safety);
     }
 
-    box.appendChild(el('h2', { text: 'Your read' }));
+    // Hero: the call, and nothing competing with it.
+    var hero = el('section', { class: 'report-block hero risk-' + r.riskKey });
+    hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
+    hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
+    hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
+    box.appendChild(hero);
 
-    var verdict = el('div', { class: 'verdict-block' });
-    verdict.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
-    verdict.appendChild(el('p', { text: r.call.line }));
-    box.appendChild(verdict);
+    // At a glance.
+    var tiles = el('section', { class: 'tiles' });
+    tiles.appendChild(tile('Where this sits', r.quadrant.name));
+    tiles.appendChild(tile('Blame', r.scct.type.split('—')[0].trim()));
+    tiles.appendChild(tile('Strategy', r.scct.strategy));
+    box.appendChild(tiles);
 
-    box.appendChild(row('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
-    box.appendChild(row('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
-
-    var riskRow = el('div', { class: 'read-row' });
-    riskRow.appendChild(el('h3', { text: 'Risk level' }));
-    riskRow.appendChild(el('p', { class: 'headline', text: r.risk.name }));
+    // Risk meter.
+    var risk = el('section', { class: 'report-block' });
+    risk.appendChild(el('p', { class: 'eyebrow', text: 'Risk level' }));
+    risk.appendChild(el('h2', { text: r.risk.name }));
+    var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
+    RISK_ORDER.forEach(function (k) {
+      var seg = el('div', { class: 'meter-seg' + (k === r.riskKey ? ' is-on' : '') });
+      seg.appendChild(el('span', { text: RISK_SHORT[k] }));
+      meter.appendChild(seg);
+    });
+    risk.appendChild(meter);
     var dl = el('dl', { class: 'grid-row' });
     [['Prepare', r.risk.prep], ['Watch', r.risk.detect], ['Respond', r.risk.respond], ['Recover', r.risk.recover]]
       .forEach(function (p) {
         dl.appendChild(el('dt', { text: p[0] }));
         dl.appendChild(el('dd', { text: p[1] }));
       });
-    riskRow.appendChild(dl);
-    box.appendChild(riskRow);
+    risk.appendChild(dl);
+    box.appendChild(risk);
+
+    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
+    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
 
     if (r.channel && r.call.publish !== 'no') {
-      var ch = el('div', { class: 'read-row' });
-      ch.appendChild(el('h3', { text: 'Where to answer it' }));
-      ch.appendChild(el('p', { class: 'note', text: 'Answer where it landed. A press release does not reach the people who saw a Facebook post.' }));
+      var ch = el('section', { class: 'report-block' });
+      ch.appendChild(el('p', { class: 'eyebrow', text: 'Where to answer it' }));
+      ch.appendChild(el('h2', { text: 'Answer where it landed' }));
+      ch.appendChild(el('p', { class: 'note', text: 'A press release does not reach the people who saw a Facebook post.' }));
       ch.appendChild(el('p', { text: r.channel }));
       box.appendChild(ch);
     }
 
-    var sk = el('div', { class: 'read-row' });
-    sk.appendChild(el('h3', { text: 'How to build the statement — ' + r.skeleton.title }));
-    var ol = el('ol');
+    var sk = el('section', { class: 'report-block' });
+    sk.appendChild(el('p', { class: 'eyebrow', text: 'How to build the statement' }));
+    sk.appendChild(el('h2', { text: r.skeleton.title }));
+    var ol = el('ol', { class: 'skeleton' });
     r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
     sk.appendChild(ol);
     sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
     box.appendChild(sk);
+
+    renderPlan(r);
+    renderSummary();
+    renderHandoff();
   }
 
-  function row(heading, headline, posture, detail) {
-    var d = el('div', { class: 'read-row' });
-    d.appendChild(el('h3', { text: heading }));
-    d.appendChild(el('p', { class: 'headline', text: headline }));
+  function tile(label, value) {
+    var t = el('div', { class: 'tile' });
+    t.appendChild(el('p', { class: 'tile-label', text: label }));
+    t.appendChild(el('p', { class: 'tile-value', text: value }));
+    return t;
+  }
+
+  function detail(eyebrow, headline, posture, body) {
+    var d = el('section', { class: 'report-block' });
+    d.appendChild(el('p', { class: 'eyebrow', text: eyebrow }));
+    d.appendChild(el('h2', { text: headline }));
     d.appendChild(el('p', { class: 'posture', text: posture }));
-    d.appendChild(el('p', { text: detail }));
+    d.appendChild(el('p', { text: body }));
     return d;
   }
 
-  function renderPlan() {
+  function renderPlan(r) {
     var box = document.getElementById('plan');
     box.textContent = '';
-    if (missing().length) return;
 
-    var r = window.CrisisLogic.assess(state.answers);
-
-    box.appendChild(el('h2', { text: 'What to do, in order' }));
+    var seq = el('section', { class: 'report-block' });
+    seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
+    seq.appendChild(el('h2', { text: 'What to do, in order' }));
     var ol = el('ol', { class: 'sequence' });
     r.sequence.forEach(function (s) {
       var li = el('li');
@@ -299,31 +446,50 @@
       li.appendChild(el('span', { class: 'what', text: s.what }));
       ol.appendChild(li);
     });
-    box.appendChild(ol);
+    seq.appendChild(ol);
+    box.appendChild(seq);
 
-    box.appendChild(el('h2', { text: 'What not to do' }));
+    var no = el('section', { class: 'report-block donts-block' });
+    no.appendChild(el('p', { class: 'eyebrow', text: 'Avoid' }));
+    no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
-    box.appendChild(ul);
+    no.appendChild(ul);
+    box.appendChild(no);
+  }
+
+  function renderSummary() {
+    var box = document.getElementById('plan');
+    var wrap = el('section', { class: 'report-block summary' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Based on' }));
+    wrap.appendChild(el('h2', { text: 'What you told it' }));
+
+    var list = el('dl', { class: 'summary-list' });
+    steps().forEach(function (q, i) {
+      if (!val(q.id)) return;
+      var dt = el('dt', { text: q.short });
+      var dd = el('dd');
+      dd.appendChild(el('span', { class: 'summary-value', text: labelOf(q.id) }));
+      var edit = el('button', { type: 'button', class: 'link no-print', text: 'Change' });
+      edit.addEventListener('click', function () {
+        step = i;
+        goto('wizard');
+      });
+      dd.appendChild(edit);
+      list.appendChild(dt);
+      list.appendChild(dd);
+    });
+    wrap.appendChild(list);
+    box.appendChild(wrap);
   }
 
   // ---- handoff -----------------------------------------------------------
 
   function buildHandoff() {
+    if (missing().length) return 'Answer the questions and a ready-to-paste prompt appears here.';
+
     var a = state.answers;
-    var need = missing();
-
-    if (need.length) {
-      return 'Answer the questions above and a ready-to-paste prompt appears here.';
-    }
-
     var r = window.CrisisLogic.assess(a);
-    var labelOf = function (id) {
-      var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
-      if (!q || !q.options) return val(id);
-      var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
-      return found ? found[1] : val(id);
-    };
 
     var asks = [];
     if (r.call.publish === 'no') {
@@ -403,12 +569,22 @@
   }
 
   function bindButtons() {
+    document.getElementById('btn-start').addEventListener('click', function () {
+      goto('wizard');
+    });
+    document.getElementById('btn-next').addEventListener('click', next);
+    document.getElementById('btn-back').addEventListener('click', back);
+    document.getElementById('btn-review').addEventListener('click', function () {
+      step = 0;
+      goto('wizard');
+    });
+
     document.getElementById('btn-print').addEventListener('click', function () {
       window.WinnxtExport.print();
     });
 
     document.getElementById('btn-download').addEventListener('click', function () {
-      window.WinnxtExport.downloadJSON('crisis-triage.json', state);
+      window.WinnxtExport.downloadJSON('crisis-triage.json', { answers: state.answers });
     });
 
     document.getElementById('btn-copy').addEventListener('click', function () {
@@ -422,27 +598,39 @@
     document.getElementById('btn-reset').addEventListener('click', function () {
       if (!confirm('Erase everything you have entered? This cannot be undone.')) return;
       store.eraseAll();
-      state = { answers: {} };
+      state = { answers: {}, seen: false };
+      step = 0;
       var box = document.getElementById('storage-toggle');
       if (!box.disabled) box.checked = false;
       document.getElementById('storage-note').textContent = 'Nothing is being saved. Close this tab and it is gone.';
-      render();
+      document.getElementById('resume-note').setAttribute('hidden', '');
+      goto('intro');
     });
-  }
-
-  function render() {
-    renderQuestions();
-    renderRead();
-    renderPlan();
-    renderHandoff();
   }
 
   function init() {
     var saved = store.load();
-    if (saved && saved.answers) state = saved;
+    if (saved && saved.answers) {
+      state.answers = saved.answers;
+      state.seen = !!saved.seen;
+    }
+
     bindStorageToggle();
     bindButtons();
-    render();
+
+    if (hasData()) {
+      var note = document.getElementById('resume-note');
+      note.textContent = 'Picking up where you left off — your saved answers are still here.';
+      note.removeAttribute('hidden');
+      document.getElementById('btn-start').textContent =
+        state.seen && !missing().length ? 'See my read' : 'Continue';
+      if (state.seen && !missing().length) {
+        goto('report');
+        return;
+      }
+    }
+
+    goto('intro');
     store.warnOnUnloadWhenOff(hasData);
   }
 
