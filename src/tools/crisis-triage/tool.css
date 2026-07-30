@@ -1,0 +1,87 @@
+/* Crisis triage — tool-specific styles. */
+
+.lede { font-size: 1.1rem; color: var(--ink-soft); }
+
+.privacy { border-left: 3px solid var(--ok); padding-left: 0.8em; }
+.first { border-left: 3px solid var(--warn); padding-left: 0.8em; }
+
+.checkbox, .radio { display: block; font-weight: 400; margin-bottom: 0.35em; }
+.checkbox { font-weight: 600; margin-bottom: 0.5em; }
+.checkbox input, .radio input { margin-right: 0.4em; }
+
+.question fieldset { border: 0; padding: 0; margin: 0; }
+.question legend, .question label[for] {
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0;
+  margin-bottom: 0.2em;
+}
+.help { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 0.7em; }
+
+.read.incomplete { color: var(--ink-soft); }
+
+.verdict-block {
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--space);
+  margin-bottom: var(--space);
+}
+.verdict {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.3em;
+  color: var(--accent);
+}
+
+.read-row { margin-bottom: calc(var(--space) * 1.3); }
+.read-row h3 {
+  margin: 0 0 0.2em;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.headline { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.15em; }
+.posture { font-weight: 600; margin-bottom: 0.35em; }
+
+.grid-row { margin: 0.4em 0 0; }
+.grid-row dt {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-top: 0.6em;
+}
+.grid-row dd { margin: 0.1em 0 0; }
+
+.safety {
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  padding: var(--space);
+  margin-bottom: var(--space);
+}
+.safety h2 { margin-top: 0; color: var(--danger); }
+
+.read.risk-high { border-left: 5px solid var(--warn); }
+.read.risk-extreme { border-left: 5px solid var(--danger); }
+
+.sequence { padding-left: 1.2em; }
+.sequence li { margin-bottom: 0.7em; }
+.sequence .when {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.donts li { margin-bottom: 0.45em; }
+
+.actions button { margin-right: 0.5em; }
+
+@media print {
+  .question { break-inside: avoid; }
+  .read-row, .safety, .verdict-block { break-inside: avoid; }
+}

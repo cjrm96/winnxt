@@ -1,0 +1,58 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>Crisis Triage &amp; Rapid Response — WINNXT</title>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="tool.css">
+
+<main>
+
+<header>
+  <h1>Crisis Triage &amp; Rapid Response</h1>
+  <p class="lede">Something just happened. Answer nine questions and get a read: whether to respond at all, where, how, and in what order.</p>
+  <p class="note privacy">This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet off. Close the tab and it is gone unless you turn on saving below.</p>
+  <p class="note first">Before anything else: do not post while you are angry, and do not delete anything that is already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+</header>
+
+<section class="card no-print" id="storage-panel">
+  <label class="checkbox" for="storage-toggle">
+    <input type="checkbox" id="storage-toggle">
+    Save my answers in this browser
+  </label>
+  <p class="note" id="storage-note"></p>
+  <button type="button" class="danger" id="btn-reset">Erase everything</button>
+</section>
+
+<div id="questions"></div>
+
+<section id="read" class="card read incomplete"></section>
+
+<section id="plan" class="card plan"></section>
+
+<section class="card handoff no-print">
+  <h2>Continue with Claude</h2>
+  <p>This tool tells you what to do. It cannot write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+  <pre id="handoff-text"></pre>
+  <button type="button" id="btn-copy">Copy this prompt</button>
+</section>
+
+<section class="card no-print actions">
+  <h2>Take it with you</h2>
+  <button type="button" id="btn-print">Print / Save as PDF</button>
+  <button type="button" class="secondary" id="btn-download">Download my answers</button>
+</section>
+
+<footer class="brand">
+  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+  We don't believe in fluff, because neither will your voters.<br>
+  <a href="https://www.winnxt.com/">winnxt.com</a></p>
+  <p class="note">This is a communications planning tool, not legal advice. If there is any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — do not rely on this file.</p>
+</footer>
+
+</main>
+
+<script src="../../shared/storage.js"></script>
+<script src="../../shared/export.js"></script>
+<script src="../../shared/handoff.js"></script>
+<script src="logic.js"></script>
+<script src="app.js"></script>

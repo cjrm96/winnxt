@@ -1,0 +1,1286 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>Crisis Triage &amp; Rapid Response — WINNXT</title>
+<style>
+/* WINNXT design tokens + base styles. System fonts only — no webfonts, ever. */
+
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --ink: #14181d;
+  --ink-soft: #4a545f;
+  --line: #d8dee5;
+  --bg: #ffffff;
+  --bg-soft: #f4f6f8;
+
+  --accent: #0f4c81;
+  --accent-ink: #ffffff;
+
+  --danger: #a4232b;
+  --warn: #8a5a00;
+  --ok: #1d6b45;
+
+  --focus: #0f4c81;
+
+  --space: 1rem;
+  --radius: 6px;
+  --max-width: 44rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8ecf1;
+    --ink-soft: #a9b4c0;
+    --line: #333c46;
+    --bg: #14181d;
+    --bg-soft: #1c222a;
+    --accent: #7fb2e5;
+    --accent-ink: #0d1116;
+    --danger: #f08a90;
+    --warn: #e0b25c;
+    --ok: #7fcfa5;
+    --focus: #7fb2e5;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: calc(var(--space) * 1.5);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+main { max-width: var(--max-width); margin: 0 auto; }
+
+h1, h2, h3 { line-height: 1.2; margin: 1.6em 0 0.5em; }
+h1 { font-size: 1.7rem; margin-top: 0; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+
+p { margin: 0 0 1em; }
+
+a { color: var(--accent); }
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3em;
+}
+
+input, textarea, select, button {
+  font: inherit;
+  color: inherit;
+}
+
+input[type="text"], textarea, select {
+  width: 100%;
+  padding: 0.55em 0.7em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+textarea { min-height: 5em; resize: vertical; }
+
+button {
+  padding: 0.6em 1.1em;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+
+button.danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space);
+  margin-bottom: var(--space);
+  background: var(--bg-soft);
+}
+
+.note { color: var(--ink-soft); font-size: 0.92rem; }
+
+.brand {
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--space) * 2);
+  padding-top: var(--space);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.handoff pre {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 20em;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space);
+}
+
+@media print {
+  :root {
+    --ink: #000;
+    --ink-soft: #333;
+    --line: #999;
+    --bg: #fff;
+    --bg-soft: #fff;
+  }
+  body { padding: 0; font-size: 11pt; }
+  .no-print, button { display: none !important; }
+  .card { break-inside: avoid; page-break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; }
+}
+
+</style>
+<style>
+/* Crisis triage — tool-specific styles. */
+
+.lede { font-size: 1.1rem; color: var(--ink-soft); }
+
+.privacy { border-left: 3px solid var(--ok); padding-left: 0.8em; }
+.first { border-left: 3px solid var(--warn); padding-left: 0.8em; }
+
+.checkbox, .radio { display: block; font-weight: 400; margin-bottom: 0.35em; }
+.checkbox { font-weight: 600; margin-bottom: 0.5em; }
+.checkbox input, .radio input { margin-right: 0.4em; }
+
+.question fieldset { border: 0; padding: 0; margin: 0; }
+.question legend, .question label[for] {
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0;
+  margin-bottom: 0.2em;
+}
+.help { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 0.7em; }
+
+.read.incomplete { color: var(--ink-soft); }
+
+.verdict-block {
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--space);
+  margin-bottom: var(--space);
+}
+.verdict {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.3em;
+  color: var(--accent);
+}
+
+.read-row { margin-bottom: calc(var(--space) * 1.3); }
+.read-row h3 {
+  margin: 0 0 0.2em;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.headline { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.15em; }
+.posture { font-weight: 600; margin-bottom: 0.35em; }
+
+.grid-row { margin: 0.4em 0 0; }
+.grid-row dt {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-top: 0.6em;
+}
+.grid-row dd { margin: 0.1em 0 0; }
+
+.safety {
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  padding: var(--space);
+  margin-bottom: var(--space);
+}
+.safety h2 { margin-top: 0; color: var(--danger); }
+
+.read.risk-high { border-left: 5px solid var(--warn); }
+.read.risk-extreme { border-left: 5px solid var(--danger); }
+
+.sequence { padding-left: 1.2em; }
+.sequence li { margin-bottom: 0.7em; }
+.sequence .when {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.donts li { margin-bottom: 0.45em; }
+
+.actions button { margin-right: 0.5em; }
+
+@media print {
+  .question { break-inside: avoid; }
+  .read-row, .safety, .verdict-block { break-inside: avoid; }
+}
+
+</style>
+
+<main>
+
+<header>
+  <h1>Crisis Triage &amp; Rapid Response</h1>
+  <p class="lede">Something just happened. Answer nine questions and get a read: whether to respond at all, where, how, and in what order.</p>
+  <p class="note privacy">This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet off. Close the tab and it is gone unless you turn on saving below.</p>
+  <p class="note first">Before anything else: do not post while you are angry, and do not delete anything that is already public. Those two mistakes cause more damage than most of the things people panic about.</p>
+</header>
+
+<section class="card no-print" id="storage-panel">
+  <label class="checkbox" for="storage-toggle">
+    <input type="checkbox" id="storage-toggle">
+    Save my answers in this browser
+  </label>
+  <p class="note" id="storage-note"></p>
+  <button type="button" class="danger" id="btn-reset">Erase everything</button>
+</section>
+
+<div id="questions"></div>
+
+<section id="read" class="card read incomplete"></section>
+
+<section id="plan" class="card plan"></section>
+
+<section class="card handoff no-print">
+  <h2>Continue with Claude</h2>
+  <p>This tool tells you what to do. It cannot write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+  <pre id="handoff-text"></pre>
+  <button type="button" id="btn-copy">Copy this prompt</button>
+</section>
+
+<section class="card no-print actions">
+  <h2>Take it with you</h2>
+  <button type="button" id="btn-print">Print / Save as PDF</button>
+  <button type="button" class="secondary" id="btn-download">Download my answers</button>
+</section>
+
+<footer class="brand">
+  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+  We don't believe in fluff, because neither will your voters.<br>
+  <a href="https://www.winnxt.com/">winnxt.com</a></p>
+  <p class="note">This is a communications planning tool, not legal advice. If there is any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement — do not rely on this file.</p>
+</footer>
+
+</main>
+
+<script>
+// Opt-in localStorage. Off unless the user explicitly turns it on.
+(function () {
+  var CONSENT_SUFFIX = ':consent';
+
+  function Store(key) {
+    this.key = key;
+    this.consentKey = key + CONSENT_SUFFIX;
+  }
+
+  Store.prototype.available = function () {
+    try {
+      localStorage.setItem('__t', '1');
+      localStorage.removeItem('__t');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  Store.prototype.enabled = function () {
+    return this.available() && localStorage.getItem(this.consentKey) === 'yes';
+  };
+
+  Store.prototype.setEnabled = function (on) {
+    if (!this.available()) return false;
+    if (on) {
+      localStorage.setItem(this.consentKey, 'yes');
+    } else {
+      localStorage.removeItem(this.consentKey);
+      localStorage.removeItem(this.key);
+    }
+    return true;
+  };
+
+  Store.prototype.save = function (data) {
+    if (!this.enabled()) return false;
+    localStorage.setItem(this.key, JSON.stringify(data));
+    return true;
+  };
+
+  Store.prototype.load = function () {
+    if (!this.enabled()) return null;
+    var raw = localStorage.getItem(this.key);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Wired to the always-visible "erase everything" button. Must actually clear.
+  Store.prototype.eraseAll = function () {
+    if (!this.available()) return;
+    localStorage.removeItem(this.key);
+    localStorage.removeItem(this.consentKey);
+  };
+
+  // Warn before losing work when storage is off.
+  Store.prototype.warnOnUnloadWhenOff = function (hasData) {
+    var self = this;
+    window.addEventListener('beforeunload', function (e) {
+      if (self.enabled() || !hasData()) return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
+  };
+
+  window.WinnxtStorage = Store;
+})();
+
+</script>
+<script>
+// PDF via print stylesheet. Text/JSON via Blob download. Both work on file://.
+(function () {
+  function printPage() {
+    window.print();
+  }
+
+  function download(filename, text, mime) {
+    var blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  function downloadJSON(filename, data) {
+    download(filename, JSON.stringify(data, null, 2), 'application/json');
+  }
+
+  // navigator.clipboard is unavailable on file:// in some browsers.
+  function copyText(text, onResult) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+      onResult(ok);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        onResult(true);
+      }, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  window.WinnxtExport = {
+    print: printPage,
+    download: download,
+    downloadJSON: downloadJSON,
+    copyText: copyText
+  };
+})();
+
+</script>
+<script>
+// Builds the "Continue with Claude" prompt block that ends every HTML tool.
+// Static HTML can score, branch, and organize. It can't write. This is the bridge.
+(function () {
+  // spec: { role, task, context: [{label, value}], sections: [{title, items:[string]}], asks: [string] }
+  function buildPrompt(spec) {
+    var out = [];
+
+    if (spec.role) out.push(spec.role, '');
+    if (spec.task) out.push(spec.task, '');
+
+    if (spec.context && spec.context.length) {
+      out.push('## My race');
+      spec.context.forEach(function (c) {
+        if (c.value) out.push('- ' + c.label + ': ' + c.value);
+      });
+      out.push('');
+    }
+
+    (spec.sections || []).forEach(function (s) {
+      if (!s.items || !s.items.length) return;
+      out.push('## ' + s.title);
+      s.items.forEach(function (i) {
+        out.push('- ' + i);
+      });
+      out.push('');
+    });
+
+    if (spec.asks && spec.asks.length) {
+      out.push('## What I need from you');
+      spec.asks.forEach(function (a, i) {
+        out.push(i + 1 + '. ' + a);
+      });
+      out.push('');
+    }
+
+    out.push('---');
+    out.push('Generated by a WINNXT campaign tool — winnxt.com');
+
+    return out.join('\n');
+  }
+
+  window.WinnxtHandoff = { buildPrompt: buildPrompt };
+})();
+
+</script>
+<script>
+// Crisis triage decision logic. Pure functions — no DOM, so it can be tested
+// directly. Implements the WINNXT defense framework: the truth x harm
+// quadrant, the SCCT crisis-type mapping, and the risk-level grid.
+//
+// DEFENSE ONLY. Nothing here advises acting against an opponent, and nothing
+// here should ever be added that does.
+(function () {
+
+  // --- the quadrant -------------------------------------------------------
+
+  var QUADRANTS = {
+    'true-doesnt': {
+      name: "True, and it doesn't really hurt",
+      posture: 'Acknowledge it, or get out in front of it.',
+      detail: 'This is factual and it is not damaging. Treat it as a chance to look straightforward rather than a threat. If it is going to come up anyway, saying it yourself first costs you nothing and buys you credibility.'
+    },
+    'true-does': {
+      name: 'True, and it hurts',
+      posture: 'Admit it quickly, with context. Apologize if an apology is owed. Say what you are doing about it.',
+      detail: 'The facts are not on your side, so a denial will not hold and will make the second story worse than the first. Speed and completeness are what limit the damage. Say it once, say all of it, and do not let it come out in pieces.'
+    },
+    'false-doesnt': {
+      name: "False, and it doesn't really hurt",
+      posture: 'Say nothing. Monitor it.',
+      detail: 'Responding is what would give this an audience. Most voters will never see it. Keep a record in case it grows, and check back in a day.'
+    },
+    'false-does': {
+      name: 'False, and it hurts',
+      posture: 'Deny it firmly, with facts, using a truth sandwich.',
+      detail: 'State what is true. Name the false claim once, briefly. State what is true again. Never lead with the accusation and never repeat it more than once — repetition is what makes a false claim stick.'
+    }
+  };
+
+  function quadrantKey(truth, harm) {
+    // "Partly true" sits on the true side. The true part is the part that gets
+    // reported, and a denial that leans on the false part collapses the moment
+    // someone checks.
+    var side = truth === 'false' ? 'false' : 'true';
+    var hurts = harm !== 'none' ? 'does' : 'doesnt';
+    return side + '-' + hurts;
+  }
+
+  // --- SCCT ---------------------------------------------------------------
+
+  var SCCT = {
+    victim: {
+      type: 'Victim — low blame',
+      strategy: 'Diminish',
+      detail: 'This came at you from outside. Downplay your role rather than performing contrition you do not owe. Over-apologizing here reads as guilt and invites a second round.'
+    },
+    accidental: {
+      type: 'Accidental — minimal blame',
+      strategy: 'Excuse',
+      detail: 'Admit what happened and explain the context honestly, then move the focus to the fix. The public reads this as a slip-up, and competence in the response matters more than remorse.'
+    },
+    preventable: {
+      type: 'Preventable — high blame',
+      strategy: 'Rebuild',
+      detail: 'You made a choice, and scrutiny will be heavy. A partial apology will not close this. Apologize fully, offer a concrete change people can check, and let supporters and endorsers vouch for you rather than doing all the talking yourself.'
+    }
+  };
+
+  function scctKey(fault, truth) {
+    if (truth === 'false') return 'victim';
+    return fault;
+  }
+
+  // --- risk level ---------------------------------------------------------
+
+  var HARM_SCORE = { none: 0, some: 2, serious: 4 };
+  var SPREAD_SCORE = { few: 0, 'one-group': 1, 'many-groups': 2, 'local-press': 3, beyond: 4 };
+
+  function riskLevel(a) {
+    var s = 0;
+    s += HARM_SCORE[a.harm] || 0;
+    s += SPREAD_SCORE[a.spread] || 0;
+    if (a.truth !== 'false') s += 1;
+    if (a.proof === 'no') s += 1;
+    if (a.daysOut !== '' && a.daysOut !== null) {
+      var d = Number(a.daysOut);
+      if (!isNaN(d)) {
+        if (d <= 14) s += 2;
+        else if (d <= 30) s += 1;
+      }
+    }
+    if (a.safety === 'yes') s += 3;
+
+    if (s >= 9) return 'extreme';
+    if (s >= 6) return 'high';
+    if (s >= 3) return 'medium';
+    return 'low';
+  }
+
+  var GRID = {
+    low: {
+      name: 'Low — routine',
+      prep: 'Know your own talking points on this issue.',
+      detect: 'Check the local groups once a day.',
+      respond: 'Fix it quickly and quietly if it needs fixing at all.',
+      recover: 'Note what happened. Move on.'
+    },
+    medium: {
+      name: 'Medium — emerging',
+      prep: 'Call someone who has run before. Do not sit alone with this.',
+      detect: 'Track where it is being repeated and by whom.',
+      respond: 'Let supporters and surrogates carry the pushback where they can.',
+      recover: 'Ask a few trusted people how it actually landed.'
+    },
+    high: {
+      name: 'High — serious',
+      prep: 'Line up whoever gives you legal and communications advice now, not later.',
+      detect: 'Have someone checking hourly and sending you what they find.',
+      respond: 'Respond directly, then pivot hard back to your issues and stay there.',
+      recover: 'Rebuild on visible work and visible wins, not on more statements.'
+    },
+    extreme: {
+      name: 'Extreme — campaign-threatening',
+      prep: 'Get real advice before you say anything publicly.',
+      detect: 'Real-time monitoring. Someone other than you should be doing it.',
+      respond: 'If it is false, debunk it completely and at once. If it is true, stop defending and start rebuilding.',
+      recover: 'Assume this changes your strategy, not just your messaging.'
+    }
+  };
+
+  // --- respond or stay quiet ---------------------------------------------
+
+  // The single most useful and least wanted piece of advice in this tool is
+  // "do not respond." It gets its own function so it is impossible to bury.
+  function responseCall(a) {
+    var q = quadrantKey(a.truth, a.harm);
+
+    if (a.safety === 'yes') {
+      return {
+        verdict: 'Handle the safety part first',
+        line: 'Before anything else: document it, report it, and tell someone. The communications question can wait an hour.',
+        publish: 'later'
+      };
+    }
+
+    if (q === 'false-doesnt') {
+      return {
+        verdict: 'Say nothing',
+        line: 'Do not respond. Responding is the only thing that would give this an audience. Save a screenshot with the date and check again tomorrow.',
+        publish: 'no'
+      };
+    }
+
+    if (a.spread === 'few' && a.harm !== 'serious') {
+      return {
+        verdict: 'Do not publish yet — get ready instead',
+        line: 'Almost nobody has seen this. A public statement now would introduce it to people who were never going to hear about it. Write your response, keep it in your pocket, and watch for it to spread.',
+        publish: 'hold'
+      };
+    }
+
+    if (a.truth !== 'false' && a.harm === 'serious' && (a.spread === 'few' || a.spread === 'one-group')) {
+      return {
+        verdict: 'Get ahead of it',
+        line: 'This is true, it is damaging, and it has not spread yet. That is the one window where you control how the story is first told. Tell it yourself, in full, before someone else tells it for you. Your supporters can forgive almost anything except being surprised.',
+        publish: 'preempt'
+      };
+    }
+
+    if (q === 'true-doesnt') {
+      return {
+        verdict: 'Answer it plainly if asked',
+        line: 'No statement needed. If someone raises it, confirm it without flinching and move on. Do not act like it is a problem, because it is not one.',
+        publish: 'if-asked'
+      };
+    }
+
+    return {
+      verdict: 'Respond, today',
+      line: 'This is damaging and enough people have seen it that silence will be read as confirmation. Get out a short, accurate response now and a fuller one once you have your facts lined up.',
+      publish: 'yes'
+    };
+  }
+
+  // --- channel ------------------------------------------------------------
+
+  // Match the medium: answer where the hit landed, and where the people who
+  // saw it actually are.
+  var CHANNEL = {
+    'facebook-group': 'The same local group, if you are a member and the admins allow it. If you are not, ask a supporter who is a member and well liked there. A candidate parachuting into a neighborhood group to argue rarely goes well.',
+    'neighborhood-app': 'The same platform, once, calmly. Then stop. These threads reward whoever stays calm the longest.',
+    'local-paper': 'The reporter directly, on the record, plus a letter or op-ed if the piece is already out. Do not fight it on social media only.',
+    'tv': 'Broadcast if you can get it, plus a written statement to the same outlet the same day.',
+    'mailer': 'Mail, if there is time and budget. Calls and texts to your own supporters are the bridge while mail is in production.',
+    'digital-ad': 'Digital, targeted to the same audience. A press release will not reach the people who saw the ad.',
+    'forum': 'In person, at the next forum or meeting, and to anyone who was in the room.',
+    'social': 'The same platform, once, in your own words. Do not quote-tweet the attack.',
+    'word-of-mouth': 'In person and by phone, to the people who would hear it. Nothing public.',
+    'private': 'Nowhere public. This has not surfaced. Prepare, do not publish.'
+  };
+
+  // --- the 72 hours -------------------------------------------------------
+
+  function sequence(a) {
+    var call = responseCall(a);
+    var q = quadrantKey(a.truth, a.harm);
+    var out = [];
+
+    if (a.safety === 'yes') {
+      out.push({ when: 'Right now', what: 'Document everything — screenshots with dates, messages, names. Report it to law enforcement. Tell your family and whoever runs your events. Do not handle this alone and do not treat it as a messaging problem.' });
+    }
+
+    out.push({ when: 'First hour', what: 'Write down exactly what happened and what you know for certain. Separate what you know from what you assume. Do not post anything yet.' });
+    out.push({ when: 'First hour', what: 'Call one person who has done this before. You will make a worse decision alone than you will in a ten minute phone call.' });
+
+    if (call.publish === 'no') {
+      out.push({ when: 'Today', what: 'Save a dated record and set a reminder to check again tomorrow. That is the whole plan. Doing nothing is the action.' });
+      out.push({ when: 'If it spreads', what: 'Come back to this tool and run it again. The right answer changes the moment more people see it.' });
+      return out;
+    }
+
+    if (call.publish === 'hold') {
+      out.push({ when: 'Today', what: 'Draft your response and have it ready to go. Do not publish it.' });
+      out.push({ when: 'Today', what: 'Tell your closest supporters what happened and what you would say, so nobody is caught flat if it moves.' });
+      out.push({ when: 'Daily', what: 'Check whether it has spread. Publish only if it reaches people who were going to hear it anyway.' });
+      return out;
+    }
+
+    if (q === 'true-does' || call.publish === 'preempt') {
+      out.push({ when: 'Today', what: 'Get all of it out at once. A story that comes out in pieces gets covered three times instead of once.' });
+      out.push({ when: 'Today', what: 'Say what you are doing about it. Concrete and checkable beats sincere and vague.' });
+    } else if (q === 'false-does') {
+      out.push({ when: 'Today', what: 'Assemble your proof first — the document, the record, the person who will say so by name. A denial without evidence reads as a denial.' });
+      out.push({ when: 'Today', what: 'Publish the truth sandwich: what is true, the false claim once, what is true again. Keep it short enough to be read in full.' });
+    } else {
+      out.push({ when: 'Today', what: 'Answer it once, plainly, and get back to your own message.' });
+    }
+
+    out.push({ when: 'Today', what: 'Tell your supporters and endorsers directly, before they hear it somewhere else. Give them the two sentences you want them repeating.' });
+    out.push({ when: 'Next 48 hours', what: 'Answer what comes back, keep it short, and stop feeding it. Your goal is to be the least interesting part of the story by Thursday.' });
+    out.push({ when: 'Next 48 hours', what: 'Return to your issues in public. Every day you spend on their subject is a day you are not on yours.' });
+    out.push({ when: 'After it settles', what: 'Thank the people who stood up for you, by name and in private. Write down what you would do differently. That note is worth more than it sounds.' });
+
+    return out;
+  }
+
+  // --- what not to do -----------------------------------------------------
+
+  function donts(a) {
+    var q = quadrantKey(a.truth, a.harm);
+    var list = [
+      'Do not respond while you are angry. Write it, wait twenty minutes, read it again.',
+      'Do not argue in the comments. You will not win, and every reply pushes the thread back to the top.',
+      'Do not delete anything that is already public. Someone has a screenshot, and the deletion becomes the story.'
+    ];
+
+    if (q === 'true-does') {
+      list.push('Do not deny a part of it hoping the rest holds. Partial denials are what turn one bad day into three.');
+      list.push('Do not release it in pieces. Everything you hold back gets reported separately and looks worse.');
+    }
+    if (q === 'false-does') {
+      list.push('Do not repeat the false claim more than once, and never lead with it. Repetition is what makes it stick.');
+      list.push('Do not speculate about who is behind it in public unless you can prove it.');
+    }
+    if (q === 'false-doesnt') {
+      list.push('Do not respond at all. The response is the only way most people would ever learn about this.');
+    }
+    if (a.truth === 'partly') {
+      list.push('Do not lean on the inaccurate detail to dodge the accurate one. It works for a day and then collapses.');
+    }
+    list.push('Do not go after the person who raised it. It changes the subject to your temperament, and that is a worse subject.');
+
+    return list;
+  }
+
+  // --- statement skeleton -------------------------------------------------
+
+  function skeleton(a) {
+    var q = quadrantKey(a.truth, a.harm);
+    if (q === 'false-does') {
+      return {
+        title: 'Truth sandwich',
+        steps: [
+          'Open with what is true, stated plainly and first.',
+          'Name the false claim once, briefly, without heat.',
+          'Give your proof — the record, the document, the person who will confirm it.',
+          'Close by restating what is true, and turn to what you are running on.'
+        ]
+      };
+    }
+    if (q === 'true-does') {
+      return {
+        title: 'Admit, contextualize, fix',
+        steps: [
+          'State what happened, in your own words, before anyone else characterizes it.',
+          'Give the context honestly — without using it to dodge responsibility.',
+          'Apologize to the specific people affected, if an apology is owed. Name them.',
+          'Say what you are doing about it, concretely enough that someone could check.',
+          'Close on why you are still running. One sentence.'
+        ]
+      };
+    }
+    if (q === 'true-doesnt') {
+      return {
+        title: 'Confirm and move on',
+        steps: [
+          'Confirm it in one sentence, without defensiveness.',
+          'Add the context that makes it ordinary.',
+          'Move straight to your issues. Do not linger.'
+        ]
+      };
+    }
+    return {
+      title: 'Holding line, if you are asked',
+      steps: [
+        'One sentence acknowledging you have seen it.',
+        'One sentence of what you know for certain right now.',
+        'What happens next, and when. Then stop talking.'
+      ]
+    };
+  }
+
+  function assess(a) {
+    var qk = quadrantKey(a.truth, a.harm);
+    var sk = scctKey(a.fault, a.truth);
+    var rl = riskLevel(a);
+    return {
+      quadrantKey: qk,
+      quadrant: QUADRANTS[qk],
+      scctKey: sk,
+      scct: SCCT[sk],
+      riskKey: rl,
+      risk: GRID[rl],
+      call: responseCall(a),
+      channel: CHANNEL[a.where] || '',
+      sequence: sequence(a),
+      donts: donts(a),
+      skeleton: skeleton(a)
+    };
+  }
+
+  window.CrisisLogic = {
+    assess: assess,
+    quadrantKey: quadrantKey,
+    riskLevel: riskLevel,
+    responseCall: responseCall,
+    QUADRANTS: QUADRANTS,
+    SCCT: SCCT,
+    GRID: GRID
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var store = new window.WinnxtStorage('winnxt:crisis-triage');
+
+  var QUESTIONS = [
+    {
+      id: 'what', type: 'textarea', required: false,
+      label: 'What happened?',
+      help: 'Write it the way you would say it out loud. This never leaves your browser.',
+      placeholder: 'A post from 2016 is going around in a local parents group.'
+    },
+    {
+      id: 'where', type: 'select', required: true,
+      label: 'Where did it surface?',
+      help: 'The pattern for local candidates is almost always a neighborhood Facebook group first, everything else second.',
+      options: [
+        ['facebook-group', 'A local Facebook group'],
+        ['neighborhood-app', 'Nextdoor or a neighborhood app'],
+        ['social', 'Social media generally'],
+        ['local-paper', 'The local newspaper or news site'],
+        ['tv', 'TV or radio'],
+        ['mailer', "An opponent's mailer"],
+        ['digital-ad', "An opponent's digital ad"],
+        ['forum', 'A forum, debate, or public meeting'],
+        ['word-of-mouth', 'Word of mouth — people are talking'],
+        ['private', 'Nowhere yet — someone warned me it is coming']
+      ]
+    },
+    {
+      id: 'spread', type: 'radio', required: true,
+      label: 'How far has it actually gone?',
+      help: 'Be honest rather than fearful. This drives whether responding helps you or hands it an audience.',
+      options: [
+        ['few', 'A handful of people know'],
+        ['one-group', 'One group or thread'],
+        ['many-groups', 'Several groups, or it keeps getting reposted'],
+        ['local-press', 'Local press has picked it up'],
+        ['beyond', 'It is past local now']
+      ]
+    },
+    {
+      id: 'truth', type: 'radio', required: true,
+      label: 'Is it true?',
+      help: 'Answer this one honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
+      options: [
+        ['true', 'Yes, it is accurate'],
+        ['partly', 'Partly — the core is true, some details are wrong'],
+        ['false', 'No, it is false']
+      ]
+    },
+    {
+      id: 'truePart', type: 'textarea', required: false, showIf: { truth: ['partly'] },
+      label: 'Which part is true?',
+      help: 'The true part is the part that gets reported. Name it now so your response does not lean on the wrong half.',
+      placeholder: 'I did miss those meetings. The reason they gave is wrong.'
+    },
+    {
+      id: 'harm', type: 'radio', required: true,
+      label: 'Does it actually damage you with people who might vote for you?',
+      help: 'Not whether it is unfair, and not how it makes you feel. Whether it moves votes. Most attacks do not.',
+      options: [
+        ['none', 'Not really — it looks worse to me than to voters'],
+        ['some', 'Somewhat — it gives undecided people a reason to pause'],
+        ['serious', 'Seriously — it goes to trust, character, or the job itself']
+      ]
+    },
+    {
+      id: 'fault', type: 'radio', required: true,
+      label: 'How did this come about?',
+      help: 'This decides how much apology is owed. Over-apologizing for something outside your control reads as guilt; under-apologizing for something you chose reads as contempt.',
+      options: [
+        ['victim', 'It came at me from outside — I did not cause it'],
+        ['accidental', 'I did it, but it was a mistake — I was not trying to'],
+        ['preventable', 'I made a choice, and this is the result']
+      ]
+    },
+    {
+      id: 'proof', type: 'radio', required: true,
+      label: 'Can you prove your side right now?',
+      help: 'A document, a record, a dated receipt, or a person who will say so by name.',
+      options: [
+        ['yes', 'Yes — I have something I can show'],
+        ['partly', 'Partly — I could get there with some digging'],
+        ['no', 'No — it would be my word against theirs']
+      ]
+    },
+    {
+      id: 'safety', type: 'radio', required: true,
+      label: 'Is anyone unsafe?',
+      help: 'Threats, harassment, anything aimed at your home or your family. This changes the order of what you do next.',
+      options: [
+        ['no', 'No'],
+        ['yes', 'Yes, or it is heading that way']
+      ]
+    },
+    {
+      id: 'daysOut', type: 'number', required: false,
+      label: 'Days until the election',
+      help: 'Leave blank if you are not sure. Close to election day, the same crisis is a bigger problem because there is less time to recover.',
+      placeholder: 'e.g. 21'
+    }
+  ];
+
+  var state = { answers: {} };
+
+  function val(id) {
+    return state.answers[id] === undefined ? '' : state.answers[id];
+  }
+
+  function visible(q) {
+    if (!q.showIf) return true;
+    return Object.keys(q.showIf).every(function (k) {
+      return q.showIf[k].indexOf(val(k)) !== -1;
+    });
+  }
+
+  function missing() {
+    return QUESTIONS.filter(function (q) {
+      return q.required && visible(q) && !val(q.id);
+    });
+  }
+
+  function hasData() {
+    return Object.keys(state.answers).some(function (k) {
+      return state.answers[k];
+    });
+  }
+
+  function persist() {
+    store.save(state);
+  }
+
+  // ---- dom helpers -------------------------------------------------------
+
+  function el(tag, attrs, kids) {
+    var node = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'class') node.className = attrs[k];
+      else if (k === 'text') node.textContent = attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { node.appendChild(c); });
+    return node;
+  }
+
+  function onChange(id, value) {
+    state.answers[id] = value;
+    persist();
+    render();
+  }
+
+  // ---- questions ---------------------------------------------------------
+
+  function renderQuestions() {
+    var root = document.getElementById('questions');
+    root.textContent = '';
+
+    QUESTIONS.forEach(function (q) {
+      if (!visible(q)) return;
+      var card = el('div', { class: 'card question', 'data-q': q.id });
+
+      if (q.type === 'radio') {
+        var fs = el('fieldset');
+        fs.appendChild(el('legend', { text: q.label }));
+        if (q.help) fs.appendChild(el('p', { class: 'help', text: q.help }));
+        q.options.forEach(function (o) {
+          var inputId = q.id + '-' + o[0];
+          var lab = el('label', { class: 'radio', for: inputId });
+          var input = el('input', { type: 'radio', name: q.id, id: inputId, value: o[0] });
+          if (val(q.id) === o[0]) input.checked = true;
+          input.addEventListener('change', function () { onChange(q.id, o[0]); });
+          lab.appendChild(input);
+          lab.appendChild(document.createTextNode(' ' + o[1]));
+          fs.appendChild(lab);
+        });
+        card.appendChild(fs);
+      } else {
+        card.appendChild(el('label', { for: q.id, text: q.label }));
+        if (q.help) card.appendChild(el('p', { class: 'help', text: q.help }));
+
+        var field;
+        if (q.type === 'select') {
+          field = el('select', { id: q.id });
+          field.appendChild(el('option', { value: '', text: 'Choose one' }));
+          q.options.forEach(function (o) {
+            var opt = el('option', { value: o[0], text: o[1] });
+            if (val(q.id) === o[0]) opt.selected = true;
+            field.appendChild(opt);
+          });
+          field.addEventListener('change', function () { onChange(q.id, field.value); });
+        } else if (q.type === 'textarea') {
+          field = el('textarea', { id: q.id, rows: '3', placeholder: q.placeholder || '' });
+          field.value = val(q.id);
+          field.addEventListener('input', function () {
+            state.answers[q.id] = field.value;
+            persist();
+            renderHandoff();
+          });
+        } else {
+          field = el('input', { type: 'number', id: q.id, min: '0', placeholder: q.placeholder || '' });
+          field.value = val(q.id);
+          field.addEventListener('input', function () { onChange(q.id, field.value); });
+        }
+        card.appendChild(field);
+      }
+
+      root.appendChild(card);
+    });
+  }
+
+  // ---- read --------------------------------------------------------------
+
+  function renderRead() {
+    var box = document.getElementById('read');
+    box.textContent = '';
+
+    var need = missing();
+    if (need.length) {
+      box.className = 'card read incomplete';
+      box.appendChild(el('h2', { text: 'Your read' }));
+      box.appendChild(el('p', { text: 'Answer these and this fills in:' }));
+      var ul = el('ul');
+      need.forEach(function (q) { ul.appendChild(el('li', { text: q.label })); });
+      box.appendChild(ul);
+      return;
+    }
+
+    var a = state.answers;
+    var r = window.CrisisLogic.assess(a);
+    box.className = 'card read risk-' + r.riskKey;
+
+    if (a.safety === 'yes') {
+      var safety = el('div', { class: 'safety' });
+      safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
+      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common and they are not something to absorb quietly — most of them come from people who are not physically present, which does not make them harmless.' }));
+      safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
+      box.appendChild(safety);
+    }
+
+    box.appendChild(el('h2', { text: 'Your read' }));
+
+    var verdict = el('div', { class: 'verdict-block' });
+    verdict.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
+    verdict.appendChild(el('p', { text: r.call.line }));
+    box.appendChild(verdict);
+
+    box.appendChild(row('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
+    box.appendChild(row('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
+
+    var riskRow = el('div', { class: 'read-row' });
+    riskRow.appendChild(el('h3', { text: 'Risk level' }));
+    riskRow.appendChild(el('p', { class: 'headline', text: r.risk.name }));
+    var dl = el('dl', { class: 'grid-row' });
+    [['Prepare', r.risk.prep], ['Watch', r.risk.detect], ['Respond', r.risk.respond], ['Recover', r.risk.recover]]
+      .forEach(function (p) {
+        dl.appendChild(el('dt', { text: p[0] }));
+        dl.appendChild(el('dd', { text: p[1] }));
+      });
+    riskRow.appendChild(dl);
+    box.appendChild(riskRow);
+
+    if (r.channel && r.call.publish !== 'no') {
+      var ch = el('div', { class: 'read-row' });
+      ch.appendChild(el('h3', { text: 'Where to answer it' }));
+      ch.appendChild(el('p', { class: 'note', text: 'Answer where it landed. A press release does not reach the people who saw a Facebook post.' }));
+      ch.appendChild(el('p', { text: r.channel }));
+      box.appendChild(ch);
+    }
+
+    var sk = el('div', { class: 'read-row' });
+    sk.appendChild(el('h3', { text: 'How to build the statement — ' + r.skeleton.title }));
+    var ol = el('ol');
+    r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
+    sk.appendChild(ol);
+    sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
+    box.appendChild(sk);
+  }
+
+  function row(heading, headline, posture, detail) {
+    var d = el('div', { class: 'read-row' });
+    d.appendChild(el('h3', { text: heading }));
+    d.appendChild(el('p', { class: 'headline', text: headline }));
+    d.appendChild(el('p', { class: 'posture', text: posture }));
+    d.appendChild(el('p', { text: detail }));
+    return d;
+  }
+
+  function renderPlan() {
+    var box = document.getElementById('plan');
+    box.textContent = '';
+    if (missing().length) return;
+
+    var r = window.CrisisLogic.assess(state.answers);
+
+    box.appendChild(el('h2', { text: 'What to do, in order' }));
+    var ol = el('ol', { class: 'sequence' });
+    r.sequence.forEach(function (s) {
+      var li = el('li');
+      li.appendChild(el('span', { class: 'when', text: s.when }));
+      li.appendChild(el('span', { class: 'what', text: s.what }));
+      ol.appendChild(li);
+    });
+    box.appendChild(ol);
+
+    box.appendChild(el('h2', { text: 'What not to do' }));
+    var ul = el('ul', { class: 'donts' });
+    r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
+    box.appendChild(ul);
+  }
+
+  // ---- handoff -----------------------------------------------------------
+
+  function buildHandoff() {
+    var a = state.answers;
+    var need = missing();
+
+    if (need.length) {
+      return 'Answer the questions above and a ready-to-paste prompt appears here.';
+    }
+
+    var r = window.CrisisLogic.assess(a);
+    var labelOf = function (id) {
+      var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
+      if (!q || !q.options) return val(id);
+      var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
+      return found ? found[1] : val(id);
+    };
+
+    var asks = [];
+    if (r.call.publish === 'no') {
+      asks.push('Push back on me. My read says do not respond — tell me honestly whether that is right, and what would have to change for it to be wrong.');
+      asks.push('Write the two sentences I would say if a reporter or a voter asks me about this directly, so I am not caught flat.');
+    } else if (r.call.publish === 'hold') {
+      asks.push('Draft the statement I would put out if this spreads, so it is ready and I am not writing it under pressure.');
+      asks.push('Tell me what specifically would signal that it is time to publish.');
+    } else {
+      asks.push('Draft a short statement using the structure above — under 120 words, in plain speech, no jargon or campaign-ese.');
+      asks.push('Draft a longer version for my website or a letter, under 350 words.');
+      asks.push('Write the two sentences I want my supporters repeating on my behalf.');
+      asks.push('Give me the five hardest follow-up questions I will get, and a straight answer to each.');
+    }
+    asks.push('Tell me where I am fooling myself in how I described this.');
+
+    return window.WinnxtHandoff.buildPrompt({
+      role: 'You are an experienced, blunt campaign communications advisor helping a first-time candidate for local office through a live problem. Be direct. Tell me if I am wrong. Do not write corporate-sounding statements and do not give me legal advice — tell me when to call a lawyer instead.',
+      task: 'I ran this through a triage tool. Here is what happened and what the tool concluded.',
+      context: [
+        { label: 'What happened', value: a.what },
+        { label: 'Where it surfaced', value: labelOf('where') },
+        { label: 'How far it has spread', value: labelOf('spread') },
+        { label: 'Is it true', value: labelOf('truth') },
+        { label: 'The part that is true', value: a.truePart },
+        { label: 'Damage to me with voters', value: labelOf('harm') },
+        { label: 'How it came about', value: labelOf('fault') },
+        { label: 'Proof I can show', value: labelOf('proof') },
+        { label: 'Days until the election', value: a.daysOut }
+      ],
+      sections: [
+        {
+          title: "The tool's read",
+          items: [
+            'Quadrant: ' + r.quadrant.name,
+            'Posture: ' + r.quadrant.posture,
+            'Crisis type: ' + r.scct.type + ' — strategy is to ' + r.scct.strategy.toLowerCase(),
+            'Risk level: ' + r.risk.name,
+            'Call: ' + r.call.verdict
+          ]
+        },
+        { title: 'Statement structure to follow — ' + r.skeleton.title, items: r.skeleton.steps }
+      ],
+      asks: asks
+    });
+  }
+
+  function renderHandoff() {
+    document.getElementById('handoff-text').textContent = buildHandoff();
+  }
+
+  // ---- chrome ------------------------------------------------------------
+
+  function bindStorageToggle() {
+    var box = document.getElementById('storage-toggle');
+    var note = document.getElementById('storage-note');
+
+    if (!store.available()) {
+      box.disabled = true;
+      note.textContent = 'Your browser is blocking local storage, so nothing can be saved. Print or download before you close this tab.';
+      return;
+    }
+
+    box.checked = store.enabled();
+    box.addEventListener('change', function () {
+      store.setEnabled(box.checked);
+      if (box.checked) persist();
+      updateNote();
+    });
+    updateNote();
+
+    function updateNote() {
+      note.textContent = store.enabled()
+        ? 'Saved in this browser on this device. Anyone using this computer could open it. Erase when you are done.'
+        : 'Nothing is being saved. Close this tab and it is gone.';
+    }
+  }
+
+  function bindButtons() {
+    document.getElementById('btn-print').addEventListener('click', function () {
+      window.WinnxtExport.print();
+    });
+
+    document.getElementById('btn-download').addEventListener('click', function () {
+      window.WinnxtExport.downloadJSON('crisis-triage.json', state);
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', function () {
+      var btn = this;
+      window.WinnxtExport.copyText(buildHandoff(), function (ok) {
+        btn.textContent = ok ? 'Copied' : 'Press Ctrl+C to copy';
+        setTimeout(function () { btn.textContent = 'Copy this prompt'; }, 2500);
+      });
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function () {
+      if (!confirm('Erase everything you have entered? This cannot be undone.')) return;
+      store.eraseAll();
+      state = { answers: {} };
+      var box = document.getElementById('storage-toggle');
+      if (!box.disabled) box.checked = false;
+      document.getElementById('storage-note').textContent = 'Nothing is being saved. Close this tab and it is gone.';
+      render();
+    });
+  }
+
+  function render() {
+    renderQuestions();
+    renderRead();
+    renderPlan();
+    renderHandoff();
+  }
+
+  function init() {
+    var saved = store.load();
+    if (saved && saved.answers) state = saved;
+    bindStorageToggle();
+    bindButtons();
+    render();
+    store.warnOnUnloadWhenOff(hasData);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+</script>
