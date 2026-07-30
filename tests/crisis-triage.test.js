@@ -125,6 +125,47 @@ const base = {
   const allDonts = (await assess({})).donts;
   check('never delete advice always present', allDonts.some(d => /Do not delete/.test(d)));
 
+  // --- brand type ----------------------------------------------------------
+  //
+  // The site loads Barlow Condensed and JetBrains Mono from Google. This file
+  // cannot make requests, so they are embedded as base64. Assert both that the
+  // faces are actually in use and that embedding them did not reintroduce a
+  // network call.
+
+  const faces = await page.evaluate(() =>
+    [...document.fonts].map(f => f.family + ' ' + f.weight));
+  check('brand faces are embedded, not linked', faces.length >= 3, faces.join(' | '));
+  check('the condensed display face is present',
+    faces.some(f => /Barlow Condensed/.test(f)), faces.join(' | '));
+  check('the mono label face is present',
+    faces.some(f => /JetBrains Mono/.test(f)), faces.join(' | '));
+
+  const loaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return document.fonts.check('900 3rem "Barlow Condensed"');
+  });
+  check('the display face actually loads and renders', loaded);
+
+  check('headlines are set in the display face',
+    /Barlow Condensed/.test(await page.locator('#intro h1').evaluate(e => getComputedStyle(e).fontFamily)));
+  check('headlines are uppercase, as the brand sets them',
+    (await page.locator('#intro h1').evaluate(e => getComputedStyle(e).textTransform)) === 'uppercase');
+  check('the headline uses the outlined second line',
+    await page.locator('#intro h1 .outline').count() === 1);
+  check('the scrolling band is present',
+    await page.locator('.band-scroll').count() === 1);
+  check('the live indicator is present',
+    await page.locator('.masthead .blink').count() === 1);
+
+  const csp = await page.evaluate(() =>
+    (document.querySelector('meta[http-equiv="Content-Security-Policy"]') || {}).content || '');
+  check('the policy permits data: fonts, or they would be blocked',
+    /font-src data:/.test(csp), csp);
+  check('the policy still forbids everything remote', /default-src 'none'/.test(csp));
+
+  check('page background is the brand black',
+    (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(0, 0, 0)');
+
   // --- the logo -----------------------------------------------------------
   //
   // The logo is inlined as real SVG markup, not a data: URI, so CSS can reach
@@ -447,8 +488,8 @@ const base = {
   }));
   check('the verdict is not the same colour as body text',
     colours.verdict !== colours.body, JSON.stringify(colours));
-  check('the verdict is rendered in the brand red',
-    colours.verdict === 'rgb(168, 38, 40)', colours.verdict);
+  check('the verdict is rendered in the brand flame',
+    colours.verdict === 'rgb(224, 65, 60)', colours.verdict);
 
   check('at-a-glance tiles render', await page.locator('.tile').count() === 3);
   const tileText = await page.locator('.tiles').textContent();
@@ -463,8 +504,9 @@ const base = {
     new Set(tileBoxes.map(t => t.h)).size === 1, JSON.stringify(tileBoxes));
   check('tiles sit on the same line',
     new Set(tileBoxes.map(t => t.y)).size === 1, JSON.stringify(tileBoxes));
-  check('tile contents are centred',
-    (await page.locator('.tile').first().evaluate(e => getComputedStyle(e).textAlign)) === 'center');
+  check('tile contents are left aligned, as the brand sets them',
+    (await page.locator('.tile').first().evaluate(e => getComputedStyle(e).textAlign)) === 'start',
+    await page.locator('.tile').first().evaluate(e => getComputedStyle(e).textAlign));
   check('risk meter has four segments', await page.locator('.meter-seg').count() === 4);
   check('exactly one risk segment is lit', await page.locator('.meter-seg.is-on').count() === 1);
   check('lit segment matches the risk level',
@@ -643,8 +685,13 @@ const base = {
 
   // --- one job for red -----------------------------------------------------
 
+  // The brand sets section labels in flame red with a 40px rule, so red here
+  // is correct. What still matters is that they are rationed.
   const eyebrowColour = await page.locator('.eyebrow').first().evaluate(e => getComputedStyle(e).color);
-  check('eyebrows are no longer red', !/rgb\(1[6-9][0-9], [2-6][0-9], [2-6][0-9]\)/.test(eyebrowColour), eyebrowColour);
+  check('eyebrows use the brand flame', eyebrowColour === 'rgb(201, 48, 44)', eyebrowColour);
+  const rule = await page.locator('.eyebrow').first().evaluate(e =>
+    getComputedStyle(e, '::before').backgroundColor + ' ' + getComputedStyle(e, '::before').width);
+  check('eyebrows carry the brand rule', /rgb\(201, 48, 44\) 40px/.test(rule), rule);
   const eyebrowCount = await page.locator('#report .eyebrow').count();
   check('eyebrows are rationed to act boundaries', eyebrowCount <= 5, 'got ' + eyebrowCount);
 

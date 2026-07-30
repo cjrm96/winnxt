@@ -181,6 +181,11 @@
   var state = { answers: {} };
   var step = 0;
   var view = 'intro';
+  // Focus is moved on navigation so screen reader users are told where they
+  // landed. On first paint there has been no navigation, and focusing the
+  // heading then just draws a ring around the title of a page nobody asked to
+  // move within.
+  var booted = false;
 
   function val(id) {
     return state.answers[id] === undefined ? '' : state.answers[id];
@@ -439,6 +444,7 @@
 
   function goto(v) {
     view = v;
+    document.querySelector('main').setAttribute('data-view', v);
     show('intro', v === 'intro');
     show('wizard', v === 'wizard');
     show('report', v === 'report');
@@ -450,6 +456,7 @@
     // Leaving focus on a button that just got hidden strands screen reader
     // users at the top of a document with no announcement that anything
     // happened. Move focus to the heading of whatever they landed on.
+    if (!booted) return;
     if (v === 'report') focusEl(document.getElementById('report-heading'));
     if (v === 'intro') focusEl(document.querySelector('#intro h1'));
   }
@@ -869,6 +876,7 @@
     bindButtons();
     bindTapFeedback();
     goto('intro');
+    booted = true;
 
     // Nothing is saved, so leaving really does lose it. Say so.
     window.addEventListener('beforeunload', function (e) {

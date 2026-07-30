@@ -3,56 +3,66 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
 <title>Pre-Filing Readiness Check | WINNXT</title>
 <style>
-/* WINNXT design tokens + base styles. System fonts only, no webfonts ever. */
+/* WINNXT design system, tracking the winnxt.com stylesheet.
 
-/* ---------------------------------------------------------------------------
-   WINNXT PALETTE, taken from the logo: black wordmark, crimson torch.
-   Every colour in every WINNXT tool is defined in this block and its dark-mode
-   counterpart below. Nothing else in any stylesheet hardcodes a colour, so the
-   entire palette can be swapped by editing these two blocks and nothing else.
+   Black, flame red, and heavy condensed uppercase display type set against
+   generous negative space, with monospace micro-labels and hairline rules. The
+   tools are dark by default rather than following the operating system,
+   because the brand is not conditional. Print flips to ink on paper, which is
+   the one place a black page would be wrong.
 
-   Contrast ratios below were computed, not estimated. The lowest value in the
-   system is 4.6:1, above the 4.5:1 AA threshold for normal text.
+   Colour values and the type scale are lifted from the site directly. The two
+   brand faces are embedded as base64 in fonts.css rather than linked from
+   Google, so the type matches while the file still makes zero requests.
 
-   Note on red: it is the brand colour, so it carries brand and interface
-   weight. --danger is a deeper red so warnings stay distinguishable from
-   ordinary accent, and amber/green remain reserved for caution and safety.
+   Contrast is computed, not estimated. The lowest ratio in the system is
+   3.9:1, used only for decorative micro-labels; everything carrying meaning is
+   at or above 4.5:1.
 --------------------------------------------------------------------------- */
 
 :root {
+  /* Barlow Condensed and JetBrains Mono are embedded in fonts.css. Body copy
+     stays on the system stack: it is the least distinctive of the three faces
+     and the cheapest to leave out of the payload. */
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* surfaces, taken from the site stylesheet */
+  --bg: #000000;
+  --surface: #0F0F0F;      /* --bg-card */
+  --bg-soft: #0A0A0A;      /* --bg-elevated */
+  --line: #1A1A1A;
+  --line-strong: #2A2A2A;  /* --ink-faint on the site, used here as a rule */
 
   /* text */
-  --ink: #111315;          /* 17.9:1 on paper */
-  --ink-soft: #5A6169;     /* 6.0:1 on paper  */
-  --ink-faint: #676E76;    /* 4.9:1 on paper, smallest text still passes AA */
+  --ink: #FFFFFF;          /* 21:1 */
+  --ink-soft: #888888;     /* 5.9:1, the site's --ink-dim */
+  --ink-faint: #9A9A9A;    /* 7.6:1, for smaller copy that must stay legible */
+  --ink-ghost: #6E6E73;    /* 3.9:1, decorative micro-labels only */
 
-  /* surfaces */
-  --bg: #FBFAF9;           /* the page */
-  --surface: #FFFFFF;      /* cards sit above the page */
-  --bg-soft: #F4F2F0;      /* recessed fills, code blocks, tracks */
-  --line: #E4E1DE;         /* hairline */
-  --line-strong: #C9C4BF;  /* emphasised hairline */
-
-  /* accent, WINNXT crimson, sampled from the logo artwork (#C43030) */
-  --accent: #C43030;       /* 5.5:1 on white */
-  --accent-deep: #A82628;  /* 7.1:1 for small text and links */
-  --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
-  --accent-soft: #FDF0EF;
+  /* flame */
+  --accent: #C9302C;       /* --flame */
+  --accent-text: #E0413C;  /* --flame-bright, 4.6:1 on black */
+  --accent-glow: rgba(201, 48, 44, 0.25);
+  --accent-ink: #FFFFFF;
+  --accent-fill: #C9302C;
+  --accent-fill-ink: #FFFFFF;
+  --accent-soft: rgba(201, 48, 44, 0.06);
+  --accent-deep: #E0413C;
 
   /* semantic */
-  --danger: #93191F;
-  --danger-soft: #FBEBEA;
-  --warn: #7B4E00;
-  --warn-soft: #FBF1DE;
-  --ok: #14634A;
-  --ok-soft: #E9F2EE;
+  --danger: #E0413C;
+  --danger-soft: rgba(201, 48, 44, 0.07);
+  --warn: #E0B264;
+  --warn-soft: #1E1912;
+  --ok: #6FCBA4;
+  --ok-soft: #0E1A16;
 
-  --focus: #C43030;
-  --focus-ring: rgba(196, 48, 48, 0.26);
-  --shadow: rgba(17, 19, 21, 0.06);
-  --shadow-strong: rgba(17, 19, 21, 0.11);
+  --focus: #E0413C;
+  --focus-ring: rgba(224, 65, 60, 0.35);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
 
   /* rhythm */
   --space: 1rem;
@@ -60,44 +70,17 @@
   --space-s: 0.75rem;
   --space-m: 1.25rem;
   --space-l: 2rem;
-  --space-xl: 3.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5.5rem;
 
-  --radius: 12px;
-  --radius-s: 8px;
-  --radius-pill: 999px;
+  --radius: 0;
+  --radius-s: 0;
+  --radius-pill: 0;
 
-  --max-width: 41rem;
-}
+  --max-width: 46rem;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #EDEFF2;          /* 16.6:1 on page */
-    --ink-soft: #A6ADB5;     /* 8.4:1  */
-    --ink-faint: #8B939B;    /* 6.1:1  */
-
-    --bg: #0E1012;
-    --surface: #16191C;
-    --bg-soft: #1E2226;
-    --line: #2B3036;
-    --line-strong: #414850;
-
-    --accent: #F08083;       /* 6.8:1 on surface */
-    --accent-deep: #F4A0A2;
-    --accent-ink: #14090A;
-    --accent-soft: #2A1618;
-
-    --danger: #F08083;
-    --danger-soft: #2C1618;
-    --warn: #E0B264;
-    --warn-soft: #2B2419;
-    --ok: #6FCBA4;
-    --ok-soft: #16261F;
-
-    --focus: #F08083;
-    --focus-ring: rgba(240, 128, 131, 0.34);
-    --shadow: rgba(0, 0, 0, 0.45);
-    --shadow-strong: rgba(0, 0, 0, 0.6);
-  }
+  --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
 * { box-sizing: border-box; }
@@ -106,73 +89,116 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  padding: var(--space-m) var(--space-m) var(--space-xl);
+  padding: var(--space-l) var(--space-m) var(--space-2xl);
   font-family: var(--font);
   font-size: 17px;
-  line-height: 1.55;
-  letter-spacing: -0.005em;
-  color: var(--ink);
+  line-height: 1.6;
+  color: var(--ink-soft);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-main {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
+main { max-width: var(--max-width); margin: 0 auto; }
 
-/* ---- typography --------------------------------------------------------- */
+/* ---- display type ------------------------------------------------------- */
 
 h1, h2, h3 {
-  line-height: 1.15;
+  color: var(--ink);
   margin: 0 0 var(--space-s);
-  font-weight: 700;
-  letter-spacing: -0.021em;
   text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.35rem);
-  letter-spacing: -0.03em;
-  margin-bottom: var(--space-s);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(3rem, 1.6rem + 6.5vw, 6.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-m);
 }
 
-h2 { font-size: 1.28rem; letter-spacing: -0.022em; }
-h3 { font-size: 1.02rem; letter-spacing: -0.012em; }
+h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+h3 { font-size: 1rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
 
 * + h2, * + h3 { margin-top: var(--space-m); }
 
-p { margin: 0 0 0.9em; }
+/* The second half of a headline, drawn rather than filled. Used once per
+   screen at most: it is a brand signature, not a text style. */
+.outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+
+@media (min-width: 48rem) {
+  .outline { -webkit-text-stroke-width: 2px; }
+}
+
+.in-red { color: var(--accent-text); }
+
+p { margin: 0 0 0.95em; }
 p:last-child { margin-bottom: 0; }
 
-ul, ol { margin: 0 0 0.9em; padding-left: 1.35em; }
-li { margin-bottom: 0.35em; }
+ul, ol { margin: 0 0 0.95em; padding-left: 1.35em; }
+li { margin-bottom: 0.4em; }
 li:last-child { margin-bottom: 0; }
 
-strong { font-weight: 650; }
+strong { color: var(--ink); font-weight: 650; }
 
 a {
-  color: var(--accent);
-  text-underline-offset: 0.18em;
-  text-decoration-thickness: from-font;
+  color: var(--accent-text);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
 }
 a:hover { text-decoration-thickness: 2px; }
 
+/* ---- micro-labels ------------------------------------------------------- */
+
+/* Mono, uppercase, wide, preceded by a short red rule. The brand marks
+   structure with these rather than with ever-heavier headings. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin: 0 0 var(--space-m);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 40px;
+  height: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-ghost);
+}
+
 /* ---- forms -------------------------------------------------------------- */
 
-label {
-  display: block;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin-bottom: 0.4em;
-}
+label { display: block; font-weight: 600; color: var(--ink); margin-bottom: 0.4em; }
 
-input, textarea, select, button {
-  font: inherit;
-  color: inherit;
-  letter-spacing: inherit;
-}
+input, textarea, select, button { font: inherit; color: inherit; }
 
 input[type="text"],
 input[type="number"],
@@ -180,7 +206,7 @@ input[type="date"],
 textarea,
 select {
   width: 100%;
-  padding: 0.6em 0.8em;
+  padding: 0.7em 0.85em;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-s);
   background: var(--surface);
@@ -192,110 +218,161 @@ input[type="text"]:hover,
 input[type="number"]:hover,
 input[type="date"]:hover,
 textarea:hover,
-select:hover { border-color: var(--ink-faint); }
+select:hover { border-color: var(--ink-ghost); }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="date"]:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--focus-ring);
+  border-color: var(--accent-text);
+  box-shadow: 0 0 0 3px var(--focus-ring);
   outline: none;
 }
 
-::placeholder { color: var(--ink-faint); opacity: 1; }
+::placeholder { color: var(--ink-ghost); opacity: 1; }
 
-textarea { min-height: 5.5em; resize: vertical; line-height: 1.5; }
+textarea { min-height: 6em; resize: vertical; line-height: 1.55; }
 
 select {
   appearance: none;
   -webkit-appearance: none;
-  /* inline SVG chevron, data: URI only, no remote assets */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6169' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* data: URI only, no remote assets */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23B4B4B8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.85em center;
+  background-position: right 0.9em center;
   padding-right: 2.4em;
 }
 
-@media (prefers-color-scheme: dark) {
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23A6ADB5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  }
-}
-
+/* Native controls render as filled white dots on black, so every unselected
+   option looks chosen. Drawn by hand instead. */
 input[type="checkbox"], input[type="radio"] {
-  accent-color: var(--accent);
-  width: 1.05em;
-  height: 1.05em;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.15em;
+  height: 1.15em;
   flex: none;
   margin: 0;
+  display: inline-grid;
+  place-content: center;
+  border: 1.5px solid var(--line-strong);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
+
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"] { border-radius: 1px; }
+
+input[type="checkbox"]::before,
+input[type="radio"]::before {
+  content: "";
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--accent-fill-ink);
+  transform: scale(0);
+  transition: transform 0.18s var(--ease-spring);
+}
+
+input[type="checkbox"]::before { border-radius: 0; }
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  border-color: var(--accent-fill);
+  background: var(--accent-fill);
+}
+
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before { transform: scale(1); }
+
+input[type="checkbox"]:hover, input[type="radio"]:hover { border-color: var(--ink-faint); }
 
 /* ---- buttons ------------------------------------------------------------ */
 
-/* Motion: a fast, slightly overshooting curve. Feedback should feel physical
-   and be over before it draws attention to itself. */
-:root {
-  --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
-}
-
+/* Square, mono, uppercase. Pills read as consumer software; this reads as
+   equipment. */
 button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5em;
-  padding: 0.62em 1.15em;
-  min-height: 2.75em;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 600;
-  letter-spacing: -0.008em;
+  gap: 0.6em;
+  padding: 1.1em 2.2em;
+  border: 2px solid var(--accent-fill);
+  border-radius: var(--radius);
+  background: var(--accent-fill);
+  color: var(--accent-fill-ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
   cursor: pointer;
-  transform: translateZ(0);
   transition:
-    transform 0.22s var(--ease-spring),
-    box-shadow 0.22s var(--ease-out),
-    background-color 0.15s ease,
-    opacity 0.15s ease;
+    transform 0.2s var(--ease-spring),
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
 }
 
-button:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow); }
-button:active { transform: translateY(0) scale(0.965); box-shadow: inset 0 1px 3px var(--shadow-strong); }
-
-/* Released: a short settle back, so a press feels answered. */
+button:hover { background: transparent; color: var(--accent-text); border-color: var(--accent-text); }
+button:active { transform: translateY(0) scale(0.985); }
 button.tapped { animation: tap 0.42s var(--ease-spring); }
 
 @keyframes tap {
-  0%   { transform: scale(0.965); }
-  45%  { transform: scale(1.025); }
+  0%   { transform: scale(0.985); }
+  45%  { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
 
 button.secondary {
   background: transparent;
-  color: var(--accent);
+  color: var(--ink);
   border-color: var(--line-strong);
 }
-button.secondary:hover { opacity: 1; background: var(--accent-soft); border-color: var(--accent); }
+button.secondary:hover { background: transparent; border-color: var(--ink); color: var(--ink); }
+
+/* The arrow that walks on hover, as on the site's CTA. */
+button.has-arrow::after {
+  content: "\2192";
+  font-size: 1.15em;
+  transition: transform 0.3s var(--ease-out);
+}
+button.has-arrow:hover::after { transform: translateX(8px); }
 
 button.danger {
   background: transparent;
   border-color: var(--line-strong);
   color: var(--danger);
 }
-button.danger:hover { opacity: 1; background: var(--danger-soft); border-color: var(--danger); }
+button.danger:hover { background: transparent; border-color: var(--danger); color: var(--danger); }
 
-button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+button.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+button.link:hover { transform: none; background: none; color: var(--ink); }
+
+.btn-lg { font-size: 1.15rem; padding: 1.25em 2.8em; }
 
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-  border-radius: var(--radius-s);
 }
+
+/* Headings that exist only as focus targets must never draw a ring. */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible { outline: none; }
 
 /* ---- surfaces ----------------------------------------------------------- */
 
@@ -305,54 +382,48 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   padding: var(--space-m);
   margin-bottom: var(--space);
   background: var(--surface);
-  box-shadow: 0 1px 2px var(--shadow);
 }
 
 .card:empty { display: none; }
 
-.note {
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-  line-height: 1.5;
+.note { color: var(--ink-faint); font-size: 0.88rem; line-height: 1.55; }
+
+/* A paragraph marked with a rule, as the site does under its hero. */
+.callout {
+  border-left: 2px solid var(--line-strong);
+  padding: 0.15em 0 0.15em var(--space);
+  margin-bottom: var(--space-m);
 }
+
+.callout p { font-size: 0.95rem; }
+.callout-warn { border-left-color: var(--warn); }
+.callout-ok { border-left-color: var(--ok); }
+.callout-danger { border-left-color: var(--danger); }
 
 .brand {
   border-top: 1px solid var(--line);
   margin-top: var(--space-xl);
   padding-top: var(--space-m);
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-  line-height: 1.55;
-}
-
-.brand strong {
-  color: var(--ink);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 0.88rem;
+  color: var(--ink-faint);
 }
 
 .handoff pre {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font-size: 0.78rem;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 18em;
+  max-height: 20em;
   overflow: auto;
-  color: var(--ink-soft);
+  color: var(--ink-faint);
   background: var(--bg-soft);
   border: 1px solid var(--line);
-  border-radius: var(--radius-s);
+  border-left: 2px solid var(--accent);
   padding: var(--space);
   margin: 0 0 var(--space);
 }
 
-@media (min-width: 34rem) {
-  body { padding: var(--space-l) var(--space-l) var(--space-xl); }
-  .card { padding: var(--space-m) var(--space-l); }
-}
-
-/* Visually hidden, still announced. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -366,71 +437,90 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   border: 0;
 }
 
-/* ---- shared components -------------------------------------------------- */
+@media (min-width: 48rem) {
+  body { padding: var(--space-xl) var(--space-l) var(--space-2xl); }
+}
 
-/* Small-caps label above a heading. Carries hierarchy without extra weight. */
-.eyebrow {
-  font-size: 0.7rem;
+/* ---- brand signatures --------------------------------------------------- */
+
+/* The live indicator from the site header. */
+.blink {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* The scrolling flame band. */
+.band-scroll {
+  background: var(--accent);
+  color: #000;
+  padding: 1.1rem 0;
+  font-family: var(--font-display);
   font-weight: 700;
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  letter-spacing: 0.4em;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
-  color: var(--ink-faint);
-  margin: 0 0 var(--space-xs);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.callout {
-  border-left: 3px solid var(--line-strong);
-  border-radius: 0 var(--radius-s) var(--radius-s) 0;
-  padding: var(--space-s) var(--space);
-  margin-bottom: var(--space-s);
+.band-scroll-inner {
+  display: inline-flex;
+  gap: 3rem;
+  padding-left: 3rem;
+  animation: scroll-band 30s linear infinite;
 }
 
-.callout p { font-size: 0.95rem; }
-.callout-warn { border-left-color: var(--warn); background: var(--warn-soft); }
-.callout-ok { border-left-color: var(--ok); background: var(--ok-soft); }
-.callout-danger { border-left-color: var(--danger); background: var(--danger-soft); }
+.band-scroll-inner span { display: inline-flex; align-items: center; gap: 3rem; }
 
-/* A button that reads as a link, used for inline "change this" affordances. */
-button.link {
-  background: none;
-  border: 0;
-  padding: 0;
-  min-height: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-deep);
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  border-radius: 3px;
+.band-scroll .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #000;
+  border-radius: 50%;
 }
-button.link:hover { opacity: 1; color: var(--accent); }
 
-.btn-lg {
-  font-size: 1.05rem;
-  padding: 0.75em 1.9em;
-  min-height: 3em;
+@keyframes scroll-band {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* ---- motion ------------------------------------------------------------- */
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: none; }
 }
 
-@keyframes slide-in {
-  from { opacity: 0; transform: translateX(14px); }
-  to   { opacity: 1; transform: none; }
-}
+/* The site's entrance: a long, soft-landing rise with staggered delays. */
+.reveal { opacity: 0; animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.25s; }
+.delay-3 { animation-delay: 0.4s; }
+.delay-4 { animation-delay: 0.55s; }
+.delay-5 { animation-delay: 0.7s; }
 
 @keyframes pop {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.03); }
+  40%  { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
 
-/* Anyone who has asked their system to calm down gets no movement at all. */
 @media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; animation: none; }
+  .band-scroll-inner { animation: none; }
+  .blink { animation: none; }
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
@@ -442,17 +532,20 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 /* ---- print -------------------------------------------------------------- */
 
+/* The one place a black page would be wrong. */
 @media print {
   :root {
     --ink: #000;
-    --ink-soft: #333;
+    --ink-soft: #222;
     --ink-faint: #444;
+    --ink-ghost: #555;
     --line: #999;
     --line-strong: #777;
     --bg: #fff;
     --surface: #fff;
     --bg-soft: #fff;
     --accent: #000;
+    --accent-text: #000;
     --accent-deep: #000;
     --accent-soft: #fff;
     --danger: #000;
@@ -462,14 +555,14 @@ button.link:hover { opacity: 1; color: var(--accent); }
     --ok: #000;
     --ok-soft: #fff;
     --shadow: transparent;
-    --shadow-strong: transparent;
   }
-  body { padding: 0; font-size: 11pt; }
-  .no-print, button { display: none !important; }
+  body { padding: 0; font-size: 11pt; background: #fff; color: #000; }
+  .outline { color: #000; -webkit-text-stroke: 0; }
+  .no-print, button, .band-scroll { display: none !important; }
+  .reveal { opacity: 1; animation: none; }
   .card {
     break-inside: avoid;
     page-break-inside: avoid;
-    box-shadow: none;
     padding: 0;
     border: 0;
     border-top: 1px solid var(--line);
