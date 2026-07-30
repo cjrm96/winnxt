@@ -208,6 +208,46 @@
         outcome: 'The hoax collapsed in about a week, arrests followed, and sales recovered quickly. It is the standard example of refusing a false premise while producing proof, rather than either denying flatly or capitulating to look responsible.'
       }
     ],
+    // Preventable and owned. The reference case for a company that caused real
+    // harm and went straight at it.
+    businessRebuild: [
+      {
+        who: 'Maple Leaf Foods',
+        year: 2008,
+        what: 'A listeria outbreak traced to the company\'s own plant killed more than twenty people. The chief executive took public responsibility on camera within days, recalled everything, and did not route the response through lawyers.',
+        lesson: 'When it is your fault and people were harmed, the only response that holds is unqualified. Hedged apologies read as the beginning of a defence.',
+        background: 'Contamination was traced to slicing equipment at a Toronto plant. Deaths were confirmed. The company\'s legal exposure was severe, which is exactly the circumstance in which companies normally say as little as possible.',
+        reaction: 'National coverage, a criminal-scale public reckoning, and immediate pressure to recall far beyond the implicated product lines.',
+        handling: 'The chief executive appeared on camera personally, said the buck stopped at his desk, and explicitly said the company was not going to let lawyers or accountants drive the response. Every product from the plant was recalled. The company published what it found as it found it.',
+        outcome: 'It is taught as the model for owning a preventable failure. Public trust in the brand recovered substantially within roughly a year, in a category where a listeria death toll would normally be terminal.'
+      }
+    ],
+    // The same quadrant, handled the other way.
+    businessBotched: [
+      {
+        who: 'BP',
+        year: 2010,
+        what: 'During the Deepwater Horizon spill, the chief executive told reporters "I would like my life back." Eleven people had died on the rig.',
+        lesson: 'In a preventable crisis with casualties, any sentence about your own discomfort ends up as the quote. Centre the people harmed or say nothing.',
+        background: 'An explosion killed eleven workers and produced the largest marine oil spill in US history. Coverage ran daily for months with a live feed of the leak.',
+        reaction: 'The remark was replayed endlessly and became shorthand for corporate self-pity. It displaced everything the company was doing operationally and made the executive personally the story.',
+        handling: 'He apologised for the remark afterwards, but by then the clip existed. He was removed from day-to-day spill response within weeks and left the company later that year.',
+        outcome: 'A cautionary case rather than a model. The technical response and the compensation fund were substantial; the communications are remembered for one sentence about whose life was inconvenienced.'
+      }
+    ],
+    // National-scale campaign, true and damaging, initially defended.
+    campaignTrueDoes: [
+      {
+        who: 'Mitt Romney',
+        year: 2012,
+        what: 'Video of private remarks at a fundraiser, describing 47% of voters as people who would never take responsibility for their lives, was published mid-campaign. The recording was authentic.',
+        lesson: 'Defending words you would not repeat in public extends the story. If you are going to disavow it, disavow it on day one, because the second version is the one that runs twice.',
+        background: 'The remarks were recorded without his knowledge at a closed fundraiser and released by a magazine in September, with early voting weeks away.',
+        reaction: 'Wall-to-wall coverage for days. The clip was used in opposition advertising almost immediately, and the number itself became shorthand.',
+        handling: 'The first response was a late-night press conference calling the remarks "not elegantly stated" while standing by the substance. Weeks later he abandoned that position and said the remarks were "just completely wrong."',
+        outcome: 'The full disavowal came a month after the partial one, and by then both versions were on the record. The episode is a standard example of the cost of defending something you will eventually repudiate.'
+      }
+    ],
     businessDemo: [
       {
         who: 'Tesla',
@@ -266,6 +306,9 @@
     if (q === 'true-does') {
       cites.push(CITES.imageRepair, CITES.thunder);
       cases = cases.concat(CASES.trueDoes);
+      // A national-scale campaign example alongside the local ones, so the
+      // pattern does not look like something that only happens to small races.
+      if (answers.context !== 'business') cases = cases.concat(CASES.campaignTrueDoes);
     } else if (q === 'false-does') {
       cites.push(CITES.sandwich, CITES.denialRisk, CITES.correctionsWork);
       cases = cases.concat(CASES.falseDoes);
@@ -282,7 +325,9 @@
       // Match the business case to the same decision the political ones are
       // matched to, rather than bolting one on regardless of the outcome.
       if (q === 'false-does') cases = cases.concat(CASES.businessFalse);
-      else cases = cases.concat(CASES.businessDemo);
+      else if (q === 'true-does' && answers.fault === 'preventable') {
+        cases = cases.concat(CASES.businessRebuild, CASES.businessBotched);
+      } else cases = cases.concat(CASES.businessDemo);
     } else if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
       cases = cases.concat(CASES.localPattern);
     }

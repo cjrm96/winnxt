@@ -78,7 +78,6 @@
       short: 'What happened',
       label: 'What happened?',
       help: "Write it the way you'd say it out loud. Or don't type at all: tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
-      note: "Dictation belongs to your phone or computer, not to this file, and some of them send the audio off to be transcribed. If that bothers you, type it instead.",
       placeholder: '{example}'
     },
     {
@@ -494,14 +493,6 @@
     var a = state.answers;
     var r = window.CrisisLogic.assess(a);
 
-    if (a.safety === 'yes') {
-      var safety = el('section', { class: 'report-block safety' });
-      safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
-      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present. That does not make them harmless.' }));
-      safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
-      box.appendChild(safety);
-    }
-
     // Hero: the call, and nothing competing with it.
     var hero = el('section', { class: 'report-block hero risk-' + r.riskKey });
     hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
@@ -571,8 +562,8 @@
 
     renderPlan(r);
     renderCases(r);        // right after the advice, the persuasive part
-    renderSummary();
     renderSources(r);
+    renderSummary();       // a receipt, so it sits after everything it records
     renderHandoff();
     setupVerdictBar(r);    // after the hero exists, since that is what gets observed
     maybeWarnAboutSafety();
@@ -693,7 +684,7 @@
     var wrap = el('section', { class: 'report-block cases-block' });
     wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
     wrap.appendChild(el('h2', { text: 'How this has gone before' }));
-    wrap.appendChild(el('p', { class: 'note', text: 'People who faced the decision you are facing now, and what it cost or saved them. Different scale, same mechanics. Open any one for the full story.' }));
+    wrap.appendChild(el('p', { class: 'note', text: 'People who faced the decision you are facing now, and what it cost or saved them. Different scale, same mechanics.' }));
 
     var list = el('div', { class: 'cases' });
     ev.cases.forEach(function (c) {
@@ -758,7 +749,8 @@
   }
 
   function renderSummary() {
-    var box = document.getElementById('plan');
+    var box = document.getElementById('summary-slot');
+    box.textContent = '';
     var wrap = el('section', { class: 'report-block summary' });
     wrap.appendChild(el('h2', { text: 'What you told it' }));
 
@@ -854,10 +846,8 @@
   }
 
   function bindButtons() {
-    ['btn-start', 'btn-start-2'].forEach(function (id) {
-      document.getElementById(id).addEventListener('click', function () {
-        goto('wizard');
-      });
+    document.getElementById('btn-start').addEventListener('click', function () {
+      goto('wizard');
     });
 
     document.getElementById('btn-safety-ack').addEventListener('click', function () {
@@ -887,10 +877,6 @@
 
     document.getElementById('btn-print').addEventListener('click', function () {
       window.WinnxtExport.print();
-    });
-
-    document.getElementById('btn-download').addEventListener('click', function () {
-      window.WinnxtExport.downloadJSON('crisis-triage.json', { answers: state.answers });
     });
 
     document.getElementById('btn-copy').addEventListener('click', function () {

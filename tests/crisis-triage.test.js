@@ -279,8 +279,8 @@ const base = {
     'got ' + await page.locator('.question').count());
   await page.fill('#what', 'placeholder');
   const q1 = await page.locator('.question').textContent();
-  check('first question suggests dictation', /microphone/i.test(q1));
-  check('dictation suggestion is caveated', /send the audio off/i.test(q1));
+  check('first question still suggests dictation', /microphone/i.test(q1));
+  check('the dictation caveat is gone', !/send the audio off/i.test(q1));
 
   check('answering the filter moves to question 2',
     /Question 2/.test(await page.locator('#progress-label').textContent()),
@@ -527,6 +527,12 @@ const base = {
   check('plan renders steps', await page.locator('.sequence li').count() >= 6);
   check('what-not-to-do renders', await page.locator('.donts li').count() >= 4);
   check('summary of answers renders', await page.locator('.summary-list dt').count() >= 8);
+  check('the receipt sits at the end, after the closing call to action',
+    await page.evaluate(() => {
+      var cta = document.querySelector('.cta');
+      var sum = document.querySelector('.summary');
+      return !!(cta.compareDocumentPosition(sum) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }));
 
   // Editing an answer from the report goes back to that question.
   await page.locator('.summary-list button.link').first().click();
@@ -546,6 +552,8 @@ const base = {
     'got ' + await page.locator('.cite').count());
   check('every citation names a source',
     (await page.locator('.cite-source').count()) === (await page.locator('.cite').count()));
+  check('the open-any-one instruction is gone',
+    !/Open any one for the full story/.test(await page.locator('.cases-block').textContent()));
   check('historical cases render', await page.locator('.case').count() >= 1,
     'got ' + await page.locator('.case').count());
   check('each case has a lesson',
@@ -651,11 +659,17 @@ const base = {
   const startTop = await page.evaluate(() =>
     Math.round(document.getElementById('btn-start').getBoundingClientRect().top + window.scrollY));
   check('start is reachable without reading the brochure', startTop < 900, startTop + 'px down');
-  check('a second start sits at the end of the intro',
-    await page.locator('#btn-start-2').count() === 1);
-  await page.click('#btn-start-2');
-  await page.waitForTimeout(400);
-  check('the second start also works', await page.locator('#wizard').isVisible());
+  check('there is one start, not two', await page.locator('#btn-start-2').count() === 0);
+  check('the scrolling band is not sitting at the bottom pretending to be a footer',
+    await page.evaluate(() => {
+      var band = document.querySelector('.band-scroll');
+      var foot = document.querySelector('.site-foot');
+      return band.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false;
+    }) && await page.evaluate(() => {
+      var band = document.querySelector('.band-scroll');
+      var blocks = document.querySelectorAll('#intro .intro-block');
+      return band.compareDocumentPosition(blocks[0]) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false;
+    }));
   await page.reload();
   await page.waitForTimeout(300);
   await runWizard(page, {});
@@ -689,8 +703,8 @@ const base = {
   check('the read is a real call, not a safety warning',
     !/safety/i.test(safeVerdict), safeVerdict);
   check('the plan survived', await page.locator('.sequence li').count() >= 6);
-  check('the safety guidance also stays in the report',
-    await page.locator('.safety').count() === 1);
+  check('the safety guidance is not repeated in the report body',
+    await page.locator('#read .safety').count() === 0);
   check('the safety step leads the plan',
     /Document everything/.test(await page.locator('.sequence li').first().textContent()));
 
@@ -818,6 +832,7 @@ const base = {
 
   // --- a primary action ----------------------------------------------------
 
+  check('the json download is gone', await page.locator('#btn-download').count() === 0);
   check('print is the primary action',
     (await page.locator('#btn-print').getAttribute('class') || '').indexOf('btn-lg') !== -1);
   check('start over is demoted out of the button row',
@@ -862,6 +877,24 @@ const base = {
   });
   check('a false damaging claim shows the false-claim business case',
     bizCases.falseDoes.some(w => /Pepsi/.test(w)), bizCases.falseDoes.join(' | '));
+  const bigCases = await page.evaluate(() => {
+    const pick = (over) => {
+      const a = Object.assign({ where: 'social', spread: 'many-groups', truth: 'true',
+        harm: 'serious', fault: 'preventable', proof: 'yes', safety: 'no', daysOut: '60' }, over);
+      return window.CrisisEvidence.forAssessment(window.CrisisLogic.assess(a), a)
+        .cases.map(c => c.who);
+    };
+    return {
+      bizPreventable: pick({ context: 'business' }),
+      campaign: pick({ context: 'political' })
+    };
+  });
+  check('a preventable business failure shows both the model and the cautionary case',
+    bigCases.bizPreventable.some(w => /Maple Leaf/.test(w)) &&
+    bigCases.bizPreventable.some(w => /BP/.test(w)), bigCases.bizPreventable.join(' | '));
+  check('campaigns get a national-scale example, not only local ones',
+    bigCases.campaign.some(w => /Romney/.test(w)), bigCases.campaign.join(' | '));
+
   check('a true damaging one shows a different business case',
     !bizCases.trueDoes.some(w => /Pepsi/.test(w)), bizCases.trueDoes.join(' | '));
   check('business handoff briefs a corporate advisor',
