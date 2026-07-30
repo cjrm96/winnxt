@@ -433,8 +433,9 @@
     box.appendChild(sk);
 
     renderPlan(r);
-    renderEvidence(r);
+    renderCases(r);        // right after the advice — this is the persuasive part
     renderSummary();
+    renderSources(r);
     renderHandoff();
   }
 
@@ -489,46 +490,77 @@
     box.appendChild(no);
   }
 
-  function renderEvidence(r) {
+  function renderCases(r) {
     var ev = window.CrisisEvidence.forAssessment(r, state.answers);
+    if (!ev.cases.length) return;
     var box = document.getElementById('plan');
 
-    if (ev.cases.length) {
-      var wrap = el('section', { class: 'report-block cases-block' });
-      wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
-      wrap.appendChild(el('h2', { text: 'How this has gone before' }));
-      wrap.appendChild(el('p', { class: 'note', text: 'Public cases that ran into the same decision you are making. Different scale, same mechanics.' }));
+    var wrap = el('section', { class: 'report-block cases-block' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
+    wrap.appendChild(el('h2', { text: 'How this has gone before' }));
+    wrap.appendChild(el('p', { class: 'note', text: 'People who faced the decision you are facing now, and what it cost or saved them. Different scale, same mechanics. Open any one for the full story.' }));
 
-      var list = el('div', { class: 'cases' });
-      ev.cases.forEach(function (c) {
-        var card = el('article', { class: 'case' });
-        var head = el('p', { class: 'case-head' });
-        head.appendChild(el('span', { class: 'case-who', text: c.who }));
-        head.appendChild(el('span', { class: 'case-year', text: String(c.year) }));
-        card.appendChild(head);
-        card.appendChild(el('p', { class: 'case-what', text: c.what }));
-        card.appendChild(el('p', { class: 'case-lesson', text: c.lesson }));
-        list.appendChild(card);
+    var list = el('div', { class: 'cases' });
+    ev.cases.forEach(function (c) {
+      list.appendChild(caseCard(c));
+    });
+    wrap.appendChild(list);
+    box.appendChild(wrap);
+  }
+
+  function caseCard(c) {
+    var card = el('article', { class: 'case' });
+
+    var head = el('p', { class: 'case-head' });
+    head.appendChild(el('span', { class: 'case-who', text: c.who }));
+    head.appendChild(el('span', { class: 'case-year', text: String(c.year) }));
+    card.appendChild(head);
+
+    card.appendChild(el('p', { class: 'case-what', text: c.what }));
+    card.appendChild(el('p', { class: 'case-lesson', text: c.lesson }));
+
+    // <details> rather than a scripted accordion: it works with no JS, it is
+    // keyboard accessible for free, and it can be forced open for printing.
+    var rows = [
+      ['What was actually going on', c.background],
+      ['How the public reacted', c.reaction],
+      ['What they chose to do', c.handling],
+      ['Where it ended up', c.outcome]
+    ].filter(function (r) { return r[1]; });
+
+    if (rows.length) {
+      var det = el('details', { class: 'case-more' });
+      det.appendChild(el('summary', { text: 'The full story' }));
+      var body = el('div', { class: 'case-body' });
+      rows.forEach(function (r) {
+        body.appendChild(el('h3', { class: 'case-sub', text: r[0] }));
+        body.appendChild(el('p', { text: r[1] }));
       });
-      wrap.appendChild(list);
-      box.appendChild(wrap);
+      det.appendChild(body);
+      card.appendChild(det);
     }
 
-    if (ev.citations.length) {
-      var src = el('section', { class: 'report-block sources-block' });
-      src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
-      src.appendChild(el('h2', { text: 'Why this is the advice' }));
-      src.appendChild(el('p', { class: 'note', text: 'The research this read is built on. Look any of it up — none of it is ours.' }));
-      var ol = el('ol', { class: 'sources' });
-      ev.citations.forEach(function (c) {
-        var li = el('li');
-        li.appendChild(el('span', { class: 'source-claim', text: c.claim }));
-        li.appendChild(el('span', { class: 'source-ref', text: c.source }));
-        ol.appendChild(li);
-      });
-      src.appendChild(ol);
-      box.appendChild(src);
-    }
+    return card;
+  }
+
+  function renderSources(r) {
+    var ev = window.CrisisEvidence.forAssessment(r, state.answers);
+    if (!ev.citations.length) return;
+    var box = document.getElementById('plan');
+
+    var src = el('section', { class: 'report-block sources-block' });
+    src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
+    src.appendChild(el('h2', { text: 'Why this is the advice' }));
+    src.appendChild(el('p', { class: 'note', text: 'The research this read is built on. Look any of it up — none of it is ours.' }));
+    var ol = el('ol', { class: 'sources' });
+    ev.citations.forEach(function (c) {
+      var li = el('li');
+      li.appendChild(el('span', { class: 'source-claim', text: c.claim }));
+      li.appendChild(el('span', { class: 'source-ref', text: c.source }));
+      ol.appendChild(li);
+    });
+    src.appendChild(ol);
+    box.appendChild(src);
   }
 
   function renderSummary() {

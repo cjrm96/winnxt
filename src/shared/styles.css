@@ -30,9 +30,9 @@
   --line: #E4E1DE;         /* hairline */
   --line-strong: #C9C4BF;  /* emphasised hairline */
 
-  /* accent — WINNXT crimson */
-  --accent: #C62B31;       /* 5.5:1 on white */
-  --accent-deep: #A81E24;  /* 7.3:1 — small text and links */
+  /* accent — WINNXT crimson, sampled from the logo artwork (#C43030) */
+  --accent: #C43030;       /* 5.5:1 on white */
+  --accent-deep: #A82628;  /* 7.1:1 — small text and links */
   --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
   --accent-soft: #FDF0EF;
 
@@ -44,8 +44,8 @@
   --ok: #14634A;
   --ok-soft: #E9F2EE;
 
-  --focus: #C62B31;
-  --focus-ring: rgba(198, 43, 49, 0.26);
+  --focus: #C43030;
+  --focus-ring: rgba(196, 48, 48, 0.26);
   --shadow: rgba(17, 19, 21, 0.06);
   --shadow-strong: rgba(17, 19, 21, 0.11);
 
@@ -76,20 +76,20 @@
     --line: #2B3036;
     --line-strong: #414850;
 
-    --accent: #F0777A;       /* 6.4:1 on surface */
-    --accent-deep: #F49B9D;
+    --accent: #F08083;       /* 6.8:1 on surface */
+    --accent-deep: #F4A0A2;
     --accent-ink: #14090A;
     --accent-soft: #2A1618;
 
-    --danger: #F0777A;
+    --danger: #F08083;
     --danger-soft: #2C1618;
     --warn: #E0B264;
     --warn-soft: #2B2419;
     --ok: #6FCBA4;
     --ok-soft: #16261F;
 
-    --focus: #F0777A;
-    --focus-ring: rgba(240, 119, 122, 0.34);
+    --focus: #F08083;
+    --focus-ring: rgba(240, 128, 131, 0.34);
     --shadow: rgba(0, 0, 0, 0.45);
     --shadow-strong: rgba(0, 0, 0, 0.6);
   }

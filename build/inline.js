@@ -34,6 +34,28 @@ function inline(entry) {
     }
   );
 
+  // <img data-inline-svg src="…"> becomes the SVG markup itself. A data: URI
+  // would also be self-contained, but CSS can't reach inside one — and the
+  // logo needs currentColor and var(--accent) to resolve so it works on dark.
+  html = html.replace(
+    /<img\b[^>]*\bdata-inline-svg\b[^>]*>/gi,
+    (tag) => {
+      const src = (tag.match(/\bsrc=["']([^"']+)["']/i) || [])[1];
+      if (!src) fail('data-inline-svg with no src in ' + entry);
+      if (REMOTE.test(src)) fail('remote svg not allowed: ' + src);
+      if (!/\.svg$/i.test(src)) fail('data-inline-svg expects an .svg: ' + src);
+
+      const cls = (tag.match(/\bclass=["']([^"']*)["']/i) || [])[1] || '';
+      const alt = (tag.match(/\balt=["']([^"']*)["']/i) || [])[1] || '';
+
+      let svg = read(dir, src).replace(/<\?xml[^>]*\?>/i, '').trim();
+      svg = svg.replace(/<svg\b/i, '<svg' +
+        (cls ? ' class="' + cls + '"' : '') +
+        (alt ? ' role="img" aria-label="' + alt + '"' : ' role="presentation" aria-hidden="true"'));
+      return svg;
+    }
+  );
+
   html = html.replace(
     /<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*><\/script>/gi,
     (tag, src) => {
@@ -64,6 +86,8 @@ function verify(html, entry) {
     [/new\s+WebSocket/, 'WebSocket'],
     [/new\s+Worker\s*\(\s*["']/, 'Worker loaded from a separate file'],
     [/\bsrc=["']https?:/i, 'remote src'],
+    [/data-inline-svg/i, 'unresolved data-inline-svg'],
+    [/<img\b(?![^>]*\bsrc=["']data:)/i, 'img that is not a data: URI'],
     [/@import\s+url\(/i, 'CSS @import'],
     [/https?:\/\/fonts\./i, 'remote font']
   ];

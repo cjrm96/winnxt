@@ -125,6 +125,48 @@ const base = {
   const allDonts = (await assess({})).donts;
   check('never delete advice always present', allDonts.some(d => /Do not delete/.test(d)));
 
+  // --- the logo -----------------------------------------------------------
+  //
+  // The logo is inlined as real SVG markup, not a data: URI, so CSS can reach
+  // its fills. That is the only way it survives dark mode without shipping a
+  // second file — and it must not reintroduce a network request.
+
+  check('lockup is inlined as real svg', await page.locator('svg.logo-lockup').count() === 1);
+  check('mark is inlined in the footer', await page.locator('svg.logo-mark').count() === 1);
+  check('no img tags remain', await page.locator('img').count() === 0);
+  check('logo carries an accessible name',
+    (await page.locator('svg.logo-lockup').getAttribute('aria-label') || '').indexOf('WINNXT') === 0);
+  check('logo is exposed as an image to assistive tech',
+    (await page.locator('svg.logo-lockup').getAttribute('role')) === 'img');
+
+  const logoInk = await page.evaluate(() => {
+    const paths = document.querySelectorAll('svg.logo-lockup [fill]');
+    let cur = 0, accent = 0;
+    paths.forEach(p => {
+      const f = p.getAttribute('fill');
+      if (f === 'currentColor') cur++;
+      if (/var\(--accent/.test(f)) accent++;
+    });
+    return { cur, accent };
+  });
+  check('logo ink follows the theme', logoInk.cur > 0, JSON.stringify(logoInk));
+  check('logo flame uses the brand token', logoInk.accent > 0, JSON.stringify(logoInk));
+
+  // It has to actually be visible on a dark background, not just theoretically.
+  const darkPage = await browser.newPage({ colorScheme: 'dark' });
+  const darkReqs = [];
+  darkPage.on('request', r => { if (!r.url().startsWith('file://')) darkReqs.push(r.url()); });
+  await darkPage.goto(FILE);
+  await darkPage.waitForTimeout(300);
+  const darkInk = await darkPage.evaluate(() =>
+    getComputedStyle(document.querySelector('svg.logo-lockup')).color);
+  check('logo ink is light in dark mode', /2[0-9]{2}|1[5-9][0-9]/.test(darkInk), darkInk);
+  const box = await darkPage.locator('svg.logo-lockup').boundingBox();
+  check('logo is a sensible size', box.height > 80 && box.width > 80,
+    JSON.stringify(box));
+  check('dark mode made no network requests', darkReqs.length === 0, darkReqs.join(', '));
+  await darkPage.close();
+
   // --- defense only -------------------------------------------------------
 
   const html = await page.content();
@@ -385,6 +427,58 @@ const base = {
     Object.values(window.CrisisEvidence.CASES).flat().map(c => c.who).join(' | '));
   check('cases include both parties', /Nixon|Sanford/.test(everyone) && /Clinton|Weiner|Kerry/.test(everyone));
   check('cases include business', /Johnson|Domino/.test(everyone));
+
+  // --- precedent placement and depth --------------------------------------
+  //
+  // The cases are the most persuasive thing on the page, so they sit with the
+  // advice rather than at the bottom under the citations.
+
+  const order = await page.evaluate(() => {
+    const blocks = [...document.querySelectorAll('#plan > .report-block')];
+    return blocks.map(b => (b.querySelector('h2') || {}).textContent || '');
+  });
+  const iPlan = order.findIndex(t => /What to do, in order/.test(t));
+  const iCases = order.findIndex(t => /How this has gone before/.test(t));
+  const iSources = order.findIndex(t => /Why this is the advice/.test(t));
+  check('precedent follows the advice', iCases > iPlan && iPlan !== -1, order.join(' > '));
+  check('precedent comes before the citations', iCases < iSources, order.join(' > '));
+
+  check('each case has an expandable history',
+    (await page.locator('.case-more').count()) === (await page.locator('.case').count()),
+    (await page.locator('.case-more').count()) + ' of ' + (await page.locator('.case').count()));
+  check('histories start collapsed', await page.locator('.case-more[open]').count() === 0);
+
+  const firstCase = page.locator('.case-more').first();
+  check('history is hidden before opening', await firstCase.locator('.case-body').isHidden());
+  await firstCase.locator('summary').click();
+  await page.waitForTimeout(250);
+  check('opening a case reveals the history', await firstCase.locator('.case-body').isVisible());
+
+  const subs = await firstCase.locator('.case-sub').allTextContents();
+  check('history covers background, reaction, handling and outcome',
+    subs.length === 4, subs.join(' / '));
+  const bodyLen = (await firstCase.locator('.case-body').textContent()).length;
+  check('history has real depth', bodyLen > 600, bodyLen + ' chars');
+  await firstCase.locator('summary').click();
+
+  // --- the intro ----------------------------------------------------------
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  const introText = await page.locator('#intro').textContent();
+  check('intro says who WINNXT is', /political communications firm/i.test(introText));
+  check('intro explains the rules-based model', /decision model|Rules, not vibes/i.test(introText));
+  check('intro explains the use of real cases', /Real cases|already ran this experiment/i.test(introText));
+  check('intro asks for honest answers', /Answer honestly/i.test(introText));
+  check('intro still leads with the do-not-post warning',
+    /don't post while you're angry/.test(introText));
+  check('intro keeps the privacy promise', /Nothing you type here is saved anywhere/.test(introText));
+  await page.click('#btn-start');
+  await page.waitForTimeout(400);
+  check('intro still starts the flow', await page.locator('#wizard').isVisible());
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
 
   // --- copy and CTA -------------------------------------------------------
 

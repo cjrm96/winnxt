@@ -5,42 +5,31 @@
 /* ---- masthead ----------------------------------------------------------- */
 
 .masthead {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7em;
-  flex-wrap: wrap;
   margin-bottom: var(--space-l);
-  padding-bottom: var(--space-s);
+  padding-bottom: var(--space-m);
   border-bottom: 2px solid var(--ink);
 }
 
-.wordmark {
-  display: flex;
-  align-items: center;
-  gap: 0.45em;
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+/* The ink in the logo is currentColor and the flame is var(--accent), so the
+   lockup follows the theme instead of disappearing on a dark background. */
+/* Sized by eye at several heights: below ~100px the wordmark stops reading. */
+.logo-lockup {
+  display: block;
+  width: auto;
+  height: 6.1rem;
   color: var(--ink);
 }
 
-/* Stand-in for the torch until the real logo is embedded as a data URI. */
-.mark {
-  width: 0.5rem;
-  height: 1.15rem;
-  border-radius: 1px;
-  background: var(--accent);
+.logo-mark {
+  display: block;
+  width: auto;
+  height: 4rem;
+  color: var(--ink);
+  margin-bottom: var(--space-s);
 }
 
-.tagline {
-  margin: 0;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
-  color: var(--accent-deep);
+@media (min-width: 34rem) {
+  .logo-lockup { height: 7.1rem; }
 }
 
 /* ---- stage -------------------------------------------------------------- */
@@ -56,7 +45,43 @@
   margin-bottom: var(--space-m);
 }
 
-#intro .btn-lg { margin-top: var(--space-s); }
+#intro .btn-lg { margin-top: var(--space-m); }
+
+.intro-block {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-m);
+  margin-top: var(--space-m);
+}
+
+.intro-block h2 { margin-top: 0; }
+.intro-block p { color: var(--ink-soft); max-width: 34rem; }
+
+.intro-list {
+  margin: var(--space-s) 0 0;
+  padding-left: 0;
+  list-style: none;
+  max-width: 34rem;
+}
+
+.intro-list li {
+  position: relative;
+  padding-left: 1.1em;
+  margin-bottom: 0.7em;
+  color: var(--ink-soft);
+}
+
+.intro-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.36em;
+  height: 0.36em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.intro-list strong { color: var(--ink); }
 #resume-note { margin-top: var(--space-s); }
 
 /* ---- progress ----------------------------------------------------------- */
@@ -489,6 +514,74 @@
   margin: 0;
 }
 
+/* Expandable background. Closed by default so the block stays scannable in a
+   crisis; open it when there is time to learn rather than time to act. */
+.case-more { margin-top: var(--space-s); }
+
+.case-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  width: auto;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+  padding: 0.3em 0;
+}
+
+.case-more summary::-webkit-details-marker { display: none; }
+
+.case-more summary::after {
+  content: "";
+  width: 0.42em;
+  height: 0.42em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-0.06em, -0.06em);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.case-more[open] summary::after {
+  transform: rotate(-135deg) translate(-0.1em, -0.1em);
+}
+
+.case-more summary:hover { color: var(--accent); }
+.case-more summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.case-body {
+  border-top: 1px solid var(--line);
+  margin-top: 0.4em;
+  padding-top: var(--space-s);
+  animation: rise 0.3s var(--ease-out) both;
+}
+
+.case-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin: 0 0 0.2em;
+}
+
+.case-body p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-bottom: 0.9em;
+}
+
+.case-body p:last-child { margin-bottom: 0; }
+.case-body .case-sub + p { margin-bottom: 1.1em; }
+
 .sources { padding-left: 1.3em; margin-top: var(--space-s); }
 .sources li { margin-bottom: 0.8em; }
 .source-claim { display: block; font-size: 0.92rem; color: var(--ink); margin-bottom: 0.15em; }
@@ -584,7 +677,13 @@
   .meter-seg { border: 1px solid var(--line); background: none; }
   .meter-seg.is-on { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; }
   .tile { border: 1px solid var(--line); }
+  .masthead { display: block; }
+  .logo-lockup { height: 60pt; }
   .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
+  /* A printed report is for reading later, so expand every case. */
+  .case-more:not([open]) > *:not(summary) { display: block; }
+  .case-more summary { display: none; }
+  .case-body { animation: none; }
   .case, .sources li { break-inside: avoid; }
   .cite { border-left: 2px solid var(--line); }
 }
