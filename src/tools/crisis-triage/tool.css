@@ -412,6 +412,142 @@
 
 .brand-line strong { letter-spacing: 0.12em; }
 
+/* ---- evidence ----------------------------------------------------------- */
+
+.cite {
+  border-left: 2px solid var(--line-strong);
+  padding: 0.1em 0 0.1em 0.85em;
+  margin-top: var(--space-s);
+}
+
+.cite-claim {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.15em;
+}
+
+.cite-source {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.hero-cite {
+  border-left: 0;
+  border-top: 1px solid var(--line-strong);
+  margin: var(--space-m) auto 0;
+  padding: var(--space-s) 0 0;
+  max-width: 30rem;
+  text-align: left;
+}
+
+.cases { display: grid; gap: 0.6rem; margin-top: var(--space-s); }
+
+.case {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--surface);
+  padding: var(--space-s) var(--space);
+}
+
+.case-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  margin-bottom: 0.3em;
+}
+
+.case-who {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.case-year {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.case-what {
+  font-size: 0.93rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.4em;
+}
+
+.case-lesson {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.sources { padding-left: 1.3em; margin-top: var(--space-s); }
+.sources li { margin-bottom: 0.8em; }
+.source-claim { display: block; font-size: 0.92rem; color: var(--ink); margin-bottom: 0.15em; }
+.source-ref { display: block; font-size: 0.78rem; line-height: 1.45; color: var(--ink-faint); }
+
+/* ---- closing CTA -------------------------------------------------------- */
+
+.cta {
+  border-top: 0;
+  border-radius: var(--radius);
+  background: var(--ink);
+  padding: var(--space-l) var(--space-m);
+  margin-top: var(--space-m);
+}
+
+.cta .eyebrow { color: var(--accent); }
+.cta h2 { color: var(--bg); }
+.cta p { color: var(--line-strong); max-width: 32rem; }
+
+.cta-link {
+  display: inline-block;
+  margin-top: var(--space-xs);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--bg);
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.cta-link:hover { transform: translateX(3px); }
+
+/* ---- motion ------------------------------------------------------------- */
+
+/* Each question arrives; it does not just appear. */
+.question { animation: slide-in 0.34s var(--ease-out) both; }
+#step.is-leaving { opacity: 0; transform: translateX(-10px); transition: all 0.22s var(--ease-out); }
+
+.option { transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.24s var(--ease-spring); }
+.option:active { transform: scale(0.99); }
+.option[data-selected] { animation: pop 0.32s var(--ease-spring); }
+
+/* The report assembles rather than dumps. */
+#read > *, #plan > * { animation: rise 0.44s var(--ease-out) both; }
+#read > *:nth-child(1) { animation-delay: 0.02s; }
+#read > *:nth-child(2) { animation-delay: 0.08s; }
+#read > *:nth-child(3) { animation-delay: 0.14s; }
+#read > *:nth-child(4) { animation-delay: 0.2s; }
+#read > *:nth-child(n+5) { animation-delay: 0.26s; }
+#plan > *:nth-child(1) { animation-delay: 0.06s; }
+#plan > *:nth-child(n+2) { animation-delay: 0.12s; }
+
+.progress-fill { transition: width 0.42s var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .question, #read > *, #plan > *, .option[data-selected] { animation: none; }
+  #step.is-leaving { opacity: 1; transform: none; }
+  .cta-link:hover { transform: none; }
+}
+
 /* ---- print -------------------------------------------------------------- */
 
 @media print {
@@ -428,4 +564,7 @@
   .meter-seg { border: 1px solid var(--line); background: none; }
   .meter-seg.is-on { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; }
   .tile { border: 1px solid var(--line); }
+  .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
+  .case, .sources li { break-inside: avoid; }
+  .cite { border-left: 2px solid var(--line); }
 }

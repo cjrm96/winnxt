@@ -40,7 +40,7 @@ const base = {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 
   await page.goto(FILE);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(650);
 
   check('no non-file network requests', requests.length === 0, requests.join(', '));
   check('no page errors', errors.length === 0, errors.join(' | '));
@@ -141,21 +141,21 @@ const base = {
     await page.selectOption('#where', a.where || 'facebook-group');
     await page.click('#btn-next');
     await page.check('#spread-' + (a.spread || 'many-groups'));
-    await page.waitForTimeout(400);            // auto-advance on click
+    await page.waitForTimeout(650);            // auto-advance on click
     await page.check('#truth-' + (a.truth || 'false'));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(650);
     if ((a.truth || 'false') === 'partly') {
       await page.fill('#truePart', a.truePart || 'The core is right.');
       await page.click('#btn-next');
     }
     await page.check('#harm-' + (a.harm || 'serious'));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(650);
     await page.check('#fault-' + (a.fault || 'victim'));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(650);
     await page.check('#proof-' + (a.proof || 'yes'));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(650);
     await page.check('#safety-' + (a.safety || 'no'));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(650);
     await page.fill('#daysOut', String(a.daysOut === undefined ? 21 : a.daysOut));
     await page.click('#btn-next');
     await page.waitForTimeout(300);
@@ -191,7 +191,7 @@ const base = {
 
   // Clicking a radio advances on its own.
   await page.check('#spread-many-groups');
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(650);
   check('clicking an option advances automatically',
     (await page.locator('.q-label').textContent()).indexOf('true') !== -1,
     await page.locator('.q-label').textContent());
@@ -207,7 +207,7 @@ const base = {
   await page.click('#btn-next');
   await page.waitForTimeout(200);
   await page.check('#truth-partly');
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(650);
   check('partly true inserts the follow-up question', await page.locator('#truePart').count() === 1);
   check('total step count grows with it',
     /of 10/.test(await page.locator('#progress-count').textContent()),
@@ -216,17 +216,17 @@ const base = {
   await page.click('#btn-back');
   await page.waitForTimeout(200);
   await page.check('#truth-false');
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(650);
   check('follow-up disappears again', await page.locator('#truePart').count() === 0);
 
   await page.check('#harm-serious');
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(650);
   await page.check('#fault-victim');
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(650);
   await page.check('#proof-yes');
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(650);
   await page.check('#safety-no');
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(650);
   check('last question is reached', await page.locator('#daysOut').count() === 1);
   check('last button says see my read',
     /See my read/.test(await page.locator('#btn-next').textContent()));
@@ -266,39 +266,120 @@ const base = {
   }
   check('can walk back to the report', await page.locator('#report').isVisible());
 
+  // --- evidence -----------------------------------------------------------
+
+  check('citations render on the read', await page.locator('.cite').count() >= 2,
+    'got ' + await page.locator('.cite').count());
+  check('every citation names a source',
+    (await page.locator('.cite-source').count()) === (await page.locator('.cite').count()));
+  check('historical cases render', await page.locator('.case').count() >= 1,
+    'got ' + await page.locator('.case').count());
+  check('each case has a lesson',
+    (await page.locator('.case-lesson').count()) === (await page.locator('.case').count()));
+  check('sources list renders', await page.locator('.sources li').count() >= 3,
+    'got ' + await page.locator('.sources li').count());
+
+  const sourcesText = await page.locator('.sources').textContent();
+  check('cites the SCCT paper by name', /Coombs/.test(sourcesText));
+  check('cites a real journal', /Public Relations Review|Political Behavior|Corporate Reputation Review/.test(sourcesText));
+
+  const caseText = await page.locator('.cases').textContent();
+  check('false-and-damaging shows the slow-response case', /Kerry/.test(caseText), caseText.slice(0, 80));
+
+  // Evidence follows the outcome, not the page.
+  const quiet = await page.evaluate(() => {
+    const r = window.CrisisLogic.assess({ where: 'facebook-group', spread: 'many-groups',
+      truth: 'false', harm: 'none', fault: 'victim', proof: 'yes', safety: 'no', daysOut: '60' });
+    return window.CrisisEvidence.forAssessment(r, { where: 'facebook-group', safety: 'no' });
+  });
+  check('say-nothing cites the Streisand research',
+    quiet.citations.some(c => /Streisand/.test(c.source)));
+  check('say-nothing shows the Streisand case',
+    quiet.cases.some(c => /Streisand/.test(c.who)));
+
+  const preempt = await page.evaluate(() => {
+    const r = window.CrisisLogic.assess({ where: 'private', spread: 'few',
+      truth: 'true', harm: 'serious', fault: 'preventable', proof: 'no', safety: 'no', daysOut: '60' });
+    return window.CrisisEvidence.forAssessment(r, { where: 'private', safety: 'no' });
+  });
+  check('get-ahead cites the stealing thunder study',
+    preempt.citations.some(c => /Stealing Thunder/i.test(c.source)));
+  check('get-ahead shows a pre-emption case',
+    preempt.cases.some(c => /Clinton|Johnson/.test(c.who)));
+
+  const unsafe = await page.evaluate(() => {
+    const r = window.CrisisLogic.assess({ where: 'social', spread: 'many-groups',
+      truth: 'false', harm: 'some', fault: 'victim', proof: 'yes', safety: 'yes', daysOut: '30' });
+    return window.CrisisEvidence.forAssessment(r, { where: 'social', safety: 'yes' });
+  });
+  check('safety case is surfaced first when someone is unsafe',
+    /school board/i.test(unsafe.cases[0].who), unsafe.cases[0].who);
+
+  // Cases span both parties and business — the tool ships nonpartisan.
+  const everyone = await page.evaluate(() =>
+    Object.values(window.CrisisEvidence.CASES).flat().map(c => c.who).join(' | '));
+  check('cases include both parties', /Nixon|Sanford/.test(everyone) && /Clinton|Weiner|Kerry/.test(everyone));
+  check('cases include business', /Johnson|Domino/.test(everyone));
+
+  // --- copy and CTA -------------------------------------------------------
+
+  const handoffHeading = await page.locator('.handoff h2').textContent();
+  check('handoff section is AI-generic, not Claude-specific',
+    handoffHeading === 'Continue with AI', handoffHeading);
+
+  check('closing CTA points to a professional', await page.locator('.cta').count() === 1);
+  const ctaHref = await page.locator('.cta-link').getAttribute('href');
+  check('CTA links to winnxt.com', /winnxt\.com/.test(ctaHref), ctaHref);
+  check('take it with you section kept', await page.locator('.actions').count() === 1);
+
   const handoff = await page.locator('#handoff-text').textContent();
   check('handoff carries the description', /doctored screenshot/.test(handoff));
   check('handoff carries the read', /Quadrant: False, and it hurts/.test(handoff));
   check('handoff asks for a draft', /Draft a short statement/.test(handoff));
   check('handoff branded', /winnxt\.com/.test(handoff));
 
-  // --- storage ------------------------------------------------------------
+  // --- stores nothing -----------------------------------------------------
+  //
+  // "Nothing is saved anywhere" is printed on the intro screen, so it is a
+  // claim the product makes to a buyer. Assert it rather than trust it.
 
-  const before = await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage'));
-  check('nothing saved while storage is off', before === null, String(before));
+  const stored = await page.evaluate(() => ({
+    local: Object.keys(localStorage).length,
+    session: Object.keys(sessionStorage).length,
+    cookie: document.cookie
+  }));
+  check('localStorage is untouched after a full run', stored.local === 0, JSON.stringify(stored));
+  check('sessionStorage is untouched after a full run', stored.session === 0, JSON.stringify(stored));
+  check('no cookies are set', stored.cookie === '', stored.cookie);
 
-  await page.check('#storage-toggle');
-  await page.waitForTimeout(200);
-  check('saves once storage is on',
-    (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage'))) !== null);
+  check('no storage panel is shown', await page.locator('#storage-panel').count() === 0);
+  check('the storage module is not bundled',
+    !(await page.evaluate(() => typeof window.WinnxtStorage !== 'undefined')));
 
   await page.reload();
-  await page.waitForTimeout(400);
-  check('a finished run reopens on the report', await page.locator('#report').isVisible());
-  check('the verdict survives reload', /Respond, today/.test(await page.locator('.verdict').textContent()));
+  await page.waitForTimeout(650);
+  check('reload returns to the intro, remembering nothing', await page.locator('#intro').isVisible());
+  check('the report is gone after reload', await page.locator('#report').isHidden());
 
+  // Start over clears an in-progress run.
   page.on('dialog', d => d.accept());
-  await page.click('#btn-reset');
-  await page.waitForTimeout(300);
-  check('erase clears storage',
-    (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage'))) === null);
-  check('erase clears consent',
-    (await page.evaluate(() => localStorage.getItem('winnxt:crisis-triage:consent'))) === null);
-  check('erase returns to the intro', await page.locator('#intro').isVisible());
-  check('erase forgets the answers', await page.locator('#report').isHidden());
-
-  // Rebuild a run for the presentation checks below.
   await runWizard(page, {});
+  check('report is up before start over', await page.locator('#report').isVisible());
+  await page.click('#btn-restart');
+  await page.waitForTimeout(300);
+  check('start over returns to the intro', await page.locator('#intro').isVisible());
+
+  await page.click('#btn-start');
+  await page.waitForTimeout(250);
+  check('start over cleared the answers', (await page.inputValue('#what')) === '',
+    await page.inputValue('#what'));
+  check('start over reset the progress',
+    /Question 1/.test(await page.locator('#progress-label').textContent()));
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
+  check('a fresh run works after starting over', await page.locator('#report').isVisible());
 
   // --- presentation -------------------------------------------------------
 
@@ -321,6 +402,24 @@ const base = {
     return bad;
   });
   check('every field has a label', unlabeled.length === 0, unlabeled.join(', '));
+
+  // --- motion -------------------------------------------------------------
+
+  check('buttons acknowledge a press', await page.evaluate(() => {
+    const b = document.getElementById('btn-print');
+    b.click();
+    return b.classList.contains('tapped');
+  }));
+
+  const reduced = await browser.newPage({ reducedMotion: 'reduce' });
+  const reducedReqs = [];
+  reduced.on('request', r => { if (!r.url().startsWith('file://')) reducedReqs.push(r.url()); });
+  await reduced.goto(FILE);
+  await reduced.waitForTimeout(300);
+  const dur = await reduced.evaluate(() =>
+    getComputedStyle(document.getElementById('btn-start')).transitionDuration);
+  check('reduced motion is respected', parseFloat(dur) < 0.01, dur);
+  await reduced.close();
 
   check('still zero network requests at end', requests.length === 0, requests.join(', '));
   check('still no errors at end', errors.length === 0, errors.join(' | '));

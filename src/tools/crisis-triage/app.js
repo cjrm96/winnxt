@@ -1,6 +1,9 @@
 (function () {
-  var store = new window.WinnxtStorage('winnxt:crisis-triage');
-
+  // This tool deliberately stores nothing. Not localStorage, not sessionStorage,
+  // not a cookie. A candidate typing their worst moment into a shared family
+  // computer should not leave it behind, and "nothing is saved, ever" is a
+  // promise that needs no asterisk. The cost is that closing the tab loses the
+  // run, which is what the beforeunload warning is for.
   var QUESTIONS = [
     {
       id: 'what', type: 'textarea', required: false,
@@ -110,7 +113,7 @@
     }
   ];
 
-  var state = { answers: {}, seen: false };
+  var state = { answers: {} };
   var step = 0;
   var view = 'intro';
 
@@ -136,8 +139,6 @@
   function hasData() {
     return Object.keys(state.answers).some(function (k) { return state.answers[k]; });
   }
-
-  function persist() { store.save({ answers: state.answers, seen: state.seen }); }
 
   // ---- dom helpers -------------------------------------------------------
 
@@ -190,7 +191,6 @@
         if (val(q.id) === o[0]) input.checked = true;
         input.addEventListener('change', function () {
           state.answers[q.id] = o[0];
-          persist();
           markSelected(opts);
           clearError();
         });
@@ -219,7 +219,6 @@
         });
         field.addEventListener('change', function () {
           state.answers[q.id] = field.value;
-          persist();
           clearError();
         });
       } else if (q.type === 'textarea') {
@@ -227,14 +226,12 @@
         field.value = val(q.id);
         field.addEventListener('input', function () {
           state.answers[q.id] = field.value;
-          persist();
         });
       } else {
         field = el('input', { type: 'number', id: q.id, min: '0', inputmode: 'numeric', placeholder: q.placeholder || '' });
         field.value = val(q.id);
         field.addEventListener('input', function () {
           state.answers[q.id] = field.value;
-          persist();
         });
       }
       card.appendChild(field);
@@ -259,7 +256,11 @@
   var advanceTimer = null;
   function queueAdvance() {
     clearTimeout(advanceTimer);
-    advanceTimer = setTimeout(function () { next(); }, 280);
+    var host = document.getElementById('step');
+    advanceTimer = setTimeout(function () {
+      host.classList.add('is-leaving');
+      setTimeout(function () { host.classList.remove('is-leaving'); next(); }, 160);
+    }, 260);
   }
 
   function clearError() { show('step-error', false); }
@@ -312,8 +313,6 @@
       show('step-error', true);
       return;
     }
-    state.seen = true;
-    persist();
     goto('report');
   }
 
@@ -361,6 +360,8 @@
     hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
     hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
     hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
+    var callCite = window.CrisisEvidence.forCall(r.call.publish);
+    if (callCite) hero.appendChild(cite(callCite, 'hero-cite'));
     box.appendChild(hero);
 
     // At a glance.
@@ -390,8 +391,10 @@
     risk.appendChild(dl);
     box.appendChild(risk);
 
-    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
-    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
+    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture,
+      r.quadrant.detail, window.CrisisEvidence.forQuadrant(r.quadrantKey)));
+    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy,
+      r.scct.detail, window.CrisisEvidence.scct));
 
     if (r.channel && r.call.publish !== 'no') {
       var ch = el('section', { class: 'report-block' });
@@ -412,6 +415,7 @@
     box.appendChild(sk);
 
     renderPlan(r);
+    renderEvidence(r);
     renderSummary();
     renderHandoff();
   }
@@ -423,13 +427,22 @@
     return t;
   }
 
-  function detail(eyebrow, headline, posture, body) {
+  function detail(eyebrow, headline, posture, body, citation) {
     var d = el('section', { class: 'report-block' });
     d.appendChild(el('p', { class: 'eyebrow', text: eyebrow }));
     d.appendChild(el('h2', { text: headline }));
     d.appendChild(el('p', { class: 'posture', text: posture }));
     d.appendChild(el('p', { text: body }));
+    if (citation) d.appendChild(cite(citation));
     return d;
+  }
+
+  // A short "this is not just our opinion" line under a piece of advice.
+  function cite(c, cls) {
+    var box = el('div', { class: 'cite' + (cls ? ' ' + cls : '') });
+    box.appendChild(el('p', { class: 'cite-claim', text: c.claim }));
+    box.appendChild(el('p', { class: 'cite-source', text: c.source }));
+    return box;
   }
 
   function renderPlan(r) {
@@ -456,6 +469,48 @@
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
     no.appendChild(ul);
     box.appendChild(no);
+  }
+
+  function renderEvidence(r) {
+    var ev = window.CrisisEvidence.forAssessment(r, state.answers);
+    var box = document.getElementById('plan');
+
+    if (ev.cases.length) {
+      var wrap = el('section', { class: 'report-block cases-block' });
+      wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
+      wrap.appendChild(el('h2', { text: 'How this has gone before' }));
+      wrap.appendChild(el('p', { class: 'note', text: 'Public cases that ran into the same decision you are making. Different scale, same mechanics.' }));
+
+      var list = el('div', { class: 'cases' });
+      ev.cases.forEach(function (c) {
+        var card = el('article', { class: 'case' });
+        var head = el('p', { class: 'case-head' });
+        head.appendChild(el('span', { class: 'case-who', text: c.who }));
+        head.appendChild(el('span', { class: 'case-year', text: String(c.year) }));
+        card.appendChild(head);
+        card.appendChild(el('p', { class: 'case-what', text: c.what }));
+        card.appendChild(el('p', { class: 'case-lesson', text: c.lesson }));
+        list.appendChild(card);
+      });
+      wrap.appendChild(list);
+      box.appendChild(wrap);
+    }
+
+    if (ev.citations.length) {
+      var src = el('section', { class: 'report-block sources-block' });
+      src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
+      src.appendChild(el('h2', { text: 'Why this is the advice' }));
+      src.appendChild(el('p', { class: 'note', text: 'The research this read is built on. Look any of it up — none of it is ours.' }));
+      var ol = el('ol', { class: 'sources' });
+      ev.citations.forEach(function (c) {
+        var li = el('li');
+        li.appendChild(el('span', { class: 'source-claim', text: c.claim }));
+        li.appendChild(el('span', { class: 'source-ref', text: c.source }));
+        ol.appendChild(li);
+      });
+      src.appendChild(ol);
+      box.appendChild(src);
+    }
   }
 
   function renderSummary() {
@@ -543,29 +598,15 @@
 
   // ---- chrome ------------------------------------------------------------
 
-  function bindStorageToggle() {
-    var box = document.getElementById('storage-toggle');
-    var note = document.getElementById('storage-note');
-
-    if (!store.available()) {
-      box.disabled = true;
-      note.textContent = 'Your browser is blocking local storage, so nothing can be saved. Print or download before you close this tab.';
-      return;
-    }
-
-    box.checked = store.enabled();
-    box.addEventListener('change', function () {
-      store.setEnabled(box.checked);
-      if (box.checked) persist();
-      updateNote();
+  // Every button acknowledges the press it just received.
+  function bindTapFeedback() {
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('button') : null;
+      if (!b) return;
+      b.classList.remove('tapped');
+      void b.offsetWidth;                       // restart the animation
+      b.classList.add('tapped');
     });
-    updateNote();
-
-    function updateNote() {
-      note.textContent = store.enabled()
-        ? 'Saved in this browser on this device. Anyone using this computer could open it. Erase when you are done.'
-        : 'Nothing is being saved. Close this tab and it is gone.';
-    }
   }
 
   function bindButtons() {
@@ -577,6 +618,13 @@
     document.getElementById('btn-review').addEventListener('click', function () {
       step = 0;
       goto('wizard');
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', function () {
+      if (!confirm('Clear your answers and start over? This cannot be undone.')) return;
+      state = { answers: {} };
+      step = 0;
+      goto('intro');
     });
 
     document.getElementById('btn-print').addEventListener('click', function () {
@@ -595,43 +643,19 @@
       });
     });
 
-    document.getElementById('btn-reset').addEventListener('click', function () {
-      if (!confirm('Erase everything you have entered? This cannot be undone.')) return;
-      store.eraseAll();
-      state = { answers: {}, seen: false };
-      step = 0;
-      var box = document.getElementById('storage-toggle');
-      if (!box.disabled) box.checked = false;
-      document.getElementById('storage-note').textContent = 'Nothing is being saved. Close this tab and it is gone.';
-      document.getElementById('resume-note').setAttribute('hidden', '');
-      goto('intro');
-    });
   }
 
   function init() {
-    var saved = store.load();
-    if (saved && saved.answers) {
-      state.answers = saved.answers;
-      state.seen = !!saved.seen;
-    }
-
-    bindStorageToggle();
     bindButtons();
-
-    if (hasData()) {
-      var note = document.getElementById('resume-note');
-      note.textContent = 'Picking up where you left off — your saved answers are still here.';
-      note.removeAttribute('hidden');
-      document.getElementById('btn-start').textContent =
-        state.seen && !missing().length ? 'See my read' : 'Continue';
-      if (state.seen && !missing().length) {
-        goto('report');
-        return;
-      }
-    }
-
+    bindTapFeedback();
     goto('intro');
-    store.warnOnUnloadWhenOff(hasData);
+
+    // Nothing is saved, so leaving really does lose it. Say so.
+    window.addEventListener('beforeunload', function (e) {
+      if (!hasData()) return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
   }
 
   if (document.readyState === 'loading') {

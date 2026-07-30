@@ -22,11 +22,10 @@
   </div>
 
   <div class="callout callout-ok">
-    <p>This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet turned off. Close the tab and it's gone unless you turn on saving.</p>
+    <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. It runs with your internet turned off. Close the tab and it's gone — so print or download the report before you leave.</p>
   </div>
 
   <button type="button" id="btn-start" class="btn-lg">Start</button>
-  <p class="note" id="resume-note" hidden></p>
 </section>
 
 <!-- Steps 1..n: one question at a time. -->
@@ -57,8 +56,8 @@
 
   <section class="report-block handoff no-print">
     <p class="eyebrow">Keep going</p>
-    <h2>Continue with Claude</h2>
-    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+    <h2>Continue with AI</h2>
+    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use — it picks up with everything you just entered.</p>
     <pre id="handoff-text"></pre>
     <button type="button" id="btn-copy">Copy this prompt</button>
   </section>
@@ -70,19 +69,18 @@
     <button type="button" id="btn-print">Print / Save as PDF</button>
     <button type="button" class="secondary" id="btn-download">Download my answers</button>
     <button type="button" class="secondary" id="btn-review">Change an answer</button>
+    <button type="button" class="danger" id="btn-restart">Start over</button>
+  </section>
+
+  <section class="report-block cta no-print">
+    <p class="eyebrow">When it's bigger than a worksheet</p>
+    <h2>Talk to someone who does this for a living</h2>
+    <p>A decision tree is a good start and a poor substitute for judgment. If this is moving fast, if the press is calling, or if you're staring at a statement you can't bring yourself to send — get a professional on the phone.</p>
+    <p><a class="cta-link" href="https://www.winnxt.com/">Get in touch with WINNXT →</a></p>
   </section>
 </section>
 
 <footer class="site-foot">
-  <section class="card no-print" id="storage-panel">
-    <label class="checkbox" for="storage-toggle">
-      <input type="checkbox" id="storage-toggle">
-      Save my answers in this browser
-    </label>
-    <p class="note" id="storage-note"></p>
-    <button type="button" class="danger" id="btn-reset">Erase everything</button>
-  </section>
-
   <div class="brand">
     <p class="brand-line"><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
     We don't believe in fluff, because neither will your voters.<br>
@@ -93,8 +91,8 @@
 
 </main>
 
-<script src="../../shared/storage.js"></script>
 <script src="../../shared/export.js"></script>
 <script src="../../shared/handoff.js"></script>
 <script src="logic.js"></script>
+<script src="evidence.js"></script>
 <script src="app.js"></script>

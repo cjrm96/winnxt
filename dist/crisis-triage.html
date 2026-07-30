@@ -234,6 +234,13 @@ input[type="checkbox"], input[type="radio"] {
 
 /* ---- buttons ------------------------------------------------------------ */
 
+/* Motion: a fast, slightly overshooting curve. Feedback should feel physical
+   and be over before it draws attention to itself. */
+:root {
+  --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
 button {
   display: inline-flex;
   align-items: center;
@@ -248,11 +255,25 @@ button {
   font-weight: 600;
   letter-spacing: -0.008em;
   cursor: pointer;
-  transition: opacity 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transform: translateZ(0);
+  transition:
+    transform 0.22s var(--ease-spring),
+    box-shadow 0.22s var(--ease-out),
+    background-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-button:hover { opacity: 0.86; }
-button:active { opacity: 1; box-shadow: inset 0 1px 3px var(--shadow-strong); }
+button:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow); }
+button:active { transform: translateY(0) scale(0.965); box-shadow: inset 0 1px 3px var(--shadow-strong); }
+
+/* Released — a short settle back, so a press feels answered. */
+button.tapped { animation: tap 0.42s var(--ease-spring); }
+
+@keyframes tap {
+  0%   { transform: scale(0.965); }
+  45%  { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
 
 button.secondary {
   background: transparent;
@@ -374,6 +395,35 @@ button.link:hover { opacity: 1; color: var(--accent); }
   font-size: 1.05rem;
   padding: 0.75em 1.9em;
   min-height: 3em;
+}
+
+/* ---- motion ------------------------------------------------------------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Anyone who has asked their system to calm down gets no movement at all. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  button:hover, button:active { transform: none; }
 }
 
 /* ---- print -------------------------------------------------------------- */
@@ -832,6 +882,142 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 .brand-line strong { letter-spacing: 0.12em; }
 
+/* ---- evidence ----------------------------------------------------------- */
+
+.cite {
+  border-left: 2px solid var(--line-strong);
+  padding: 0.1em 0 0.1em 0.85em;
+  margin-top: var(--space-s);
+}
+
+.cite-claim {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.15em;
+}
+
+.cite-source {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.hero-cite {
+  border-left: 0;
+  border-top: 1px solid var(--line-strong);
+  margin: var(--space-m) auto 0;
+  padding: var(--space-s) 0 0;
+  max-width: 30rem;
+  text-align: left;
+}
+
+.cases { display: grid; gap: 0.6rem; margin-top: var(--space-s); }
+
+.case {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--surface);
+  padding: var(--space-s) var(--space);
+}
+
+.case-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  margin-bottom: 0.3em;
+}
+
+.case-who {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.case-year {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.case-what {
+  font-size: 0.93rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.4em;
+}
+
+.case-lesson {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.sources { padding-left: 1.3em; margin-top: var(--space-s); }
+.sources li { margin-bottom: 0.8em; }
+.source-claim { display: block; font-size: 0.92rem; color: var(--ink); margin-bottom: 0.15em; }
+.source-ref { display: block; font-size: 0.78rem; line-height: 1.45; color: var(--ink-faint); }
+
+/* ---- closing CTA -------------------------------------------------------- */
+
+.cta {
+  border-top: 0;
+  border-radius: var(--radius);
+  background: var(--ink);
+  padding: var(--space-l) var(--space-m);
+  margin-top: var(--space-m);
+}
+
+.cta .eyebrow { color: var(--accent); }
+.cta h2 { color: var(--bg); }
+.cta p { color: var(--line-strong); max-width: 32rem; }
+
+.cta-link {
+  display: inline-block;
+  margin-top: var(--space-xs);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--bg);
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.cta-link:hover { transform: translateX(3px); }
+
+/* ---- motion ------------------------------------------------------------- */
+
+/* Each question arrives; it does not just appear. */
+.question { animation: slide-in 0.34s var(--ease-out) both; }
+#step.is-leaving { opacity: 0; transform: translateX(-10px); transition: all 0.22s var(--ease-out); }
+
+.option { transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.24s var(--ease-spring); }
+.option:active { transform: scale(0.99); }
+.option[data-selected] { animation: pop 0.32s var(--ease-spring); }
+
+/* The report assembles rather than dumps. */
+#read > *, #plan > * { animation: rise 0.44s var(--ease-out) both; }
+#read > *:nth-child(1) { animation-delay: 0.02s; }
+#read > *:nth-child(2) { animation-delay: 0.08s; }
+#read > *:nth-child(3) { animation-delay: 0.14s; }
+#read > *:nth-child(4) { animation-delay: 0.2s; }
+#read > *:nth-child(n+5) { animation-delay: 0.26s; }
+#plan > *:nth-child(1) { animation-delay: 0.06s; }
+#plan > *:nth-child(n+2) { animation-delay: 0.12s; }
+
+.progress-fill { transition: width 0.42s var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .question, #read > *, #plan > *, .option[data-selected] { animation: none; }
+  #step.is-leaving { opacity: 1; transform: none; }
+  .cta-link:hover { transform: none; }
+}
+
 /* ---- print -------------------------------------------------------------- */
 
 @media print {
@@ -848,6 +1034,9 @@ button.link:hover { opacity: 1; color: var(--accent); }
   .meter-seg { border: 1px solid var(--line); background: none; }
   .meter-seg.is-on { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; }
   .tile { border: 1px solid var(--line); }
+  .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
+  .case, .sources li { break-inside: avoid; }
+  .cite { border-left: 2px solid var(--line); }
 }
 
 </style>
@@ -869,11 +1058,10 @@ button.link:hover { opacity: 1; color: var(--accent); }
   </div>
 
   <div class="callout callout-ok">
-    <p>This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet turned off. Close the tab and it's gone unless you turn on saving.</p>
+    <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. It runs with your internet turned off. Close the tab and it's gone — so print or download the report before you leave.</p>
   </div>
 
   <button type="button" id="btn-start" class="btn-lg">Start</button>
-  <p class="note" id="resume-note" hidden></p>
 </section>
 
 <!-- Steps 1..n: one question at a time. -->
@@ -904,8 +1092,8 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
   <section class="report-block handoff no-print">
     <p class="eyebrow">Keep going</p>
-    <h2>Continue with Claude</h2>
-    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into Claude or any AI assistant and it picks up with everything you just entered.</p>
+    <h2>Continue with AI</h2>
+    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use — it picks up with everything you just entered.</p>
     <pre id="handoff-text"></pre>
     <button type="button" id="btn-copy">Copy this prompt</button>
   </section>
@@ -917,19 +1105,18 @@ button.link:hover { opacity: 1; color: var(--accent); }
     <button type="button" id="btn-print">Print / Save as PDF</button>
     <button type="button" class="secondary" id="btn-download">Download my answers</button>
     <button type="button" class="secondary" id="btn-review">Change an answer</button>
+    <button type="button" class="danger" id="btn-restart">Start over</button>
+  </section>
+
+  <section class="report-block cta no-print">
+    <p class="eyebrow">When it's bigger than a worksheet</p>
+    <h2>Talk to someone who does this for a living</h2>
+    <p>A decision tree is a good start and a poor substitute for judgment. If this is moving fast, if the press is calling, or if you're staring at a statement you can't bring yourself to send — get a professional on the phone.</p>
+    <p><a class="cta-link" href="https://www.winnxt.com/">Get in touch with WINNXT →</a></p>
   </section>
 </section>
 
 <footer class="site-foot">
-  <section class="card no-print" id="storage-panel">
-    <label class="checkbox" for="storage-toggle">
-      <input type="checkbox" id="storage-toggle">
-      Save my answers in this browser
-    </label>
-    <p class="note" id="storage-note"></p>
-    <button type="button" class="danger" id="btn-reset">Erase everything</button>
-  </section>
-
   <div class="brand">
     <p class="brand-line"><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
     We don't believe in fluff, because neither will your voters.<br>
@@ -940,79 +1127,6 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 </main>
 
-<script>
-// Opt-in localStorage. Off unless the user explicitly turns it on.
-(function () {
-  var CONSENT_SUFFIX = ':consent';
-
-  function Store(key) {
-    this.key = key;
-    this.consentKey = key + CONSENT_SUFFIX;
-  }
-
-  Store.prototype.available = function () {
-    try {
-      localStorage.setItem('__t', '1');
-      localStorage.removeItem('__t');
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  Store.prototype.enabled = function () {
-    return this.available() && localStorage.getItem(this.consentKey) === 'yes';
-  };
-
-  Store.prototype.setEnabled = function (on) {
-    if (!this.available()) return false;
-    if (on) {
-      localStorage.setItem(this.consentKey, 'yes');
-    } else {
-      localStorage.removeItem(this.consentKey);
-      localStorage.removeItem(this.key);
-    }
-    return true;
-  };
-
-  Store.prototype.save = function (data) {
-    if (!this.enabled()) return false;
-    localStorage.setItem(this.key, JSON.stringify(data));
-    return true;
-  };
-
-  Store.prototype.load = function () {
-    if (!this.enabled()) return null;
-    var raw = localStorage.getItem(this.key);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw);
-    } catch (e) {
-      return null;
-    }
-  };
-
-  // Wired to the always-visible "erase everything" button. Must actually clear.
-  Store.prototype.eraseAll = function () {
-    if (!this.available()) return;
-    localStorage.removeItem(this.key);
-    localStorage.removeItem(this.consentKey);
-  };
-
-  // Warn before losing work when storage is off.
-  Store.prototype.warnOnUnloadWhenOff = function (hasData) {
-    var self = this;
-    window.addEventListener('beforeunload', function (e) {
-      if (self.enabled() || !hasData()) return;
-      e.preventDefault();
-      e.returnValue = '';
-    });
-  };
-
-  window.WinnxtStorage = Store;
-})();
-
-</script>
 <script>
 // PDF via print stylesheet. Text/JSON via Blob download. Both work on file://.
 (function () {
@@ -1471,9 +1585,260 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 </script>
 <script>
+// Why the tool says what it says, and where it has played out before.
+//
+// Two rules for anything added to this file:
+//   1. Every citation must be a real, findable publication. No paraphrased
+//      "studies show." If it cannot be looked up, it does not go in.
+//   2. Every case must be a matter of public record, described in a way its
+//      own subject would recognize as accurate. These are illustrations of a
+//      pattern, not attacks on the people in them.
+//
+// Cases are drawn from both parties and from business deliberately. The tool
+// ships nonpartisan and the reader should be able to tell.
 (function () {
-  var store = new window.WinnxtStorage('winnxt:crisis-triage');
 
+  var CITES = {
+    scct: {
+      claim: 'Match the response to how much blame the public assigns you — not to how bad you feel.',
+      source: 'Coombs, W. T. (2007). Protecting Organization Reputations During a Crisis: The Development and Application of Situational Crisis Communication Theory. Corporate Reputation Review, 10(3), 163–176.'
+    },
+    scctTest: {
+      claim: 'Responses that overshoot or undershoot the level of responsibility the audience perceives do measurably worse than matched ones.',
+      source: 'Coombs, W. T., & Holladay, S. J. (2002). Helping Crisis Managers Protect Reputational Assets. Management Communication Quarterly, 16(2), 165–186.'
+    },
+    thunder: {
+      claim: 'Disclosing your own bad news first — "stealing thunder" — leaves you more credible than letting someone else break it.',
+      source: 'Arpan, L. M., & Roskos-Ewoldsen, D. R. (2005). Stealing Thunder: Analysis of the Effects of Proactive Disclosure of Crisis Information. Public Relations Review, 31(3), 425–433.'
+    },
+    timing: {
+      claim: 'Timing does as much work as wording. Getting ahead of a story outperforms reacting to it, across response types.',
+      source: 'Claeys, A.-S., & Cauberghe, V. (2012). Crisis Response and Crisis Timing Strategies, Two Sides of the Same Coin. Public Relations Review, 38(1), 83–88.'
+    },
+    illusory: {
+      claim: 'A claim repeated is a claim believed. Familiarity alone raises how true something feels.',
+      source: 'Hasher, L., Goldstein, D., & Toppino, T. (1977). Frequency and the Conference of Referential Validity. Journal of Verbal Learning and Verbal Behavior, 16(1), 107–112.'
+    },
+    denialRisk: {
+      claim: 'Repeating a false claim in order to deny it can leave people remembering the claim and forgetting the denial.',
+      source: 'Skurnik, I., Yoon, C., Park, D. C., & Schwarz, N. (2005). How Warnings About False Claims Become Recommendations. Journal of Consumer Research, 31(4), 713–724.'
+    },
+    sandwich: {
+      claim: 'Lead with the fact, warn before you mention the falsehood, mention it once, and give people a replacement explanation — not just a denial.',
+      source: 'Lewandowsky, S., Ecker, U. K. H., Seifert, C. M., Schwarz, N., & Cook, J. (2012). Misinformation and Its Correction. Psychological Science in the Public Interest, 13(3), 106–131.'
+    },
+    correctionsWork: {
+      claim: 'Corrections generally do move people. The fear that facts always backfire is largely unsupported — which is why a damaging false claim is worth answering.',
+      source: 'Wood, T., & Porter, E. (2019). The Elusive Backfire Effect: Mass Attitudes’ Steadfast Factual Adherence. Political Behavior, 41, 135–163.'
+    },
+    streisand: {
+      claim: 'Trying to suppress something small is itself the event that makes it big.',
+      source: 'Jansen, S. C., & Martin, B. (2015). The Streisand Effect and Censorship Backfire. International Journal of Communication, 9, 656–671.'
+    },
+    imageRepair: {
+      claim: 'The available moves — deny, evade responsibility, reduce offensiveness, correct, apologize — are a known set, and mixing them incoherently is what reads as evasive.',
+      source: 'Benoit, W. L. (1997). Image Repair Discourse and Crisis Communication. Public Relations Review, 23(2), 177–186.'
+    },
+    cerc: {
+      claim: 'Crises move through phases, and what works in the first hour is not what works in week three.',
+      source: 'U.S. Centers for Disease Control and Prevention. Crisis and Emergency Risk Communication (CERC) manual.'
+    },
+    harassment: {
+      claim: 'Harassment of local officials is common, and most of it arrives from people who are not physically present.',
+      source: 'Reuters and NBC News reporting on threats and harassment directed at U.S. school board members and local officials.'
+    }
+  };
+
+  var CASES = {
+    sayNothing: [
+      {
+        who: 'Barbra Streisand',
+        year: 2003,
+        what: 'She sued to have an aerial photograph of her home removed from a public coastal-erosion archive. The image had been downloaded a handful of times before the suit. Coverage of the lawsuit drove it to hundreds of thousands of views.',
+        lesson: 'The response is what created the audience. The photo was not the event; the objection was.'
+      }
+    ],
+    hold: [
+      {
+        who: 'Barbra Streisand',
+        year: 2003,
+        what: 'A lawsuit over an obscure aerial photo of her house turned a file almost nobody had seen into an internationally recognized example, and gave the effect its name.',
+        lesson: 'If almost nobody has seen it, your statement is the distribution mechanism. Prepare it; do not publish it.'
+      }
+    ],
+    preempt: [
+      {
+        who: 'Bill Clinton',
+        year: 1992,
+        what: 'Facing allegations that threatened to end his primary campaign, he chose the venue and the timing — a 60 Minutes interview immediately after the Super Bowl — rather than letting the story be told for him week by week. He finished second in New Hampshire, called himself the Comeback Kid, and won the nomination.',
+        lesson: 'When the story is coming out anyway, the one thing still under your control is who frames it first.'
+      },
+      {
+        who: 'Johnson & Johnson',
+        year: 1982,
+        what: 'After cyanide-laced Tylenol capsules killed seven people in Chicago, the company pulled roughly 31 million bottles nationwide and went public immediately, before regulators compelled it and while the tampering was still unexplained.',
+        lesson: 'Acting faster than you are required to is what buys the benefit of the doubt later.'
+      }
+    ],
+    trueDoes: [
+      {
+        who: 'Johnson & Johnson',
+        year: 1982,
+        what: 'Full disclosure, a national recall, and a redesigned tamper-evident package. The brand recovered its market position within about a year.',
+        lesson: 'Say all of it at once, and pair the admission with a fix people can see.'
+      },
+      {
+        who: 'Richard Nixon',
+        year: 1974,
+        what: 'The Watergate break-in was survivable. The concealment that followed was not, and it ended in resignation.',
+        lesson: 'The cover-up outlived the offense. It usually does.'
+      },
+      {
+        who: 'Anthony Weiner',
+        year: 2011,
+        what: 'He denied the story flatly for several days, including in press interviews, before admitting it was true. He resigned within weeks.',
+        lesson: 'A denial that later collapses costs far more than the fact it was meant to hide.'
+      }
+    ],
+    falseDoes: [
+      {
+        who: 'John Kerry',
+        year: 2004,
+        what: 'Attack ads challenging his military record ran for weeks before his campaign answered them forcefully. The delay let the charge settle before the rebuttal arrived.',
+        lesson: 'Against a damaging claim you can disprove, silence is read as confirmation. Speed is the whole game.'
+      }
+    ],
+    trueDoesnt: [
+      {
+        who: 'Mark Sanford',
+        year: 2013,
+        what: 'Four years after a scandal that ended his time as governor, he ran for a U.S. House seat and won, treating the episode as known, settled, and old news rather than something to avoid discussing.',
+        lesson: 'Once everyone already knows, it stops being a story. Flinching is what makes it one again.'
+      }
+    ],
+    channel: [
+      {
+        who: "Domino's Pizza",
+        year: 2009,
+        what: 'A prank video by two employees spread on YouTube. The company answered on YouTube, with its president on camera, within about 48 hours.',
+        lesson: 'They answered where it happened. A press release would not have reached the same people.'
+      }
+    ],
+    safety: [
+      {
+        who: 'Local school board members, United States',
+        year: 2021,
+        what: 'Reuters documented more than 200 instances of school board members being harassed or threatened; NBC News reporting found most tracked incidents came from people who were not physically present at meetings.',
+        lesson: 'This is common, it is documented, and it is a matter for law enforcement rather than a communications problem to absorb quietly.'
+      }
+    ],
+    localPattern: [
+      {
+        who: 'A St. Petersburg, Florida city council candidate',
+        year: 2021,
+        what: 'Old posts resurfaced and were amplified locally. The candidate withdrew from the race within days.',
+        lesson: 'Local first, wider second. The window to act is measured in hours.'
+      },
+      {
+        who: 'A Norman, Oklahoma council member',
+        year: 2021,
+        what: 'An exchange in a local Facebook group spread through neighborhood groups, then drew national attention. The member resigned within about three months.',
+        lesson: 'The neighborhood group is where these start. Watch it accordingly.'
+      }
+    ]
+  };
+
+  // Which evidence belongs on this particular report.
+  function forAssessment(r, answers) {
+    var cites = [];
+    var cases = [];
+
+    var publish = r.call.publish;
+    var q = r.quadrantKey;
+
+    if (publish === 'no') {
+      cites.push(CITES.streisand, CITES.illusory);
+      cases = cases.concat(CASES.sayNothing);
+    } else if (publish === 'hold') {
+      cites.push(CITES.streisand, CITES.timing);
+      cases = cases.concat(CASES.hold);
+    } else if (publish === 'preempt') {
+      cites.push(CITES.thunder, CITES.timing);
+      cases = cases.concat(CASES.preempt);
+    }
+
+    if (q === 'true-does') {
+      cites.push(CITES.imageRepair, CITES.thunder);
+      cases = cases.concat(CASES.trueDoes);
+    } else if (q === 'false-does') {
+      cites.push(CITES.sandwich, CITES.denialRisk, CITES.correctionsWork);
+      cases = cases.concat(CASES.falseDoes);
+    } else if (q === 'true-doesnt') {
+      cases = cases.concat(CASES.trueDoesnt);
+    } else if (q === 'false-doesnt') {
+      cites.push(CITES.illusory);
+    }
+
+    cites.push(CITES.scct, CITES.scctTest);
+    cites.push(CITES.cerc);
+
+    if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
+      cases = cases.concat(CASES.localPattern);
+    }
+    if (publish !== 'no' && r.channel) {
+      cases = cases.concat(CASES.channel);
+    }
+    if (answers.safety === 'yes') {
+      cites.push(CITES.harassment);
+      cases = CASES.safety.concat(cases);
+    }
+
+    return { citations: dedupe(cites), cases: dedupe(cases) };
+  }
+
+  function dedupe(list) {
+    var seen = [];
+    return list.filter(function (x) {
+      var key = x.source || (x.who + x.year);
+      if (seen.indexOf(key) !== -1) return false;
+      seen.push(key);
+      return true;
+    });
+  }
+
+  // Citation attached to a specific line of the read.
+  function forQuadrant(key) {
+    if (key === 'false-does') return CITES.sandwich;
+    if (key === 'true-does') return CITES.thunder;
+    if (key === 'false-doesnt') return CITES.streisand;
+    return null;
+  }
+
+  function forCall(publish) {
+    if (publish === 'no' || publish === 'hold') return CITES.streisand;
+    if (publish === 'preempt') return CITES.thunder;
+    if (publish === 'yes') return CITES.timing;
+    return null;
+  }
+
+  window.CrisisEvidence = {
+    forAssessment: forAssessment,
+    forQuadrant: forQuadrant,
+    forCall: forCall,
+    scct: CITES.scct,
+    CITES: CITES,
+    CASES: CASES
+  };
+})();
+
+</script>
+<script>
+(function () {
+  // This tool deliberately stores nothing. Not localStorage, not sessionStorage,
+  // not a cookie. A candidate typing their worst moment into a shared family
+  // computer should not leave it behind, and "nothing is saved, ever" is a
+  // promise that needs no asterisk. The cost is that closing the tab loses the
+  // run, which is what the beforeunload warning is for.
   var QUESTIONS = [
     {
       id: 'what', type: 'textarea', required: false,
@@ -1583,7 +1948,7 @@ button.link:hover { opacity: 1; color: var(--accent); }
     }
   ];
 
-  var state = { answers: {}, seen: false };
+  var state = { answers: {} };
   var step = 0;
   var view = 'intro';
 
@@ -1609,8 +1974,6 @@ button.link:hover { opacity: 1; color: var(--accent); }
   function hasData() {
     return Object.keys(state.answers).some(function (k) { return state.answers[k]; });
   }
-
-  function persist() { store.save({ answers: state.answers, seen: state.seen }); }
 
   // ---- dom helpers -------------------------------------------------------
 
@@ -1663,7 +2026,6 @@ button.link:hover { opacity: 1; color: var(--accent); }
         if (val(q.id) === o[0]) input.checked = true;
         input.addEventListener('change', function () {
           state.answers[q.id] = o[0];
-          persist();
           markSelected(opts);
           clearError();
         });
@@ -1692,7 +2054,6 @@ button.link:hover { opacity: 1; color: var(--accent); }
         });
         field.addEventListener('change', function () {
           state.answers[q.id] = field.value;
-          persist();
           clearError();
         });
       } else if (q.type === 'textarea') {
@@ -1700,14 +2061,12 @@ button.link:hover { opacity: 1; color: var(--accent); }
         field.value = val(q.id);
         field.addEventListener('input', function () {
           state.answers[q.id] = field.value;
-          persist();
         });
       } else {
         field = el('input', { type: 'number', id: q.id, min: '0', inputmode: 'numeric', placeholder: q.placeholder || '' });
         field.value = val(q.id);
         field.addEventListener('input', function () {
           state.answers[q.id] = field.value;
-          persist();
         });
       }
       card.appendChild(field);
@@ -1732,7 +2091,11 @@ button.link:hover { opacity: 1; color: var(--accent); }
   var advanceTimer = null;
   function queueAdvance() {
     clearTimeout(advanceTimer);
-    advanceTimer = setTimeout(function () { next(); }, 280);
+    var host = document.getElementById('step');
+    advanceTimer = setTimeout(function () {
+      host.classList.add('is-leaving');
+      setTimeout(function () { host.classList.remove('is-leaving'); next(); }, 160);
+    }, 260);
   }
 
   function clearError() { show('step-error', false); }
@@ -1785,8 +2148,6 @@ button.link:hover { opacity: 1; color: var(--accent); }
       show('step-error', true);
       return;
     }
-    state.seen = true;
-    persist();
     goto('report');
   }
 
@@ -1834,6 +2195,8 @@ button.link:hover { opacity: 1; color: var(--accent); }
     hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
     hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
     hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
+    var callCite = window.CrisisEvidence.forCall(r.call.publish);
+    if (callCite) hero.appendChild(cite(callCite, 'hero-cite'));
     box.appendChild(hero);
 
     // At a glance.
@@ -1863,8 +2226,10 @@ button.link:hover { opacity: 1; color: var(--accent); }
     risk.appendChild(dl);
     box.appendChild(risk);
 
-    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture, r.quadrant.detail));
-    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy, r.scct.detail));
+    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture,
+      r.quadrant.detail, window.CrisisEvidence.forQuadrant(r.quadrantKey)));
+    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy,
+      r.scct.detail, window.CrisisEvidence.scct));
 
     if (r.channel && r.call.publish !== 'no') {
       var ch = el('section', { class: 'report-block' });
@@ -1885,6 +2250,7 @@ button.link:hover { opacity: 1; color: var(--accent); }
     box.appendChild(sk);
 
     renderPlan(r);
+    renderEvidence(r);
     renderSummary();
     renderHandoff();
   }
@@ -1896,13 +2262,22 @@ button.link:hover { opacity: 1; color: var(--accent); }
     return t;
   }
 
-  function detail(eyebrow, headline, posture, body) {
+  function detail(eyebrow, headline, posture, body, citation) {
     var d = el('section', { class: 'report-block' });
     d.appendChild(el('p', { class: 'eyebrow', text: eyebrow }));
     d.appendChild(el('h2', { text: headline }));
     d.appendChild(el('p', { class: 'posture', text: posture }));
     d.appendChild(el('p', { text: body }));
+    if (citation) d.appendChild(cite(citation));
     return d;
+  }
+
+  // A short "this is not just our opinion" line under a piece of advice.
+  function cite(c, cls) {
+    var box = el('div', { class: 'cite' + (cls ? ' ' + cls : '') });
+    box.appendChild(el('p', { class: 'cite-claim', text: c.claim }));
+    box.appendChild(el('p', { class: 'cite-source', text: c.source }));
+    return box;
   }
 
   function renderPlan(r) {
@@ -1929,6 +2304,48 @@ button.link:hover { opacity: 1; color: var(--accent); }
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
     no.appendChild(ul);
     box.appendChild(no);
+  }
+
+  function renderEvidence(r) {
+    var ev = window.CrisisEvidence.forAssessment(r, state.answers);
+    var box = document.getElementById('plan');
+
+    if (ev.cases.length) {
+      var wrap = el('section', { class: 'report-block cases-block' });
+      wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
+      wrap.appendChild(el('h2', { text: 'How this has gone before' }));
+      wrap.appendChild(el('p', { class: 'note', text: 'Public cases that ran into the same decision you are making. Different scale, same mechanics.' }));
+
+      var list = el('div', { class: 'cases' });
+      ev.cases.forEach(function (c) {
+        var card = el('article', { class: 'case' });
+        var head = el('p', { class: 'case-head' });
+        head.appendChild(el('span', { class: 'case-who', text: c.who }));
+        head.appendChild(el('span', { class: 'case-year', text: String(c.year) }));
+        card.appendChild(head);
+        card.appendChild(el('p', { class: 'case-what', text: c.what }));
+        card.appendChild(el('p', { class: 'case-lesson', text: c.lesson }));
+        list.appendChild(card);
+      });
+      wrap.appendChild(list);
+      box.appendChild(wrap);
+    }
+
+    if (ev.citations.length) {
+      var src = el('section', { class: 'report-block sources-block' });
+      src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
+      src.appendChild(el('h2', { text: 'Why this is the advice' }));
+      src.appendChild(el('p', { class: 'note', text: 'The research this read is built on. Look any of it up — none of it is ours.' }));
+      var ol = el('ol', { class: 'sources' });
+      ev.citations.forEach(function (c) {
+        var li = el('li');
+        li.appendChild(el('span', { class: 'source-claim', text: c.claim }));
+        li.appendChild(el('span', { class: 'source-ref', text: c.source }));
+        ol.appendChild(li);
+      });
+      src.appendChild(ol);
+      box.appendChild(src);
+    }
   }
 
   function renderSummary() {
@@ -2016,29 +2433,15 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
   // ---- chrome ------------------------------------------------------------
 
-  function bindStorageToggle() {
-    var box = document.getElementById('storage-toggle');
-    var note = document.getElementById('storage-note');
-
-    if (!store.available()) {
-      box.disabled = true;
-      note.textContent = 'Your browser is blocking local storage, so nothing can be saved. Print or download before you close this tab.';
-      return;
-    }
-
-    box.checked = store.enabled();
-    box.addEventListener('change', function () {
-      store.setEnabled(box.checked);
-      if (box.checked) persist();
-      updateNote();
+  // Every button acknowledges the press it just received.
+  function bindTapFeedback() {
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('button') : null;
+      if (!b) return;
+      b.classList.remove('tapped');
+      void b.offsetWidth;                       // restart the animation
+      b.classList.add('tapped');
     });
-    updateNote();
-
-    function updateNote() {
-      note.textContent = store.enabled()
-        ? 'Saved in this browser on this device. Anyone using this computer could open it. Erase when you are done.'
-        : 'Nothing is being saved. Close this tab and it is gone.';
-    }
   }
 
   function bindButtons() {
@@ -2050,6 +2453,13 @@ button.link:hover { opacity: 1; color: var(--accent); }
     document.getElementById('btn-review').addEventListener('click', function () {
       step = 0;
       goto('wizard');
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', function () {
+      if (!confirm('Clear your answers and start over? This cannot be undone.')) return;
+      state = { answers: {} };
+      step = 0;
+      goto('intro');
     });
 
     document.getElementById('btn-print').addEventListener('click', function () {
@@ -2068,43 +2478,19 @@ button.link:hover { opacity: 1; color: var(--accent); }
       });
     });
 
-    document.getElementById('btn-reset').addEventListener('click', function () {
-      if (!confirm('Erase everything you have entered? This cannot be undone.')) return;
-      store.eraseAll();
-      state = { answers: {}, seen: false };
-      step = 0;
-      var box = document.getElementById('storage-toggle');
-      if (!box.disabled) box.checked = false;
-      document.getElementById('storage-note').textContent = 'Nothing is being saved. Close this tab and it is gone.';
-      document.getElementById('resume-note').setAttribute('hidden', '');
-      goto('intro');
-    });
   }
 
   function init() {
-    var saved = store.load();
-    if (saved && saved.answers) {
-      state.answers = saved.answers;
-      state.seen = !!saved.seen;
-    }
-
-    bindStorageToggle();
     bindButtons();
-
-    if (hasData()) {
-      var note = document.getElementById('resume-note');
-      note.textContent = 'Picking up where you left off — your saved answers are still here.';
-      note.removeAttribute('hidden');
-      document.getElementById('btn-start').textContent =
-        state.seen && !missing().length ? 'See my read' : 'Continue';
-      if (state.seen && !missing().length) {
-        goto('report');
-        return;
-      }
-    }
-
+    bindTapFeedback();
     goto('intro');
-    store.warnOnUnloadWhenOff(hasData);
+
+    // Nothing is saved, so leaving really does lose it. Say so.
+    window.addEventListener('beforeunload', function (e) {
+      if (!hasData()) return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
   }
 
   if (document.readyState === 'loading') {
