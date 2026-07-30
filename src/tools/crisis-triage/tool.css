@@ -267,11 +267,21 @@
   .tiles { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* Centred, and vertically centred, so a tile that wraps to two lines still
+   sits level with the ones that don't — and so the row agrees with the
+   centred verdict directly above it. */
 .tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.15em;
   border: 1px solid var(--line);
   border-radius: var(--radius-s);
   background: var(--surface);
-  padding: var(--space-s) var(--space);
+  padding: var(--space) var(--space-s);
+  min-height: 5.2rem;
 }
 
 .tile-label {
@@ -280,7 +290,7 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--ink-faint);
-  margin: 0 0 0.2em;
+  margin: 0;
 }
 
 .tile-value {
@@ -290,6 +300,7 @@
   line-height: 1.25;
   margin: 0;
   color: var(--ink);
+  text-wrap: balance;
 }
 
 /* risk meter */

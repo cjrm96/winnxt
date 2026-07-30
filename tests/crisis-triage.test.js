@@ -384,6 +384,14 @@ const base = {
   check('report leads with the verdict', /Respond, today/.test(verdictText), verdictText);
 
   check('at-a-glance tiles render', await page.locator('.tile').count() === 3);
+  const tileBoxes = await page.locator('.tile').evaluateAll(els =>
+    els.map(e => { const r = e.getBoundingClientRect(); return { y: Math.round(r.y), h: Math.round(r.height) }; }));
+  check('tiles are the same height even when one wraps',
+    new Set(tileBoxes.map(t => t.h)).size === 1, JSON.stringify(tileBoxes));
+  check('tiles sit on the same line',
+    new Set(tileBoxes.map(t => t.y)).size === 1, JSON.stringify(tileBoxes));
+  check('tile contents are centred',
+    (await page.locator('.tile').first().evaluate(e => getComputedStyle(e).textAlign)) === 'center');
   check('risk meter has four segments', await page.locator('.meter-seg').count() === 4);
   check('exactly one risk segment is lit', await page.locator('.meter-seg.is-on').count() === 1);
   check('lit segment matches the risk level',
