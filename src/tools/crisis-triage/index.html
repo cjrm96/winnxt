@@ -20,36 +20,35 @@
     <p><strong>Before anything else:</strong> don't post while you're angry, and don't delete anything that's already public. Those two mistakes cause more damage than most of the things people panic about.</p>
   </div>
 
+  <div class="callout callout-ok">
+    <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. Close the tab and it's gone — so print the report before you leave. That's also why you can afford to be blunt with it.</p>
+  </div>
+
+  <button type="button" id="btn-start" class="btn-lg">Start</button>
+  <p class="start-note">Takes about five minutes. You can change any answer later.</p>
+
   <section class="intro-block">
-    <p class="eyebrow">Who made this</p>
     <h2>WINNXT does this for a living</h2>
     <p>We're a political communications firm. We build the tools we wish first-time candidates had, because most of you are running with no staff, no consultant, and a day job — and the moment something goes wrong is the moment you can least afford to guess.</p>
     <p>This tool is the same framework we use on real engagements. It doesn't flatter you and it isn't trying to sell you a statement you don't need.</p>
   </section>
 
   <section class="intro-block">
-    <p class="eyebrow">How it works</p>
     <h2>Rules, not vibes</h2>
     <p>Your answers run through a fixed decision model. Nothing here is generated, guessed, or improvised — the same answers always produce the same read, and every branch traces back to something published.</p>
     <ul class="intro-list">
       <li><strong>Established crisis research.</strong> Situational Crisis Communication Theory for matching your response to how much blame you actually carry. Misinformation research for correcting a false claim without spreading it further. Studies on disclosure timing for when to get ahead of a story.</li>
-      <li><strong>Real cases that already ran this experiment.</strong> Every outcome comes with people who faced the same decision — what they chose, how the public reacted, and where it ended up. Tylenol, Watergate, the Streisand effect, campaigns that answered too slowly and campaigns that got out in front. You can read the full history behind each one.</li>
+      <li><strong>Real cases that already ran this experiment.</strong> Every outcome comes with people who faced the same decision — what they chose, how the public reacted, and where it ended up. Tylenol, Watergate, the Streisand effect, campaigns that answered too slowly and campaigns that got out in front.</li>
       <li><strong>Local reality.</strong> Calibrated for school board and city council races, where it starts in a neighborhood Facebook group and the whole thing is decided in hours.</li>
     </ul>
   </section>
 
   <section class="intro-block">
-    <p class="eyebrow">Before you start</p>
     <h2>Answer honestly, not hopefully</h2>
     <p>This only works if you tell it the truth — particularly on the two questions people flinch at: <em>is it true</em>, and <em>does it actually damage me</em>. Wishful answers produce a confident read of a situation you're not actually in, and acting on that is worse than having no plan at all.</p>
     <p>Judge it the way a stranger would, not the way it feels at 11pm. Most attacks do not move votes. Some do. The whole point is telling those apart before you spend a response on it.</p>
+    <button type="button" id="btn-start-2" class="secondary">Start</button>
   </section>
-
-  <div class="callout callout-ok">
-    <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. It runs with your internet turned off. Close the tab and it's gone — so print or download the report before you leave. That's also why you can afford to be blunt with it.</p>
-  </div>
-
-  <button type="button" id="btn-start" class="btn-lg">Start</button>
 </section>
 
 <!-- Steps 1..n: one question at a time. -->
@@ -76,11 +75,17 @@
 
 <!-- The report. -->
 <section id="report" class="stage-panel" hidden>
+  <button type="button" class="verdict-bar no-print" id="verdict-bar" hidden>
+    <span class="verdict-bar-text" id="verdict-bar-text"></span>
+    <span class="verdict-bar-risk" id="verdict-bar-risk"></span>
+    <span class="verdict-bar-top">Top</span>
+  </button>
+
+  <h2 class="sr-only" id="report-heading" tabindex="-1">Your read</h2>
   <div id="read"></div>
   <div id="plan"></div>
 
   <section class="report-block handoff no-print">
-    <p class="eyebrow">Keep going</p>
     <h2>Continue with AI</h2>
     <p>This tool tells you what to do. It can't write the words for you. Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use — it picks up with everything you just entered.</p>
     <pre id="handoff-text"></pre>
@@ -90,15 +95,16 @@
   <section class="report-block no-print actions">
     <p class="eyebrow">Take it with you</p>
     <h2>Save this</h2>
-    <p>Print gives you the whole read on paper. Download saves a copy of your answers as your own record.</p>
-    <button type="button" id="btn-print">Print / Save as PDF</button>
-    <button type="button" class="secondary" id="btn-download">Download my answers</button>
-    <button type="button" class="secondary" id="btn-review">Change an answer</button>
-    <button type="button" class="danger" id="btn-restart">Start over</button>
+    <p>Nothing here is saved when you close the tab. Print it before you go.</p>
+    <div class="action-row">
+      <button type="button" id="btn-print" class="btn-lg">Print / Save as PDF</button>
+      <button type="button" class="secondary" id="btn-download">Download my answers</button>
+      <button type="button" class="secondary" id="btn-review">Change an answer</button>
+    </div>
+    <p class="action-reset"><button type="button" class="link" id="btn-restart">Start over with a different situation</button></p>
   </section>
 
   <section class="report-block cta no-print">
-    <p class="eyebrow">When it's bigger than a worksheet</p>
     <h2>Talk to someone who does this for a living</h2>
     <p>A decision tree is a good start and a poor substitute for judgment. If this is moving fast, if the press is calling, or if you're staring at a statement you can't bring yourself to send — get a professional on the phone.</p>
     <p><a class="cta-link" href="https://www.winnxt.com/">Get in touch with WINNXT →</a></p>

@@ -366,9 +366,22 @@
     show('intro', v === 'intro');
     show('wizard', v === 'wizard');
     show('report', v === 'report');
+    if (v !== 'report') hideVerdictBar();
     if (v === 'wizard') { cancelPending(); renderStep('fwd'); }
     if (v === 'report') renderReport();
     window.scrollTo(0, 0);
+
+    // Leaving focus on a button that just got hidden strands screen reader
+    // users at the top of a document with no announcement that anything
+    // happened. Move focus to the heading of whatever they landed on.
+    if (v === 'report') focusEl(document.getElementById('report-heading'));
+    if (v === 'intro') focusEl(document.querySelector('#intro h1'));
+  }
+
+  function focusEl(node) {
+    if (!node) return;
+    if (!node.hasAttribute('tabindex')) node.setAttribute('tabindex', '-1');
+    node.focus({ preventScroll: true });
   }
 
   // ---- the report --------------------------------------------------------
@@ -393,7 +406,6 @@
 
     if (a.safety === 'yes') {
       var safety = el('section', { class: 'report-block safety' });
-      safety.appendChild(el('p', { class: 'eyebrow', text: 'First' }));
       safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
       safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present — which does not make them harmless.' }));
       safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
@@ -405,8 +417,6 @@
     hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
     hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
     hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
-    var callCite = window.CrisisEvidence.forCall(r.call.publish);
-    if (callCite) hero.appendChild(cite(callCite, 'hero-cite'));
     box.appendChild(hero);
 
     // At a glance.
@@ -418,8 +428,7 @@
 
     // Risk meter.
     var risk = el('section', { class: 'report-block' });
-    risk.appendChild(el('p', { class: 'eyebrow', text: 'Risk level' }));
-    risk.appendChild(el('h2', { text: r.risk.name }));
+    risk.appendChild(el('h2', { text: 'Risk level: ' + r.risk.name }));
     var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
     RISK_ORDER.forEach(function (k) {
       var seg = el('div', { class: 'meter-seg' + (k === r.riskKey ? ' is-on' : '') });
@@ -436,14 +445,25 @@
     risk.appendChild(dl);
     box.appendChild(risk);
 
-    box.appendChild(detail('Where this sits', r.quadrant.name, r.quadrant.posture,
-      r.quadrant.detail, window.CrisisEvidence.forQuadrant(r.quadrantKey)));
-    box.appendChild(detail('How much blame lands on you', r.scct.type, r.scct.strategy,
-      r.scct.detail, window.CrisisEvidence.scct));
+    // The tiles above already state the quadrant, the blame and the strategy.
+    // Repeating those headlines here and then explaining them was saying the
+    // same thing twice within one screen, so this block carries the reasoning
+    // only.
+    var why = el('section', { class: 'report-block' });
+    why.appendChild(el('h2', { text: 'Why this read' }));
+    why.appendChild(el('p', { class: 'posture', text: r.quadrant.posture }));
+    why.appendChild(el('p', { text: r.quadrant.detail }));
+    var qCite = window.CrisisEvidence.forQuadrant(r.quadrantKey);
+    if (qCite) why.appendChild(cite(qCite));
+    why.appendChild(el('p', { class: 'posture posture-second', text: r.scct.strategy + ' — ' + r.scct.type.toLowerCase() }));
+    why.appendChild(el('p', { text: r.scct.detail }));
+    why.appendChild(cite(window.CrisisEvidence.scct));
+    var callCite = window.CrisisEvidence.forCall(r.call.publish);
+    if (callCite) why.appendChild(cite(callCite));
+    box.appendChild(why);
 
     if (r.channel && r.call.publish !== 'no') {
       var ch = el('section', { class: 'report-block' });
-      ch.appendChild(el('p', { class: 'eyebrow', text: 'Where to answer it' }));
       ch.appendChild(el('h2', { text: 'Answer where it landed' }));
       ch.appendChild(el('p', { class: 'note', text: 'A press release does not reach the people who saw a Facebook post.' }));
       ch.appendChild(el('p', { text: r.channel }));
@@ -451,8 +471,7 @@
     }
 
     var sk = el('section', { class: 'report-block' });
-    sk.appendChild(el('p', { class: 'eyebrow', text: 'How to build the statement' }));
-    sk.appendChild(el('h2', { text: r.skeleton.title }));
+    sk.appendChild(el('h2', { text: 'How to build the statement: ' + r.skeleton.title.toLowerCase() }));
     var ol = el('ol', { class: 'skeleton' });
     r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
     sk.appendChild(ol);
@@ -464,6 +483,42 @@
     renderSummary();
     renderSources(r);
     renderHandoff();
+    setupVerdictBar(r);    // after the hero exists — it is what gets observed
+  }
+
+  // The report runs to several screens. Once the verdict scrolls away the
+  // answer — the entire point of the tool — is gone, so it comes back as a bar
+  // that also returns you to the top.
+  var verdictObserver = null;
+
+  function setupVerdictBar(r) {
+    var bar = document.getElementById('verdict-bar');
+    document.getElementById('verdict-bar-text').textContent = r.call.verdict;
+    var risk = document.getElementById('verdict-bar-risk');
+    risk.textContent = RISK_SHORT[r.riskKey] + ' risk';
+    risk.className = 'verdict-bar-risk risk-' + r.riskKey;
+    bar.setAttribute('aria-label', r.call.verdict + ' — ' + RISK_SHORT[r.riskKey] + ' risk. Back to top.');
+
+    if (verdictObserver) verdictObserver.disconnect();
+    bar.setAttribute('hidden', '');
+
+    var hero = document.querySelector('#read .hero');
+    if (!hero || !('IntersectionObserver' in window)) return;
+
+    verdictObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (view !== 'report') return;
+        if (e.isIntersecting) bar.setAttribute('hidden', '');
+        else bar.removeAttribute('hidden');
+      });
+    }, { rootMargin: '-8px 0px 0px 0px', threshold: 0 });
+
+    verdictObserver.observe(hero);
+  }
+
+  function hideVerdictBar() {
+    if (verdictObserver) { verdictObserver.disconnect(); verdictObserver = null; }
+    document.getElementById('verdict-bar').setAttribute('hidden', '');
   }
 
   function tile(label, value) {
@@ -495,21 +550,24 @@
     var box = document.getElementById('plan');
     box.textContent = '';
 
-    var seq = el('section', { class: 'report-block' });
+    var seq = el('section', { class: 'report-block plan-block' });
     seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
     seq.appendChild(el('h2', { text: 'What to do, in order' }));
-    var ol = el('ol', { class: 'sequence' });
-    r.sequence.forEach(function (s) {
-      var li = el('li');
-      li.appendChild(el('span', { class: 'when', text: s.when }));
-      li.appendChild(el('span', { class: 'what', text: s.what }));
-      ol.appendChild(li);
+    // Grouped by time band. Repeating "TODAY" over four consecutive steps read
+    // as noise; one heading per band reads as a schedule.
+    var band = null, ol = null;
+    r.sequence.forEach(function (item) {
+      if (item.when !== band) {
+        band = item.when;
+        seq.appendChild(el('p', { class: 'band', text: band }));
+        ol = el('ol', { class: 'sequence' });
+        seq.appendChild(ol);
+      }
+      ol.appendChild(el('li', {}, [el('span', { class: 'what', text: item.what })]));
     });
-    seq.appendChild(ol);
     box.appendChild(seq);
 
     var no = el('section', { class: 'report-block donts-block' });
-    no.appendChild(el('p', { class: 'eyebrow', text: 'Avoid' }));
     no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
@@ -578,13 +636,12 @@
     var src = el('section', { class: 'report-block sources-block' });
     src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
     src.appendChild(el('h2', { text: 'Why this is the advice' }));
-    src.appendChild(el('p', { class: 'note', text: 'The research this read is built on. Look any of it up — none of it is ours.' }));
+    src.appendChild(el('p', { class: 'note', text: 'Everything above traces back to these. Look any of it up — none of it is ours.' }));
+    // The claims are already stated inline beside the advice they support, so
+    // this is a reference list, not a second telling.
     var ol = el('ol', { class: 'sources' });
     ev.citations.forEach(function (c) {
-      var li = el('li');
-      li.appendChild(el('span', { class: 'source-claim', text: c.claim }));
-      li.appendChild(el('span', { class: 'source-ref', text: c.source }));
-      ol.appendChild(li);
+      ol.appendChild(el('li', {}, [el('span', { class: 'source-ref', text: c.source })]));
     });
     src.appendChild(ol);
     box.appendChild(src);
@@ -593,7 +650,6 @@
   function renderSummary() {
     var box = document.getElementById('plan');
     var wrap = el('section', { class: 'report-block summary' });
-    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Based on' }));
     wrap.appendChild(el('h2', { text: 'What you told it' }));
 
     var list = el('dl', { class: 'summary-list' });
@@ -687,8 +743,15 @@
   }
 
   function bindButtons() {
-    document.getElementById('btn-start').addEventListener('click', function () {
-      goto('wizard');
+    ['btn-start', 'btn-start-2'].forEach(function (id) {
+      document.getElementById(id).addEventListener('click', function () {
+        goto('wizard');
+      });
+    });
+
+    document.getElementById('verdict-bar').addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      focusEl(document.getElementById('report-heading'));
     });
     document.getElementById('btn-next').addEventListener('click', next);
     document.getElementById('btn-back').addEventListener('click', back);

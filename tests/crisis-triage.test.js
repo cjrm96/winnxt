@@ -383,7 +383,24 @@ const base = {
   const verdictText = await page.locator('.verdict').textContent();
   check('report leads with the verdict', /Respond, today/.test(verdictText), verdictText);
 
+  // A catch-all prose rule once outranked .verdict and painted it body-grey.
+  const colours = await page.evaluate(() => ({
+    verdict: getComputedStyle(document.querySelector('.verdict')).color,
+    body: getComputedStyle(document.querySelector('.report-block p:not(.verdict):not(.eyebrow)')).color,
+    accentDeep: getComputedStyle(document.documentElement).getPropertyValue('--accent-deep').trim()
+  }));
+  check('the verdict is not the same colour as body text',
+    colours.verdict !== colours.body, JSON.stringify(colours));
+  check('the verdict is rendered in the brand red',
+    colours.verdict === 'rgb(168, 38, 40)', colours.verdict);
+
   check('at-a-glance tiles render', await page.locator('.tile').count() === 3);
+  const tileText = await page.locator('.tiles').textContent();
+  const readText = await page.locator('#read').textContent();
+  const tileValue = await page.locator('.tile-value').first().textContent();
+  check('the tile value is not repeated as a heading below it',
+    !(await page.locator('#read h2').allTextContents()).some(h => h.trim() === tileValue.trim()),
+    tileValue);
   const tileBoxes = await page.locator('.tile').evaluateAll(els =>
     els.map(e => { const r = e.getBoundingClientRect(); return { y: Math.round(r.y), h: Math.round(r.height) }; }));
   check('tiles are the same height even when one wraps',
@@ -481,6 +498,9 @@ const base = {
   const iPlan = order.findIndex(t => /What to do, in order/.test(t));
   const iCases = order.findIndex(t => /How this has gone before/.test(t));
   const iSources = order.findIndex(t => /Why this is the advice/.test(t));
+  check('quadrant and blame are stated once, not twice',
+    order.filter(t => /True, and it hurts|False, and it hurts|minimal blame|low blame|high blame/.test(t)).length === 0,
+    order.join(' > '));
   check('precedent follows the advice', iCases > iPlan && iPlan !== -1, order.join(' > '));
   check('precedent comes before the citations', iCases < iSources, order.join(' > '));
 
@@ -519,7 +539,90 @@ const base = {
   check('intro still starts the flow', await page.locator('#wizard').isVisible());
   await page.reload();
   await page.waitForTimeout(300);
+  const startTop = await page.evaluate(() =>
+    Math.round(document.getElementById('btn-start').getBoundingClientRect().top + window.scrollY));
+  check('start is reachable without reading the brochure', startTop < 900, startTop + 'px down');
+  check('a second start sits at the end of the intro',
+    await page.locator('#btn-start-2').count() === 1);
+  await page.click('#btn-start-2');
+  await page.waitForTimeout(400);
+  check('the second start also works', await page.locator('#wizard').isVisible());
+  await page.reload();
+  await page.waitForTimeout(300);
   await runWizard(page, {});
+
+  // --- the sticky verdict -------------------------------------------------
+  //
+  // The report runs to several screens. The answer has to stay reachable.
+
+  check('verdict bar is hidden while the hero is visible',
+    await page.locator('#verdict-bar').isHidden());
+
+  await page.evaluate(() => window.scrollTo(0, 1800));
+  await page.waitForTimeout(500);
+  check('verdict bar appears once the hero scrolls away',
+    await page.locator('#verdict-bar').isVisible());
+  check('verdict bar carries the verdict',
+    /Respond, today/.test(await page.locator('#verdict-bar-text').textContent()));
+  check('verdict bar carries the risk level',
+    /risk/i.test(await page.locator('#verdict-bar-risk').textContent()));
+  check('verdict bar is labelled for screen readers',
+    /Back to top/.test(await page.locator('#verdict-bar').getAttribute('aria-label')));
+
+  await page.click('#verdict-bar');
+  await page.waitForTimeout(700);
+  check('verdict bar returns you to the top',
+    (await page.evaluate(() => window.scrollY)) < 60,
+    String(await page.evaluate(() => window.scrollY)));
+  await page.waitForTimeout(300);
+  check('verdict bar hides again at the top',
+    await page.locator('#verdict-bar').isHidden());
+
+  // --- focus is not dropped ------------------------------------------------
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const focused = await page.evaluate(() => document.activeElement.id || document.activeElement.tagName);
+  check('focus lands on the report heading, not the body',
+    focused === 'report-heading', focused);
+
+  // --- one job for red -----------------------------------------------------
+
+  const eyebrowColour = await page.locator('.eyebrow').first().evaluate(e => getComputedStyle(e).color);
+  check('eyebrows are no longer red', !/rgb\(1[6-9][0-9], [2-6][0-9], [2-6][0-9]\)/.test(eyebrowColour), eyebrowColour);
+  const eyebrowCount = await page.locator('#report .eyebrow').count();
+  check('eyebrows are rationed to act boundaries', eyebrowCount <= 5, 'got ' + eyebrowCount);
+
+  // --- the plan reads as a schedule ---------------------------------------
+
+  const bands = await page.locator('.band').allTextContents();
+  check('plan groups steps under time bands', bands.length >= 3, bands.join(' | '));
+  check('no time band repeats', new Set(bands).size === bands.length, bands.join(' | '));
+  // CSS counters can't be read back through getComputedStyle — it returns the
+  // unresolved counter() — so assert the mechanism: the counter resets once on
+  // the block, never on the per-band lists, which is what keeps numbering
+  // continuous across bands rather than restarting at each one.
+  const counters = await page.evaluate(() => ({
+    block: getComputedStyle(document.querySelector('.plan-block')).counterReset,
+    lists: [...document.querySelectorAll('.sequence')].map(l => getComputedStyle(l).counterReset)
+  }));
+  check('the step counter resets once, on the block', /step/.test(counters.block), counters.block);
+  check('per-band lists do not restart the count',
+    counters.lists.every(c => !/step/.test(c)), JSON.stringify(counters.lists));
+  check('there is exactly one plan block',
+    await page.locator('.plan-block').count() === 1);
+
+  // --- citations are stated once ------------------------------------------
+
+  check('source list is references only, no repeated claims',
+    await page.locator('.source-claim').count() === 0);
+  check('sources still listed', await page.locator('.sources li').count() >= 3);
+
+  // --- a primary action ----------------------------------------------------
+
+  check('print is the primary action',
+    (await page.locator('#btn-print').getAttribute('class') || '').indexOf('btn-lg') !== -1);
+  check('start over is demoted out of the button row',
+    (await page.locator('#btn-restart').getAttribute('class') || '').indexOf('link') !== -1);
 
   // --- copy and CTA -------------------------------------------------------
 

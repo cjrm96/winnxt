@@ -46,6 +46,8 @@
 }
 
 #intro .btn-lg { margin-top: var(--space-m); }
+.start-note { margin-top: var(--space-s); font-size: 0.85rem; color: var(--ink-faint); }
+#btn-start-2 { margin-top: var(--space-m); }
 
 .intro-block {
   border-top: 1px solid var(--line);
@@ -218,7 +220,10 @@
 
 .report-block:first-child { border-top: 0; padding-top: 0; }
 .report-block h2 { margin-top: 0; }
-.report-block > p:not(.eyebrow):not(.note):not(.posture) {
+/* Body prose inside a block. The exclusions matter: this selector outranks a
+   plain .verdict rule, and without them it quietly repaints the hero — which
+   is how the verdict ended up the same grey as body text. */
+.report-block > p:not(.eyebrow):not(.note):not(.posture):not(.verdict):not(.verdict-line) {
   color: var(--ink-soft);
   max-width: 34rem;
 }
@@ -348,7 +353,19 @@
   .grid-row dd { margin: 0; }
 }
 
-.posture { font-weight: 600; color: var(--accent-deep); margin-bottom: 0.4em; }
+/* The instruction, not a decoration — weight carries it, colour doesn't. */
+.posture {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: 0.4em;
+}
+.posture-second {
+  margin-top: var(--space-m);
+  padding-top: var(--space-m);
+  border-top: 1px solid var(--line);
+}
 
 .skeleton { margin: 0.4em 0 0.8em; padding-left: 1.3em; }
 .skeleton li { margin-bottom: 0.4em; }
@@ -368,12 +385,28 @@
 .safety h2 { font-size: 1.1rem; }
 .safety p { max-width: 33rem; }
 
+/* the plan — one heading per time band */
+
+.band {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--ink-faint);
+  margin: var(--space-m) 0 var(--space-xs);
+}
+
+.band:first-of-type { margin-top: var(--space-s); }
+
 /* the plan */
+
+/* The counter lives on the block, not the list, so numbering runs straight
+   through the time bands instead of restarting at each one. */
+.plan-block { counter-reset: step; }
 
 .sequence {
   list-style: none;
   padding-left: 0;
-  counter-reset: step;
   margin-bottom: 0;
 }
 
@@ -402,14 +435,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sequence .when {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
-}
+
 
 .donts { padding-left: 1.15em; }
 .donts li { margin-bottom: 0.6em; }
@@ -462,8 +488,14 @@
 }
 .checkbox input { margin-top: 0.34em; }
 
-.actions button { margin: 0 0.5em 0.5em 0; }
-.actions button:last-child { margin-right: 0; }
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: var(--space-s);
+}
+.action-reset { margin-top: var(--space-m); }
 .handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
 
 .brand-line strong { letter-spacing: 0.12em; }
@@ -504,7 +536,7 @@
 
 .case {
   border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--line-strong);
   border-radius: 0 var(--radius-s) var(--radius-s) 0;
   background: var(--surface);
   padding: var(--space-s) var(--space);
@@ -614,9 +646,69 @@
 .case-body .case-sub + p { margin-bottom: 1.1em; }
 
 .sources { padding-left: 1.3em; margin-top: var(--space-s); }
-.sources li { margin-bottom: 0.8em; }
-.source-claim { display: block; font-size: 0.92rem; color: var(--ink); margin-bottom: 0.15em; }
-.source-ref { display: block; font-size: 0.78rem; line-height: 1.45; color: var(--ink-faint); }
+.sources li { margin-bottom: 0.5em; }
+.source-ref { display: block; font-size: 0.82rem; line-height: 1.5; color: var(--ink-soft); }
+
+/* ---- sticky verdict ----------------------------------------------------- */
+
+/* Seven screens of report. Once the hero is gone the answer has to come back. */
+.verdict-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  width: 100%;
+  min-height: 0;
+  padding: 0.7em max(var(--space), calc((100vw - var(--max-width)) / 2));
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 8px var(--shadow);
+  text-align: left;
+  animation: bar-in 0.28s var(--ease-out) both;
+}
+
+.verdict-bar[hidden] { display: none; }
+.verdict-bar:hover { opacity: 1; transform: none; box-shadow: 0 2px 12px var(--shadow-strong); }
+.verdict-bar:active { transform: none; }
+
+.verdict-bar-text {
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+}
+
+.verdict-bar-risk {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.verdict-bar-risk.risk-high, .verdict-bar-risk.risk-extreme { color: var(--danger); }
+
+.verdict-bar-top {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+@keyframes bar-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict-bar { animation: none; }
+}
 
 /* ---- closing CTA -------------------------------------------------------- */
 
