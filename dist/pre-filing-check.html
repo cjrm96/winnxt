@@ -1,12 +1,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
-<title>Pre-Filing Readiness Check — WINNXT</title>
+<title>Pre-Filing Readiness Check | WINNXT</title>
 <style>
-/* WINNXT design tokens + base styles. System fonts only — no webfonts, ever. */
+/* WINNXT design tokens + base styles. System fonts only, no webfonts ever. */
 
 /* ---------------------------------------------------------------------------
-   WINNXT PALETTE — taken from the logo: black wordmark, crimson torch.
+   WINNXT PALETTE, taken from the logo: black wordmark, crimson torch.
    Every colour in every WINNXT tool is defined in this block and its dark-mode
    counterpart below. Nothing else in any stylesheet hardcodes a colour, so the
    entire palette can be swapped by editing these two blocks and nothing else.
@@ -26,7 +26,7 @@
   /* text */
   --ink: #111315;          /* 17.9:1 on paper */
   --ink-soft: #5A6169;     /* 6.0:1 on paper  */
-  --ink-faint: #676E76;    /* 4.9:1 on paper — smallest text still passes AA */
+  --ink-faint: #676E76;    /* 4.9:1 on paper, smallest text still passes AA */
 
   /* surfaces */
   --bg: #FBFAF9;           /* the page */
@@ -35,9 +35,9 @@
   --line: #E4E1DE;         /* hairline */
   --line-strong: #C9C4BF;  /* emphasised hairline */
 
-  /* accent — WINNXT crimson, sampled from the logo artwork (#C43030) */
+  /* accent, WINNXT crimson, sampled from the logo artwork (#C43030) */
   --accent: #C43030;       /* 5.5:1 on white */
-  --accent-deep: #A82628;  /* 7.1:1 — small text and links */
+  --accent-deep: #A82628;  /* 7.1:1 for small text and links */
   --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
   --accent-soft: #FDF0EF;
 
@@ -211,7 +211,7 @@ textarea { min-height: 5.5em; resize: vertical; line-height: 1.5; }
 select {
   appearance: none;
   -webkit-appearance: none;
-  /* inline SVG chevron, data: URI only — no remote assets */
+  /* inline SVG chevron, data: URI only, no remote assets */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6169' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85em center;
@@ -266,7 +266,7 @@ button {
 button:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow); }
 button:active { transform: translateY(0) scale(0.965); box-shadow: inset 0 1px 3px var(--shadow-strong); }
 
-/* Released — a short settle back, so a press feels answered. */
+/* Released: a short settle back, so a press feels answered. */
 button.tapped { animation: tap 0.42s var(--ease-spring); }
 
 @keyframes tap {
@@ -390,7 +390,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .callout-ok { border-left-color: var(--ok); background: var(--ok-soft); }
 .callout-danger { border-left-color: var(--danger); background: var(--danger-soft); }
 
-/* A button that reads as a link — used for inline "change this" affordances. */
+/* A button that reads as a link, used for inline "change this" affordances. */
 button.link {
   background: none;
   border: 0;
@@ -482,7 +482,7 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 </style>
 <style>
-/* Pre-filing readiness check — tool-specific styles. */
+/* Pre-filing readiness check: tool-specific styles. */
 
 .lede { font-size: 1.1rem; color: var(--ink-soft); }
 
@@ -657,13 +657,13 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 <section class="card no-print actions">
   <h2>Take it with you</h2>
-  <p class="note">Print gives you a checklist and call script on paper. Download saves a file you can reopen later — but this tool can't read it back in, so keep it as your record.</p>
+  <p class="note">Print gives you a checklist and call script on paper. Download saves a file you can reopen later, but this tool can't read it back in, so keep it as your record.</p>
   <button type="button" id="btn-print">Print / Save as PDF</button>
   <button type="button" class="secondary" id="btn-download">Download my answers</button>
 </section>
 
 <footer class="brand">
-  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+  <p><strong>WINNXT</strong>. Campaign tools for people who don't have a consultant.<br>
   We don't believe in fluff, because neither will your voters.<br>
   <a href="https://www.winnxt.com/">winnxt.com</a></p>
   <p class="note">This is a planning worksheet, not legal advice. Election rules differ everywhere and change often. Confirm everything with your filing authority, in writing, and talk to a lawyer if something looks complicated.</p>
@@ -844,7 +844,7 @@ button.link:hover { opacity: 1; color: var(--accent); }
     }
 
     out.push('---');
-    out.push('Generated by a WINNXT campaign tool — winnxt.com');
+    out.push('Generated by a WINNXT campaign tool. winnxt.com');
 
     return out.join('\n');
   }
@@ -854,7 +854,7 @@ button.link:hover { opacity: 1; color: var(--accent); }
 
 </script>
 <script>
-// The nine-things-to-go-find bank. Process only — this file states no
+// The nine-things-to-go-find bank. Process only. This file states no
 // jurisdiction's rules, thresholds, or dollar figures, and never should.
 //
 // blocker: true  = do not spend money until this is confirmed in writing.
@@ -871,7 +871,7 @@ var PREFILING_SECTIONS = [
         label: 'Exact office title as it appears on the ballot',
         blocker: true,
         ask: 'What is the exact title of this office as it will be printed on the ballot?',
-        why: 'Not "school board" — the ballot may say "Member, Board of Education, District 3." Your filing form, your yard signs, and your disclaimer should all match it.'
+        why: 'Not "school board". The ballot may say "Member, Board of Education, District 3." Your filing form, your yard signs, and your disclaimer should all match it.'
       },
       {
         id: 'seat',
@@ -903,7 +903,7 @@ var PREFILING_SECTIONS = [
     items: [
       {
         id: 'residency',
-        label: 'Residency requirement — where, and for how long before which date',
+        label: 'Residency requirement: where, and for how long before which date',
         blocker: true,
         ask: 'What is the residency requirement for this office, and what date is it measured from?',
         why: 'Residency is measured from a specific date, and it is the most common eligibility challenge filed against local candidates. If you moved recently, get this in writing.'
@@ -919,7 +919,7 @@ var PREFILING_SECTIONS = [
         id: 'other-eligibility',
         label: 'Any other eligibility rules for this office',
         blocker: true,
-        ask: 'Are there any other eligibility requirements — age, employment conflicts, holding other office, prior convictions?',
+        ask: 'Are there any other eligibility requirements? Age, employment conflicts, holding other office, prior convictions.',
         why: 'Some seats bar current employees of the body, or people holding another elected office. Ask plainly and get the answer in writing.'
       }
     ]
@@ -931,14 +931,14 @@ var PREFILING_SECTIONS = [
     items: [
       {
         id: 'authority',
-        label: 'Which office you actually file with — name, address, hours',
+        label: 'Which office you actually file with: name, address, hours',
         blocker: true,
         ask: 'Is this office the correct filing authority for this seat? If not, who is?',
         why: 'It may be the county clerk, the city secretary, the school district secretary, or a state agency. Filing with the wrong one is not a mistake you can fix on deadline day.'
       },
       {
         id: 'window',
-        label: 'Filing window — the date and time it opens, and closes',
+        label: 'Filing window: the date and time it opens, and closes',
         blocker: true,
         ask: 'What date and time does filing open, and what date and time does it close?',
         why: 'The close is a time, not just a date, and it is enforced to the minute. Write down the time.'
@@ -962,11 +962,11 @@ var PREFILING_SECTIONS = [
         label: 'Filing fee, petition signatures, or a choice between them',
         blocker: true,
         ask: 'Is there a filing fee, a signature petition, or a choice? What is the fee and how must it be paid?',
-        why: 'Some jurisdictions let you pay a fee or gather signatures. Payment method can be restrictive — some will not take a personal check or a card.'
+        why: 'Some jurisdictions let you pay a fee or gather signatures. Payment method can be restrictive, some will not take a personal check or a card.'
       },
       {
         id: 'signatures',
-        label: 'Signature requirement — how many, who may sign, when they are valid from',
+        label: 'Signature requirement: how many, who may sign, when they are valid from',
         blocker: true,
         ask: 'How many valid signatures do I need, who is eligible to sign, and is there a date before which signatures cannot be collected?',
         why: 'Signatures get thrown out. Plan to collect well more than the minimum. Signatures gathered before the legal start date are worthless.'
@@ -983,7 +983,7 @@ var PREFILING_SECTIONS = [
         label: 'Whether a treasurer must be appointed before any money moves',
         blocker: true,
         ask: 'Must I appoint a treasurer and register a committee before raising or spending any money?',
-        why: 'In many places, yes — and spending first is a violation on day one. Appointing a treasurer costs nothing. Do it early.'
+        why: 'In many places, yes, and spending first is a violation on day one. Appointing a treasurer costs nothing. Do it early.'
       },
       {
         id: 'committee',
@@ -1001,7 +1001,7 @@ var PREFILING_SECTIONS = [
       },
       {
         id: 'reporting',
-        label: 'Reporting schedule — which reports, due when',
+        label: 'Reporting schedule: which reports, due when',
         blocker: false,
         ask: 'What is the full schedule of campaign finance reports for this cycle, including any pre-election and post-election reports?',
         why: 'Ask for the whole calendar at once and put every date in your phone. Late reports carry penalties that accrue daily.'
@@ -1018,7 +1018,7 @@ var PREFILING_SECTIONS = [
         label: 'The exact required disclaimer wording',
         blocker: true,
         ask: 'What is the exact disclaimer text required on campaign materials, word for word?',
-        why: 'Consultants report candidates paying to print signs, cards, and door hangers before confirming this — then reprinting all of it. Get the exact wording in writing before a single print order.'
+        why: 'Consultants report candidates paying to print signs, cards, and door hangers before confirming this, then reprinting all of it. Get the exact wording in writing before a single print order.'
       },
       {
         id: 'disclaimer-where',
@@ -1039,7 +1039,7 @@ var PREFILING_SECTIONS = [
   {
     id: 'contact',
     title: 'Your person at the filing office',
-    intro: 'Run for Something asked candidates what helped most. The winning answer was not training — it was having a human who knew their deadlines.',
+    intro: 'Run for Something asked candidates what helped most. The winning answer was not training, it was having a human who knew their deadlines.',
     items: [
       {
         id: 'clerk',
@@ -1205,7 +1205,7 @@ var PREFILING_SECTIONS = [
 
     var noteId = item.id + '-note';
     card.appendChild(el('label', { for: noteId, class: 'note-label', text: 'What you found out' }));
-    var ta = el('textarea', { id: noteId, rows: '2', placeholder: 'Write the actual answer here — dates, numbers, exact wording, who told you.' });
+    var ta = el('textarea', { id: noteId, rows: '2', placeholder: 'Write the actual answer here. Dates, numbers, exact wording, who told you.' });
     ta.value = a.note;
     ta.addEventListener('input', function () {
       answer(item.id).note = ta.value;
@@ -1262,7 +1262,7 @@ var PREFILING_SECTIONS = [
         var li = el('li');
         li.appendChild(el('strong', { text: i.label }));
         if (a.status === 'verbal') {
-          li.appendChild(document.createTextNode(' — you have a verbal answer. Get it in writing.'));
+          li.appendChild(document.createTextNode('. You have a verbal answer. Get it in writing.'));
         }
         ul.appendChild(li);
       });
@@ -1288,11 +1288,11 @@ var PREFILING_SECTIONS = [
 
   var MILESTONES = [
     { from: 'filing', days: -56, text: 'Start working through this checklist. Call the filing office this week.' },
-    { from: 'filing', days: -42, text: 'If signatures are required, start collecting. Aim for well more than the minimum — some will be invalid.' },
+    { from: 'filing', days: -42, text: 'If signatures are required, start collecting. Aim for well more than the minimum, because some will be invalid.' },
     { from: 'filing', days: -35, text: 'Confirm the exact disclaimer wording in writing. Do not place a print order before this date.' },
     { from: 'filing', days: -28, text: 'Appoint a treasurer and register the committee, if required, before any money moves.' },
     { from: 'filing', days: -14, text: 'All filing forms filled out. Notary lined up if one is needed.' },
-    { from: 'filing', days: -7, text: 'File. Do not wait for the last day — a missing form on deadline day ends the campaign.' },
+    { from: 'filing', days: -7, text: 'File. Do not wait for the last day. A missing form on deadline day ends the campaign.' },
     { from: 'filing', days: 0, text: 'Filing deadline. Closes at a specific time, not end of day.' },
     { from: 'election', days: -28, text: 'Mail and absentee voting is often underway by now. Your materials should already be out.' },
     { from: 'election', days: 0, text: 'Election day.' }
@@ -1384,7 +1384,7 @@ var PREFILING_SECTIONS = [
     });
 
     return window.WinnxtHandoff.buildPrompt({
-      role: 'You are helping a first-time candidate for local office get ready to file. Be direct and practical. Do not guess at any jurisdiction\'s legal requirements — if something depends on local rules, tell me to confirm it with my filing authority.',
+      role: 'You are helping a first-time candidate for local office get ready to file. Be direct and practical. Do not guess at any jurisdiction\'s legal requirements. If something depends on local rules, tell me to confirm it with my filing authority.',
       task: 'Here is where my pre-filing research stands. Help me finish it and turn it into a week-by-week plan.',
       context: [
         { label: 'Office', value: state.race.office },

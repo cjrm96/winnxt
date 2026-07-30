@@ -142,7 +142,7 @@
 
     var noteId = item.id + '-note';
     card.appendChild(el('label', { for: noteId, class: 'note-label', text: 'What you found out' }));
-    var ta = el('textarea', { id: noteId, rows: '2', placeholder: 'Write the actual answer here — dates, numbers, exact wording, who told you.' });
+    var ta = el('textarea', { id: noteId, rows: '2', placeholder: 'Write the actual answer here. Dates, numbers, exact wording, who told you.' });
     ta.value = a.note;
     ta.addEventListener('input', function () {
       answer(item.id).note = ta.value;
@@ -199,7 +199,7 @@
         var li = el('li');
         li.appendChild(el('strong', { text: i.label }));
         if (a.status === 'verbal') {
-          li.appendChild(document.createTextNode(' — you have a verbal answer. Get it in writing.'));
+          li.appendChild(document.createTextNode('. You have a verbal answer. Get it in writing.'));
         }
         ul.appendChild(li);
       });
@@ -225,11 +225,11 @@
 
   var MILESTONES = [
     { from: 'filing', days: -56, text: 'Start working through this checklist. Call the filing office this week.' },
-    { from: 'filing', days: -42, text: 'If signatures are required, start collecting. Aim for well more than the minimum — some will be invalid.' },
+    { from: 'filing', days: -42, text: 'If signatures are required, start collecting. Aim for well more than the minimum, because some will be invalid.' },
     { from: 'filing', days: -35, text: 'Confirm the exact disclaimer wording in writing. Do not place a print order before this date.' },
     { from: 'filing', days: -28, text: 'Appoint a treasurer and register the committee, if required, before any money moves.' },
     { from: 'filing', days: -14, text: 'All filing forms filled out. Notary lined up if one is needed.' },
-    { from: 'filing', days: -7, text: 'File. Do not wait for the last day — a missing form on deadline day ends the campaign.' },
+    { from: 'filing', days: -7, text: 'File. Do not wait for the last day. A missing form on deadline day ends the campaign.' },
     { from: 'filing', days: 0, text: 'Filing deadline. Closes at a specific time, not end of day.' },
     { from: 'election', days: -28, text: 'Mail and absentee voting is often underway by now. Your materials should already be out.' },
     { from: 'election', days: 0, text: 'Election day.' }
@@ -321,7 +321,7 @@
     });
 
     return window.WinnxtHandoff.buildPrompt({
-      role: 'You are helping a first-time candidate for local office get ready to file. Be direct and practical. Do not guess at any jurisdiction\'s legal requirements — if something depends on local rules, tell me to confirm it with my filing authority.',
+      role: 'You are helping a first-time candidate for local office get ready to file. Be direct and practical. Do not guess at any jurisdiction\'s legal requirements. If something depends on local rules, tell me to confirm it with my filing authority.',
       task: 'Here is where my pre-filing research stands. Help me finish it and turn it into a week-by-week plan.',
       context: [
         { label: 'Office', value: state.race.office },

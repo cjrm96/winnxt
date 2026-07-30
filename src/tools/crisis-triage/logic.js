@@ -1,4 +1,4 @@
-// Crisis triage decision logic. Pure functions — no DOM, so it can be tested
+// Crisis triage decision logic. Pure functions, no DOM, so it can be tested
 // directly. Implements the WINNXT defense framework: the truth x harm
 // quadrant, the SCCT crisis-type mapping, and the risk-level grid.
 //
@@ -22,12 +22,12 @@
     'false-doesnt': {
       name: "False, and it doesn't really hurt",
       posture: 'Say nothing. Monitor it.',
-      detail: 'Responding is what would give this an audience. Most voters will never see it. Keep a record in case it grows, and check back in a day.'
+      detail: 'Responding is what would give this an audience. Most of {audience} will never see it. Keep a record in case it grows, and check back in a day.'
     },
     'false-does': {
       name: 'False, and it hurts',
       posture: 'Deny it firmly, with facts, using a truth sandwich.',
-      detail: 'State what is true. Name the false claim once, briefly. State what is true again. Never lead with the accusation and never repeat it more than once — repetition is what makes a false claim stick.'
+      detail: 'State what is true. Name the false claim once, briefly. State what is true again. Never lead with the accusation and never repeat it more than once. Repetition is what makes a false claim stick.'
     }
   };
 
@@ -44,19 +44,19 @@
 
   var SCCT = {
     victim: {
-      type: 'Victim — low blame',
+      type: 'Victim, low blame',
       strategy: 'Diminish',
       detail: 'This came at you from outside. Downplay your role rather than performing contrition you do not owe. Over-apologizing here reads as guilt and invites a second round.'
     },
     accidental: {
-      type: 'Accidental — minimal blame',
+      type: 'Accidental, minimal blame',
       strategy: 'Excuse',
       detail: 'Admit what happened and explain the context honestly, then move the focus to the fix. The public reads this as a slip-up, and competence in the response matters more than remorse.'
     },
     preventable: {
-      type: 'Preventable — high blame',
+      type: 'Preventable, high blame',
       strategy: 'Rebuild',
-      detail: 'You made a choice, and scrutiny will be heavy. A partial apology will not close this. Apologize fully, offer a concrete change people can check, and let supporters and endorsers vouch for you rather than doing all the talking yourself.'
+      detail: 'You made a choice, and scrutiny will be heavy. A partial apology will not close this. Apologize fully, offer a concrete change people can check, and let {supporters} vouch for you rather than doing all the talking yourself.'
     }
   };
 
@@ -93,28 +93,28 @@
 
   var GRID = {
     low: {
-      name: 'Low — routine',
+      name: 'Low. Routine',
       prep: 'Know your own talking points on this issue.',
       detect: 'Check the local groups once a day.',
       respond: 'Fix it quickly and quietly if it needs fixing at all.',
       recover: 'Note what happened. Move on.'
     },
     medium: {
-      name: 'Medium — emerging',
+      name: 'Medium. Emerging',
       prep: 'Call someone who has run before. Do not sit alone with this.',
       detect: 'Track where it is being repeated and by whom.',
-      respond: 'Let supporters and surrogates carry the pushback where they can.',
+      respond: 'Let {supportersShort} and other people carry the pushback where they can.',
       recover: 'Ask a few trusted people how it actually landed.'
     },
     high: {
-      name: 'High — serious',
+      name: 'High. Serious',
       prep: 'Line up whoever gives you legal and communications advice now, not later.',
       detect: 'Have someone checking hourly and sending you what they find.',
-      respond: 'Respond directly, then pivot hard back to your issues and stay there.',
+      respond: 'Respond directly, then pivot hard back to {issues} and stay there.',
       recover: 'Rebuild on visible work and visible wins, not on more statements.'
     },
     extreme: {
-      name: 'Extreme — campaign-threatening',
+      name: 'Extreme. Career-threatening',
       prep: 'Get real advice before you say anything publicly.',
       detect: 'Real-time monitoring. Someone other than you should be doing it.',
       respond: 'If it is false, debunk it completely and at once. If it is true, stop defending and start rebuilding.',
@@ -147,7 +147,7 @@
 
     if (a.spread === 'few' && a.harm !== 'serious') {
       return {
-        verdict: 'Do not publish yet — get ready instead',
+        verdict: 'Do not publish yet. Get ready instead',
         line: 'Almost nobody has seen this. A public statement now would introduce it to people who were never going to hear about it. Write your response, keep it in your pocket, and watch for it to spread.',
         publish: 'hold'
       };
@@ -156,7 +156,7 @@
     if (a.truth !== 'false' && a.harm === 'serious' && (a.spread === 'few' || a.spread === 'one-group')) {
       return {
         verdict: 'Get ahead of it',
-        line: 'This is true, it is damaging, and it has not spread yet. That is the one window where you control how the story is first told. Tell it yourself, in full, before someone else tells it for you. Your supporters can forgive almost anything except being surprised.',
+        line: 'This is true, it is damaging, and it has not spread yet. That is the one window where you control how the story is first told. Tell it yourself, in full, before someone else tells it for you. The people who back you can forgive almost anything except being surprised.',
         publish: 'preempt'
       };
     }
@@ -181,11 +181,11 @@
   // Match the medium: answer where the hit landed, and where the people who
   // saw it actually are.
   var CHANNEL = {
-    'facebook-group': 'The same local group, if you are a member and the admins allow it. If you are not, ask a supporter who is a member and well liked there. A candidate parachuting into a neighborhood group to argue rarely goes well.',
+    'facebook-group': 'The same local group, if you are a member and the admins allow it. If you are not, ask someone who is a member and well liked there. Parachuting in to argue rarely goes well.',
     'neighborhood-app': 'The same platform, once, calmly. Then stop. These threads reward whoever stays calm the longest.',
     'local-paper': 'The reporter directly, on the record, plus a letter or op-ed if the piece is already out. Do not fight it on social media only.',
     'tv': 'Broadcast if you can get it, plus a written statement to the same outlet the same day.',
-    'mailer': 'Mail, if there is time and budget. Calls and texts to your own supporters are the bridge while mail is in production.',
+    'mailer': 'Mail, if there is time and budget. Calls and texts to people who already back you are the bridge while mail is in production.',
     'digital-ad': 'Digital, targeted to the same audience. A press release will not reach the people who saw the ad.',
     'forum': 'In person, at the next forum or meeting, and to anyone who was in the room.',
     'social': 'The same platform, once, in your own words. Do not quote-tweet the attack.',
@@ -201,7 +201,7 @@
     var out = [];
 
     if (a.safety === 'yes') {
-      out.push({ when: 'Right now', what: 'Document everything — screenshots with dates, messages, names. Report it to law enforcement. Tell your family and whoever runs your events. Do not handle this alone and do not treat it as a messaging problem.' });
+      out.push({ when: 'Right now', what: 'Document everything. Screenshots with dates, messages, names. Report it to law enforcement. Tell your family and whoever runs your events. Do not handle this alone and do not treat it as a messaging problem.' });
     }
 
     out.push({ when: 'First hour', what: 'Write down exactly what happened and what you know for certain. Separate what you know from what you assume. Do not post anything yet.' });
@@ -215,7 +215,7 @@
 
     if (call.publish === 'hold') {
       out.push({ when: 'Today', what: 'Draft your response and have it ready to go. Do not publish it.' });
-      out.push({ when: 'Today', what: 'Tell your closest supporters what happened and what you would say, so nobody is caught flat if it moves.' });
+      out.push({ when: 'Today', what: 'Tell the people closest to you what happened and what you would say, so nobody is caught flat if it moves.' });
       out.push({ when: 'Daily', what: 'Check whether it has spread. Publish only if it reaches people who were going to hear it anyway.' });
       return out;
     }
@@ -224,15 +224,15 @@
       out.push({ when: 'Today', what: 'Get all of it out at once. A story that comes out in pieces gets covered three times instead of once.' });
       out.push({ when: 'Today', what: 'Say what you are doing about it. Concrete and checkable beats sincere and vague.' });
     } else if (q === 'false-does') {
-      out.push({ when: 'Today', what: 'Assemble your proof first — the document, the record, the person who will say so by name. A denial without evidence reads as a denial.' });
+      out.push({ when: 'Today', what: 'Assemble your proof first: the document, the record, the person who will say so by name. A denial without evidence reads as a denial.' });
       out.push({ when: 'Today', what: 'Publish the truth sandwich: what is true, the false claim once, what is true again. Keep it short enough to be read in full.' });
     } else {
       out.push({ when: 'Today', what: 'Answer it once, plainly, and get back to your own message.' });
     }
 
-    out.push({ when: 'Today', what: 'Tell your supporters and endorsers directly, before they hear it somewhere else. Give them the two sentences you want them repeating.' });
+    out.push({ when: 'Today', what: 'Tell {supporters} directly, before they hear it somewhere else. Give them the two sentences you want them repeating.' });
     out.push({ when: 'Next 48 hours', what: 'Answer what comes back, keep it short, and stop feeding it. Your goal is to be the least interesting part of the story by Thursday.' });
-    out.push({ when: 'Next 48 hours', what: 'Return to your issues in public. Every day you spend on their subject is a day you are not on yours.' });
+    out.push({ when: 'Next 48 hours', what: 'Return to {issues} in public. Every day you spend on their subject is a day you are not on yours.' });
     out.push({ when: 'After it settles', what: 'Thank the people who stood up for you, by name and in private. Write down what you would do differently. That note is worth more than it sounds.' });
 
     return out;
@@ -277,7 +277,7 @@
         steps: [
           'Open with what is true, stated plainly and first.',
           'Name the false claim once, briefly, without heat.',
-          'Give your proof — the record, the document, the person who will confirm it.',
+          'Give your proof: the record, the document, the person who will confirm it.',
           'Close by restating what is true, and turn to what you are running on.'
         ]
       };
@@ -287,7 +287,7 @@
         title: 'Admit, contextualize, fix',
         steps: [
           'State what happened, in your own words, before anyone else characterizes it.',
-          'Give the context honestly — without using it to dodge responsibility.',
+          'Give the context honestly, without using it to dodge responsibility.',
           'Apologize to the specific people affected, if an apology is owed. Name them.',
           'Say what you are doing about it, concretely enough that someone could check.',
           'Close on why you are still running. One sentence.'

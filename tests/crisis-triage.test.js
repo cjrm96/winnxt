@@ -178,6 +178,9 @@ const base = {
   // Walks the wizard the way a buyer does: one question at a time.
   async function runWizard(page, a) {
     await page.click('#btn-start');
+    await page.waitForTimeout(400);
+    await page.check('#context-' + (a.context || 'political'));
+    await page.waitForTimeout(650);
     await page.fill('#what', a.what || 'A doctored screenshot is going around.');
     await page.click('#btn-next');
     await page.waitForTimeout(300);
@@ -213,16 +216,26 @@ const base = {
   await page.click('#btn-start');
   await page.waitForTimeout(400);
   check('start opens the wizard', await page.locator('#wizard').isVisible());
+  check('the first question is the political-or-business filter',
+    /what kind of crisis/i.test(await page.locator('.q-label').textContent()),
+    await page.locator('.q-label').textContent());
+  check('progress starts at question 1',
+    /Question 1/.test(await page.locator('#progress-label').textContent()));
+  await page.check('#context-political');
+  await page.waitForTimeout(650);
   check('one question at a time', await page.locator('.question').count() === 1, 
     'got ' + await page.locator('.question').count());
+  await page.fill('#what', 'placeholder');
   const q1 = await page.locator('.question').textContent();
   check('first question suggests dictation', /microphone/i.test(q1));
   check('dictation suggestion is caveated', /send the audio off/i.test(q1));
 
-  check('progress starts at question 1',
-    /Question 1/.test(await page.locator('#progress-label').textContent()));
+  check('answering the filter moves to question 2',
+    /Question 2/.test(await page.locator('#progress-label').textContent()),
+    await page.locator('#progress-label').textContent());
   check('progress knows the total',
-    /of 9/.test(await page.locator('#progress-count').textContent()));
+    /of 10/.test(await page.locator('#progress-count').textContent()),
+    await page.locator('#progress-count').textContent());
 
   // Required questions block progress.
   await page.fill('#what', 'A doctored screenshot is going around.');
@@ -237,6 +250,47 @@ const base = {
   await page.click('#btn-next');
   await page.waitForTimeout(400);
   check('answering clears the error', await page.locator('#step-error').isHidden());
+
+  // --- no flash of Continue -----------------------------------------------
+  //
+  // Selecting an option makes an answer exist, which briefly satisfied the
+  // "show Continue once answered" rule before the auto-advance moved the page
+  // on. The button appeared and vanished. Sample it continuously rather than
+  // checking once, since the whole defect is that it is transient.
+
+  async function toThirdQuestion() {
+    await page.reload();
+    await page.waitForTimeout(300);
+    await page.click('#btn-start');
+    await page.waitForTimeout(400);
+    await page.check('#context-political');
+    await page.waitForTimeout(650);
+    await page.fill('#what', 'x');
+    await page.click('#btn-next');
+    await page.waitForTimeout(450);
+    await page.selectOption('#where', 'facebook-group');
+    await page.click('#btn-next');
+    await page.waitForTimeout(450);
+  }
+
+  await toThirdQuestion();
+  check('continue starts hidden on an unanswered radio question',
+    await page.locator('#btn-next').isHidden());
+
+  await page.evaluate(() => {
+    window.__flashed = false;
+    window.__iv = setInterval(function () {
+      var b = document.getElementById('btn-next');
+      if (b && !b.hasAttribute('hidden')) window.__flashed = true;
+    }, 10);
+  });
+  await page.check('#spread-many-groups');
+  await page.waitForTimeout(800);
+  const flashed = await page.evaluate(() => { clearInterval(window.__iv); return window.__flashed; });
+  check('continue never flashes while auto-advancing', !flashed);
+  check('the page did advance', /Is it true/.test(await page.locator('.q-label').textContent()));
+
+  await toThirdQuestion();
 
   // --- Continue only appears when it does something ------------------------
 
@@ -288,7 +342,7 @@ const base = {
   await page.waitForTimeout(650);
   check('partly true inserts the follow-up question', await page.locator('#truePart').count() === 1);
   check('total step count grows with it',
-    /of 10/.test(await page.locator('#progress-count').textContent()),
+    /of 11/.test(await page.locator('#progress-count').textContent()),
     await page.locator('#progress-count').textContent());
 
   await page.click('#btn-back');
@@ -335,12 +389,14 @@ const base = {
 
   // Walk to a radio question and race Back against the pending advance.
   // 100ms and 300ms both land while the advance is still pending (it commits at
-  // 260ms + 170ms). Anything closer to 430ms is genuinely ambiguous — by then
+  // 260ms + 170ms). Anything closer to 430ms is genuinely ambiguous: by then
   // the advance may have legitimately completed, and going back one step is the
   // correct answer rather than a bug.
   for (const waitMs of [100, 250, 300]) {
     await page.click('#btn-start');
     await page.waitForTimeout(350);
+    await page.check('#context-political');
+    await page.waitForTimeout(650);
     await page.click('#btn-next');
     await page.waitForTimeout(400);
     await page.selectOption('#where', 'facebook-group');
@@ -352,7 +408,7 @@ const base = {
     await page.click('#btn-back');
     await page.waitForTimeout(900);         // long enough for any orphan timer
     check('back wins over a pending auto-advance (' + waitMs + 'ms)',
-      /Question 2/.test(await page.locator('#progress-label').textContent()),
+      /Question 3/.test(await page.locator('#progress-label').textContent()),
       await page.locator('#progress-label').textContent());
 
     await page.reload();
@@ -624,6 +680,54 @@ const base = {
   check('start over is demoted out of the button row',
     (await page.locator('#btn-restart').getAttribute('class') || '').indexOf('link') !== -1);
 
+  // --- house style --------------------------------------------------------
+
+  const pageHtml = await page.content();
+  check('no em dashes anywhere in the shipped file', pageHtml.indexOf('\u2014') === -1,
+    pageHtml.indexOf('\u2014') === -1 ? '' : pageHtml.slice(Math.max(0, pageHtml.indexOf('\u2014') - 70), pageHtml.indexOf('\u2014') + 40));
+  check('the report does not say "Your read"',
+    !/Your read/.test(await page.locator('#report').textContent()));
+
+  // --- political or business ----------------------------------------------
+
+  const politicalCopy = await page.locator('#report').textContent();
+  check('political run talks about voters', /voters/i.test(politicalCopy));
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, { context: 'business' });
+  const businessCopy = await page.locator('#report').textContent();
+  check('business run reaches a report', await page.locator('#report').isVisible());
+  check('business run never says voters', !/\bvoters\b/i.test(businessCopy),
+    (businessCopy.match(/.{0,60}voters.{0,40}/i) || [''])[0]);
+  check('business run talks about customers', /customers/i.test(businessCopy));
+  check('business run avoids election language', !/\belection\b/i.test(businessCopy),
+    (businessCopy.match(/.{0,60}election.{0,40}/i) || [''])[0]);
+  check('business handoff briefs a corporate advisor',
+    /corporate communications advisor/.test(await page.locator('#handoff-text').textContent()));
+
+  // The deadline question adapts rather than asking a company about polling day.
+  await page.reload();
+  await page.waitForTimeout(300);
+  await page.click('#btn-start');
+  await page.waitForTimeout(400);
+  await page.check('#context-business');
+  await page.waitForTimeout(650);
+  await page.fill('#what', 'x');
+  await page.click('#btn-next'); await page.waitForTimeout(450);
+  await page.selectOption('#where', 'facebook-group');
+  await page.click('#btn-next'); await page.waitForTimeout(450);
+  for (const id of ['#spread-many-groups', '#truth-false', '#harm-serious', '#fault-victim', '#proof-yes', '#safety-no']) {
+    await page.check(id); await page.waitForTimeout(650);
+  }
+  const deadlineQ = await page.locator('.q-label').textContent();
+  check('business deadline question is not about the election',
+    /next big moment/i.test(deadlineQ), deadlineQ);
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
+
   // --- copy and CTA -------------------------------------------------------
 
   const handoffHeading = await page.locator('.handoff h2').textContent();
@@ -673,11 +777,15 @@ const base = {
   check('start over returns to the intro', await page.locator('#intro').isVisible());
 
   await page.click('#btn-start');
-  await page.waitForTimeout(250);
-  check('start over cleared the answers', (await page.inputValue('#what')) === '',
-    await page.inputValue('#what'));
+  await page.waitForTimeout(300);
   check('start over reset the progress',
     /Question 1/.test(await page.locator('#progress-label').textContent()));
+  check('start over cleared the filter answer',
+    !(await page.isChecked('#context-political')));
+  await page.check('#context-political');
+  await page.waitForTimeout(650);
+  check('start over cleared the answers', (await page.inputValue('#what')) === '',
+    await page.inputValue('#what'));
 
   await page.reload();
   await page.waitForTimeout(300);

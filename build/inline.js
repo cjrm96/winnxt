@@ -35,7 +35,7 @@ function inline(entry) {
   );
 
   // <img data-inline-svg src="…"> becomes the SVG markup itself. A data: URI
-  // would also be self-contained, but CSS can't reach inside one — and the
+  // would also be self-contained, but CSS can't reach inside one, and the
   // logo needs currentColor and var(--accent) to resolve so it works on dark.
   html = html.replace(
     /<img\b[^>]*\bdata-inline-svg\b[^>]*>/gi,

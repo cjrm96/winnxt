@@ -1,4 +1,4 @@
-/* Crisis triage — step-by-step wizard, then the report.
+/* Crisis triage: step-by-step wizard, then the report.
    All colour comes from the tokens in shared/styles.css. Nothing here
    hardcodes a colour. */
 
@@ -180,7 +180,7 @@
 
 .optional { margin-top: var(--space-s); font-size: 0.85rem; color: var(--ink-faint); }
 
-/* Caveat under a field — quieter than the help text above it. */
+/* Caveat under a field, quieter than the help text above it. */
 .q-note {
   margin-top: var(--space-s);
   font-size: 0.82rem;
@@ -221,14 +221,14 @@
 .report-block:first-child { border-top: 0; padding-top: 0; }
 .report-block h2 { margin-top: 0; }
 /* Body prose inside a block. The exclusions matter: this selector outranks a
-   plain .verdict rule, and without them it quietly repaints the hero — which
+   plain .verdict rule, and without them it quietly repaints the hero, which
    is how the verdict ended up the same grey as body text. */
 .report-block > p:not(.eyebrow):not(.note):not(.posture):not(.verdict):not(.verdict-line) {
   color: var(--ink-soft);
   max-width: 34rem;
 }
 
-/* the hero — the one thing that must land instantly */
+/* the hero: the one thing that must land instantly */
 
 .hero {
   border: 0;
@@ -273,7 +273,7 @@
 }
 
 /* Centred, and vertically centred, so a tile that wraps to two lines still
-   sits level with the ones that don't — and so the row agrees with the
+   sits level with the ones that don't, and so the row agrees with the
    centred verdict directly above it. */
 .tile {
   display: flex;
@@ -353,7 +353,7 @@
   .grid-row dd { margin: 0; }
 }
 
-/* The instruction, not a decoration — weight carries it, colour doesn't. */
+/* The instruction, not a decoration: weight carries it, colour doesn't. */
 .posture {
   font-weight: 700;
   font-size: 1.05rem;
@@ -385,7 +385,7 @@
 .safety h2 { font-size: 1.1rem; }
 .safety p { max-width: 33rem; }
 
-/* the plan — one heading per time band */
+/* the plan: one heading per time band */
 
 .band {
   font-size: 0.7rem;

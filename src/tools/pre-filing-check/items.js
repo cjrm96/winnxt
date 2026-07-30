@@ -1,4 +1,4 @@
-// The nine-things-to-go-find bank. Process only — this file states no
+// The nine-things-to-go-find bank. Process only. This file states no
 // jurisdiction's rules, thresholds, or dollar figures, and never should.
 //
 // blocker: true  = do not spend money until this is confirmed in writing.
@@ -15,7 +15,7 @@ var PREFILING_SECTIONS = [
         label: 'Exact office title as it appears on the ballot',
         blocker: true,
         ask: 'What is the exact title of this office as it will be printed on the ballot?',
-        why: 'Not "school board" — the ballot may say "Member, Board of Education, District 3." Your filing form, your yard signs, and your disclaimer should all match it.'
+        why: 'Not "school board". The ballot may say "Member, Board of Education, District 3." Your filing form, your yard signs, and your disclaimer should all match it.'
       },
       {
         id: 'seat',
@@ -47,7 +47,7 @@ var PREFILING_SECTIONS = [
     items: [
       {
         id: 'residency',
-        label: 'Residency requirement — where, and for how long before which date',
+        label: 'Residency requirement: where, and for how long before which date',
         blocker: true,
         ask: 'What is the residency requirement for this office, and what date is it measured from?',
         why: 'Residency is measured from a specific date, and it is the most common eligibility challenge filed against local candidates. If you moved recently, get this in writing.'
@@ -63,7 +63,7 @@ var PREFILING_SECTIONS = [
         id: 'other-eligibility',
         label: 'Any other eligibility rules for this office',
         blocker: true,
-        ask: 'Are there any other eligibility requirements — age, employment conflicts, holding other office, prior convictions?',
+        ask: 'Are there any other eligibility requirements? Age, employment conflicts, holding other office, prior convictions.',
         why: 'Some seats bar current employees of the body, or people holding another elected office. Ask plainly and get the answer in writing.'
       }
     ]
@@ -75,14 +75,14 @@ var PREFILING_SECTIONS = [
     items: [
       {
         id: 'authority',
-        label: 'Which office you actually file with — name, address, hours',
+        label: 'Which office you actually file with: name, address, hours',
         blocker: true,
         ask: 'Is this office the correct filing authority for this seat? If not, who is?',
         why: 'It may be the county clerk, the city secretary, the school district secretary, or a state agency. Filing with the wrong one is not a mistake you can fix on deadline day.'
       },
       {
         id: 'window',
-        label: 'Filing window — the date and time it opens, and closes',
+        label: 'Filing window: the date and time it opens, and closes',
         blocker: true,
         ask: 'What date and time does filing open, and what date and time does it close?',
         why: 'The close is a time, not just a date, and it is enforced to the minute. Write down the time.'
@@ -106,11 +106,11 @@ var PREFILING_SECTIONS = [
         label: 'Filing fee, petition signatures, or a choice between them',
         blocker: true,
         ask: 'Is there a filing fee, a signature petition, or a choice? What is the fee and how must it be paid?',
-        why: 'Some jurisdictions let you pay a fee or gather signatures. Payment method can be restrictive — some will not take a personal check or a card.'
+        why: 'Some jurisdictions let you pay a fee or gather signatures. Payment method can be restrictive, some will not take a personal check or a card.'
       },
       {
         id: 'signatures',
-        label: 'Signature requirement — how many, who may sign, when they are valid from',
+        label: 'Signature requirement: how many, who may sign, when they are valid from',
         blocker: true,
         ask: 'How many valid signatures do I need, who is eligible to sign, and is there a date before which signatures cannot be collected?',
         why: 'Signatures get thrown out. Plan to collect well more than the minimum. Signatures gathered before the legal start date are worthless.'
@@ -127,7 +127,7 @@ var PREFILING_SECTIONS = [
         label: 'Whether a treasurer must be appointed before any money moves',
         blocker: true,
         ask: 'Must I appoint a treasurer and register a committee before raising or spending any money?',
-        why: 'In many places, yes — and spending first is a violation on day one. Appointing a treasurer costs nothing. Do it early.'
+        why: 'In many places, yes, and spending first is a violation on day one. Appointing a treasurer costs nothing. Do it early.'
       },
       {
         id: 'committee',
@@ -145,7 +145,7 @@ var PREFILING_SECTIONS = [
       },
       {
         id: 'reporting',
-        label: 'Reporting schedule — which reports, due when',
+        label: 'Reporting schedule: which reports, due when',
         blocker: false,
         ask: 'What is the full schedule of campaign finance reports for this cycle, including any pre-election and post-election reports?',
         why: 'Ask for the whole calendar at once and put every date in your phone. Late reports carry penalties that accrue daily.'
@@ -162,7 +162,7 @@ var PREFILING_SECTIONS = [
         label: 'The exact required disclaimer wording',
         blocker: true,
         ask: 'What is the exact disclaimer text required on campaign materials, word for word?',
-        why: 'Consultants report candidates paying to print signs, cards, and door hangers before confirming this — then reprinting all of it. Get the exact wording in writing before a single print order.'
+        why: 'Consultants report candidates paying to print signs, cards, and door hangers before confirming this, then reprinting all of it. Get the exact wording in writing before a single print order.'
       },
       {
         id: 'disclaimer-where',
@@ -183,7 +183,7 @@ var PREFILING_SECTIONS = [
   {
     id: 'contact',
     title: 'Your person at the filing office',
-    intro: 'Run for Something asked candidates what helped most. The winning answer was not training — it was having a human who knew their deadlines.',
+    intro: 'Run for Something asked candidates what helped most. The winning answer was not training, it was having a human who knew their deadlines.',
     items: [
       {
         id: 'clerk',

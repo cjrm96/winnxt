@@ -1,7 +1,7 @@
-/* WINNXT design tokens + base styles. System fonts only — no webfonts, ever. */
+/* WINNXT design tokens + base styles. System fonts only, no webfonts ever. */
 
 /* ---------------------------------------------------------------------------
-   WINNXT PALETTE — taken from the logo: black wordmark, crimson torch.
+   WINNXT PALETTE, taken from the logo: black wordmark, crimson torch.
    Every colour in every WINNXT tool is defined in this block and its dark-mode
    counterpart below. Nothing else in any stylesheet hardcodes a colour, so the
    entire palette can be swapped by editing these two blocks and nothing else.
@@ -21,7 +21,7 @@
   /* text */
   --ink: #111315;          /* 17.9:1 on paper */
   --ink-soft: #5A6169;     /* 6.0:1 on paper  */
-  --ink-faint: #676E76;    /* 4.9:1 on paper — smallest text still passes AA */
+  --ink-faint: #676E76;    /* 4.9:1 on paper, smallest text still passes AA */
 
   /* surfaces */
   --bg: #FBFAF9;           /* the page */
@@ -30,9 +30,9 @@
   --line: #E4E1DE;         /* hairline */
   --line-strong: #C9C4BF;  /* emphasised hairline */
 
-  /* accent — WINNXT crimson, sampled from the logo artwork (#C43030) */
+  /* accent, WINNXT crimson, sampled from the logo artwork (#C43030) */
   --accent: #C43030;       /* 5.5:1 on white */
-  --accent-deep: #A82628;  /* 7.1:1 — small text and links */
+  --accent-deep: #A82628;  /* 7.1:1 for small text and links */
   --accent-ink: #FFFFFF;   /* 5.5:1 on accent */
   --accent-soft: #FDF0EF;
 
@@ -206,7 +206,7 @@ textarea { min-height: 5.5em; resize: vertical; line-height: 1.5; }
 select {
   appearance: none;
   -webkit-appearance: none;
-  /* inline SVG chevron, data: URI only — no remote assets */
+  /* inline SVG chevron, data: URI only, no remote assets */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235A6169' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85em center;
@@ -261,7 +261,7 @@ button {
 button:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow); }
 button:active { transform: translateY(0) scale(0.965); box-shadow: inset 0 1px 3px var(--shadow-strong); }
 
-/* Released — a short settle back, so a press feels answered. */
+/* Released: a short settle back, so a press feels answered. */
 button.tapped { animation: tap 0.42s var(--ease-spring); }
 
 @keyframes tap {
@@ -385,7 +385,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .callout-ok { border-left-color: var(--ok); background: var(--ok-soft); }
 .callout-danger { border-left-color: var(--danger); background: var(--danger-soft); }
 
-/* A button that reads as a link — used for inline "change this" affordances. */
+/* A button that reads as a link, used for inline "change this" affordances. */
 button.link {
   background: none;
   border: 0;

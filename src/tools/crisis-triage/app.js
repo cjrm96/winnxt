@@ -4,12 +4,76 @@
   // computer should not leave it behind, and "nothing is saved, ever" is a
   // promise that needs no asterisk. The cost is that closing the tab loses the
   // run, which is what the beforeunload warning is for.
+  // Crisis communications is the same discipline in both worlds; only the
+  // nouns change. Copy is written with tokens and resolved at render time, so
+  // a business user is never told to worry about voters and a candidate is
+  // never asked about a product launch.
+  var LEXICON = {
+    political: {
+      audience: 'voters',
+      audienceOne: 'a voter',
+      org: 'campaign',
+      orgPossessive: 'your campaign',
+      you: 'candidate',
+      supporters: 'supporters and endorsers',
+      supportersShort: 'supporters',
+      opponent: 'opponent',
+      issues: 'your issues',
+      deadline: 'the election',
+      deadlineQ: 'How many days until the election?',
+      deadlineHelp: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
+      deadlineShort: 'Days to election',
+      advisor: 'campaign communications advisor',
+      running: 'running for local office'
+    },
+    business: {
+      audience: 'customers',
+      audienceOne: 'a customer',
+      org: 'business',
+      orgPossessive: 'your business',
+      you: 'organisation',
+      supporters: 'your team and your partners',
+      supportersShort: 'your team',
+      opponent: 'competitor',
+      issues: 'the work you actually do',
+      deadline: 'your next big moment',
+      deadlineQ: 'How many days until your next big moment?',
+      deadlineHelp: 'A launch, an earnings call, a board meeting, a conference, a renewal deadline. Leave it blank if nothing is coming. The closer the pressure point, the less room you have to recover.',
+      deadlineShort: 'Days to next big moment',
+      advisor: 'corporate communications advisor',
+      running: 'responsible for an organisation'
+    }
+  };
+
+  function lex() {
+    return LEXICON[state.answers.context === 'business' ? 'business' : 'political'];
+  }
+
+  // Resolves {tokens} in any user-facing string.
+  function T(str) {
+    if (typeof str !== 'string' || str.indexOf('{') === -1) return str;
+    var words = lex();
+    return str.replace(/\{(\w+)\}/g, function (whole, key) {
+      return words[key] === undefined ? whole : words[key];
+    });
+  }
+
   var QUESTIONS = [
+    {
+      id: 'context', type: 'radio', required: true,
+      short: 'Kind of crisis',
+      label: 'First: what kind of crisis is this?',
+      help: 'The framework is identical either way, and so are the research and the case histories. This only changes the wording so the advice reads like your world instead of somebody else\'s.',
+      options: [
+        ['political', 'Political. A campaign, a candidate, or someone holding public office.'],
+        ['business', 'Business. A company, a brand, a nonprofit, or an institution.']
+      ]
+    },
     {
       id: 'what', type: 'textarea', required: false,
       short: 'What happened',
       label: 'What happened?',
-      help: "Write it the way you'd say it out loud. Or don't type at all — tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
+      help: "Write it the way you'd say it out loud. Or don't type at all: tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
       note: "Dictation belongs to your phone or computer, not to this file, and some of them send the audio off to be transcribed. If that bothers you, type it instead.",
       placeholder: 'A post from 2016 is going around in a local parents group.'
     },
@@ -17,18 +81,18 @@
       id: 'where', type: 'select', required: true,
       short: 'Where it surfaced',
       label: 'Where did it surface?',
-      help: 'For local candidates the pattern is almost always a neighborhood Facebook group first, everything else second.',
+      help: 'The pattern is almost always a local Facebook group first and everything else second.',
       options: [
         ['facebook-group', 'A local Facebook group'],
         ['neighborhood-app', 'Nextdoor or a neighborhood app'],
         ['social', 'Social media generally'],
         ['local-paper', 'The local newspaper or news site'],
         ['tv', 'TV or radio'],
-        ['mailer', "An opponent's mailer"],
-        ['digital-ad', "An opponent's digital ad"],
+        ['mailer', "An {opponent}'s mailer or printed attack"],
+        ['digital-ad', "An {opponent}'s digital ad"],
         ['forum', 'A forum, debate, or public meeting'],
-        ['word-of-mouth', 'Word of mouth — people are talking'],
-        ['private', 'Nowhere yet — someone warned me it is coming']
+        ['word-of-mouth', 'Word of mouth. People are talking'],
+        ['private', 'Nowhere yet. Someone warned me it is coming']
       ]
     },
     {
@@ -51,7 +115,7 @@
       help: 'Answer honestly even though nobody is watching. Every wrong response strategy starts with getting this wrong.',
       options: [
         ['true', 'Yes, it is accurate'],
-        ['partly', 'Partly — the core is true, some details are wrong'],
+        ['partly', 'Partly. The core is true, some details are wrong'],
         ['false', 'No, it is false']
       ]
     },
@@ -65,12 +129,12 @@
     {
       id: 'harm', type: 'radio', required: true,
       short: 'Damage to you',
-      label: 'Does it actually damage you with people who might vote for you?',
-      help: 'Not whether it is unfair, and not how it makes you feel. Whether it moves votes. Most attacks do not.',
+      label: 'Does it actually damage you with the people you need?',
+      help: 'Not whether it is unfair, and not how it makes you feel. Whether it changes what {audience} do. Most attacks do not.',
       options: [
-        ['none', 'Not really — it looks worse to me than to voters'],
-        ['some', 'Somewhat — it gives undecided people a reason to pause'],
-        ['serious', 'Seriously — it goes to trust, character, or the job itself']
+        ['none', 'Not really. It looks worse to me than it does to {audience}'],
+        ['some', 'Somewhat. It gives undecided people a reason to pause'],
+        ['serious', 'Seriously. It goes to trust, character, or the job itself']
       ]
     },
     {
@@ -79,8 +143,8 @@
       label: 'How did this come about?',
       help: 'This decides how much apology is owed. Over-apologizing for something outside your control reads as guilt; under-apologizing for something you chose reads as contempt.',
       options: [
-        ['victim', 'It came at me from outside — I did not cause it'],
-        ['accidental', 'I did it, but it was a mistake — I was not trying to'],
+        ['victim', 'It came at me from outside. I did not cause it'],
+        ['accidental', 'I did it, but it was a mistake. I was not trying to'],
         ['preventable', 'I made a choice, and this is the result']
       ]
     },
@@ -90,9 +154,9 @@
       label: 'Can you prove your side right now?',
       help: 'A document, a record, a dated receipt, or a person who will say so by name.',
       options: [
-        ['yes', 'Yes — I have something I can show'],
-        ['partly', 'Partly — I could get there with some digging'],
-        ['no', 'No — it would be my word against theirs']
+        ['yes', 'Yes. I have something I can show'],
+        ['partly', 'Partly. I could get there with some digging'],
+        ['no', 'No. It would be my word against theirs']
       ]
     },
     {
@@ -107,9 +171,9 @@
     },
     {
       id: 'daysOut', type: 'number', required: false,
-      short: 'Days to election',
-      label: 'How many days until the election?',
-      help: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
+      short: '{deadlineShort}',
+      label: '{deadlineQ}',
+      help: '{deadlineHelp}',
       placeholder: 'e.g. 21'
     }
   ];
@@ -147,8 +211,8 @@
     var node = document.createElement(tag);
     Object.keys(attrs || {}).forEach(function (k) {
       if (k === 'class') node.className = attrs[k];
-      else if (k === 'text') node.textContent = attrs[k];
-      else node.setAttribute(k, attrs[k]);
+      else if (k === 'text') node.textContent = T(attrs[k]);
+      else node.setAttribute(k, T(attrs[k]));
     });
     (kids || []).forEach(function (c) { node.appendChild(c); });
     return node;
@@ -222,7 +286,7 @@
         field = el('select', { id: q.id });
         field.appendChild(el('option', { value: '', text: 'Choose one' }));
         q.options.forEach(function (o) {
-          var opt = el('option', { value: o[0], text: o[1] });
+          var opt = el('option', { value: o[0], text: T(o[1]) });
           if (val(q.id) === o[0]) opt.selected = true;
           field.appendChild(opt);
         });
@@ -231,7 +295,7 @@
           clearError();
         });
       } else if (q.type === 'textarea') {
-        field = el('textarea', { id: q.id, rows: '4', placeholder: q.placeholder || '' });
+        field = el('textarea', { id: q.id, rows: '4', placeholder: T(q.placeholder || '') });
         field.value = val(q.id);
         field.addEventListener('input', function () {
           state.answers[q.id] = field.value;
@@ -245,7 +309,7 @@
       }
       card.appendChild(field);
       if (q.note) card.appendChild(el('p', { class: 'q-note', text: q.note }));
-      if (!q.required) card.appendChild(el('p', { class: 'optional', text: 'Optional — you can skip this.' }));
+      if (!q.required) card.appendChild(el('p', { class: 'optional', text: 'Optional. You can skip this.' }));
     }
 
     host.appendChild(card);
@@ -258,13 +322,14 @@
 
   // Choosing an option with the mouse advances on its own, so Continue would
   // just be a button that does nothing. It stays hidden on those questions
-  // until there is an answer to move on from — which is the case for keyboard
+  // until there is an answer to move on from, which is the case for keyboard
   // users, who move through a radio group with arrow keys and would otherwise
   // be stranded, and for anyone who came back to change something.
-  function updateNav(q) {
+  function updateNav(q, idx) {
     var btn = document.getElementById('btn-next');
-    var last = step === steps().length - 1;
-    var hide = q.type === 'radio' && !val(q.id) && !last;
+    if (idx === undefined) idx = step;
+    var last = idx === steps().length - 1;
+    var hide = advancing || (q.type === 'radio' && !val(q.id) && !last);
     if (hide) btn.setAttribute('hidden', '');
     else btn.removeAttribute('hidden');
 
@@ -284,16 +349,23 @@
   // Every navigation goes through here. One place to cancel from, so a pending
   // auto-advance can never fire after the user has chosen to go somewhere else.
   var timers = [];
+  var advancing = false;
 
   function cancelPending() {
     timers.forEach(clearTimeout);
     timers = [];
+    advancing = false;
     document.getElementById('step').classList.remove('is-leaving-fwd', 'is-leaving-back');
   }
 
   function queueAdvance() {
     cancelPending();
+    advancing = true;
     timers.push(setTimeout(function () { next(); }, 260));
+    // Selecting an option makes an answer exist, which would otherwise reveal
+    // Continue for the few hundred milliseconds before the page moves on. It
+    // flashed. Nothing is about to need that button, so keep it down.
+    updateNav(steps()[step]);
   }
 
   function clearError() { show('step-error', false); }
@@ -302,6 +374,10 @@
   // side it came from. Direction carries meaning: forward and back look different.
   function transitionTo(target, dir) {
     cancelPending();
+    // Set the nav for where we are going, not where we have been, so nothing
+    // stale is on screen during the transition.
+    var list = steps();
+    if (list[target]) updateNav(list[target], target);
     var host = document.getElementById('step');
     host.classList.add(dir === 'back' ? 'is-leaving-back' : 'is-leaving-fwd');
     timers.push(setTimeout(function () {
@@ -390,7 +466,7 @@
     var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
     if (!q || !q.options) return val(id);
     var found = q.options.filter(function (o) { return o[0] === val(id); })[0];
-    return found ? found[1] : val(id);
+    return found ? T(found[1]) : val(id);
   }
 
   var RISK_ORDER = ['low', 'medium', 'high', 'extreme'];
@@ -407,14 +483,13 @@
     if (a.safety === 'yes') {
       var safety = el('section', { class: 'report-block safety' });
       safety.appendChild(el('h2', { text: 'Safety comes before messaging' }));
-      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present — which does not make them harmless.' }));
+      safety.appendChild(el('p', { text: 'Document it with dated screenshots. Report it to law enforcement. Tell your family and whoever runs your events. Threats against local officials are common, and most of them come from people who are not physically present. That does not make them harmless.' }));
       safety.appendChild(el('p', { class: 'note', text: 'This tool is not legal advice and cannot assess your risk. Talk to law enforcement and a lawyer.' }));
       box.appendChild(safety);
     }
 
     // Hero: the call, and nothing competing with it.
     var hero = el('section', { class: 'report-block hero risk-' + r.riskKey });
-    hero.appendChild(el('p', { class: 'eyebrow', text: 'Your read' }));
     hero.appendChild(el('p', { class: 'verdict', text: r.call.verdict }));
     hero.appendChild(el('p', { class: 'verdict-line', text: r.call.line }));
     box.appendChild(hero);
@@ -422,7 +497,7 @@
     // At a glance.
     var tiles = el('section', { class: 'tiles' });
     tiles.appendChild(tile('Where this sits', r.quadrant.name));
-    tiles.appendChild(tile('Blame', r.scct.type.split('—')[0].trim()));
+    tiles.appendChild(tile('Blame', r.scct.type.split(',')[0].trim()));
     tiles.appendChild(tile('Strategy', r.scct.strategy));
     box.appendChild(tiles);
 
@@ -455,7 +530,7 @@
     why.appendChild(el('p', { text: r.quadrant.detail }));
     var qCite = window.CrisisEvidence.forQuadrant(r.quadrantKey);
     if (qCite) why.appendChild(cite(qCite));
-    why.appendChild(el('p', { class: 'posture posture-second', text: r.scct.strategy + ' — ' + r.scct.type.toLowerCase() }));
+    why.appendChild(el('p', { class: 'posture posture-second', text: r.scct.strategy + '. ' + capitalise(r.scct.type) + '.' }));
     why.appendChild(el('p', { text: r.scct.detail }));
     why.appendChild(cite(window.CrisisEvidence.scct));
     var callCite = window.CrisisEvidence.forCall(r.call.publish);
@@ -479,15 +554,15 @@
     box.appendChild(sk);
 
     renderPlan(r);
-    renderCases(r);        // right after the advice — this is the persuasive part
+    renderCases(r);        // right after the advice, the persuasive part
     renderSummary();
     renderSources(r);
     renderHandoff();
-    setupVerdictBar(r);    // after the hero exists — it is what gets observed
+    setupVerdictBar(r);    // after the hero exists, since that is what gets observed
   }
 
   // The report runs to several screens. Once the verdict scrolls away the
-  // answer — the entire point of the tool — is gone, so it comes back as a bar
+  // answer, the entire point of the tool, is gone. It comes back as a bar
   // that also returns you to the top.
   var verdictObserver = null;
 
@@ -497,7 +572,7 @@
     var risk = document.getElementById('verdict-bar-risk');
     risk.textContent = RISK_SHORT[r.riskKey] + ' risk';
     risk.className = 'verdict-bar-risk risk-' + r.riskKey;
-    bar.setAttribute('aria-label', r.call.verdict + ' — ' + RISK_SHORT[r.riskKey] + ' risk. Back to top.');
+    bar.setAttribute('aria-label', r.call.verdict + '. ' + RISK_SHORT[r.riskKey] + ' risk. Back to top.');
 
     if (verdictObserver) verdictObserver.disconnect();
     bar.setAttribute('hidden', '');
@@ -519,6 +594,10 @@
   function hideVerdictBar() {
     if (verdictObserver) { verdictObserver.disconnect(); verdictObserver = null; }
     document.getElementById('verdict-bar').setAttribute('hidden', '');
+  }
+
+  function capitalise(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   function tile(label, value) {
@@ -636,7 +715,7 @@
     var src = el('section', { class: 'report-block sources-block' });
     src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
     src.appendChild(el('h2', { text: 'Why this is the advice' }));
-    src.appendChild(el('p', { class: 'note', text: 'Everything above traces back to these. Look any of it up — none of it is ours.' }));
+    src.appendChild(el('p', { class: 'note', text: 'Everything above traces back to these. Look any of it up. None of it is ours.' }));
     // The claims are already stated inline beside the advice they support, so
     // this is a reference list, not a second telling.
     var ol = el('ol', { class: 'sources' });
@@ -681,32 +760,33 @@
 
     var asks = [];
     if (r.call.publish === 'no') {
-      asks.push('Push back on me. My read says do not respond — tell me honestly whether that is right, and what would have to change for it to be wrong.');
+      asks.push('Push back on me. My read says do not respond. Tell me honestly whether that is right, and what would have to change for it to be wrong.');
       asks.push('Write the two sentences I would say if a reporter or a voter asks me about this directly, so I am not caught flat.');
     } else if (r.call.publish === 'hold') {
       asks.push('Draft the statement I would put out if this spreads, so it is ready and I am not writing it under pressure.');
       asks.push('Tell me what specifically would signal that it is time to publish.');
     } else {
-      asks.push('Draft a short statement using the structure above — under 120 words, in plain speech, no jargon or campaign-ese.');
+      asks.push('Draft a short statement using the structure above. Under 120 words, in plain speech, no jargon and no press-release voice.');
       asks.push('Draft a longer version for my website or a letter, under 350 words.');
-      asks.push('Write the two sentences I want my supporters repeating on my behalf.');
+      asks.push(T('Write the two sentences I want {supportersShort} repeating on my behalf.'));
       asks.push('Give me the five hardest follow-up questions I will get, and a straight answer to each.');
     }
     asks.push('Tell me where I am fooling myself in how I described this.');
 
     return window.WinnxtHandoff.buildPrompt({
-      role: 'You are an experienced, blunt campaign communications advisor helping a first-time candidate for local office through a live problem. Be direct. Tell me if I am wrong. Do not write corporate-sounding statements and do not give me legal advice — tell me when to call a lawyer instead.',
+      role: T('You are an experienced, blunt {advisor} helping someone {running} through a live problem. Be direct. Tell me if I am wrong. Do not write corporate-sounding statements, and do not give me legal advice. Tell me when to call a lawyer instead.'),
       task: 'I ran this through a triage tool. Here is what happened and what the tool concluded.',
       context: [
+        { label: 'Kind of crisis', value: labelOf('context') },
         { label: 'What happened', value: a.what },
         { label: 'Where it surfaced', value: labelOf('where') },
         { label: 'How far it has spread', value: labelOf('spread') },
         { label: 'Is it true', value: labelOf('truth') },
         { label: 'The part that is true', value: a.truePart },
-        { label: 'Damage to me with voters', value: labelOf('harm') },
+        { label: T('Damage to me with {audience}'), value: labelOf('harm') },
         { label: 'How it came about', value: labelOf('fault') },
         { label: 'Proof I can show', value: labelOf('proof') },
-        { label: 'Days until the election', value: a.daysOut }
+        { label: T('Days until {deadline}'), value: a.daysOut }
       ],
       sections: [
         {
@@ -714,12 +794,12 @@
           items: [
             'Quadrant: ' + r.quadrant.name,
             'Posture: ' + r.quadrant.posture,
-            'Crisis type: ' + r.scct.type + ' — strategy is to ' + r.scct.strategy.toLowerCase(),
+            'Crisis type: ' + r.scct.type + '. Strategy is to ' + r.scct.strategy.toLowerCase(),
             'Risk level: ' + r.risk.name,
             'Call: ' + r.call.verdict
           ]
         },
-        { title: 'Statement structure to follow — ' + r.skeleton.title, items: r.skeleton.steps }
+        { title: 'Statement structure to follow: ' + r.skeleton.title, items: r.skeleton.steps }
       ],
       asks: asks
     });
