@@ -1,0 +1,83 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>Pre-Filing Readiness Check — WINNXT</title>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="tool.css">
+
+<main>
+
+<header>
+  <h1>Pre-Filing Readiness Check</h1>
+  <p class="lede">Nine things to confirm before you spend a dollar on your campaign. Most first-time candidates find out about at least one of them too late.</p>
+  <p class="note privacy">This runs entirely in your browser. Nothing is uploaded, nothing is tracked, and it works with your internet turned off. Close the tab and it's gone unless you turn on saving below.</p>
+</header>
+
+<section class="card no-print" id="race-panel">
+  <h2>Your race</h2>
+  <div class="grid">
+    <div>
+      <label for="race-office">Office you're running for</label>
+      <input type="text" id="race-office" placeholder="e.g. Board of Education, District 3">
+    </div>
+    <div>
+      <label for="race-jurisdiction">Jurisdiction</label>
+      <input type="text" id="race-jurisdiction" placeholder="City, county, or district">
+    </div>
+    <div>
+      <label for="race-filingDeadline">Filing deadline</label>
+      <input type="date" id="race-filingDeadline">
+    </div>
+    <div>
+      <label for="race-electionDate">Election date</label>
+      <input type="date" id="race-electionDate">
+    </div>
+  </div>
+  <p class="note">Don't know these yet? That's the first thing to ask about. Leave them blank and fill them in after your call.</p>
+</section>
+
+<section class="card no-print" id="storage-panel">
+  <label class="checkbox" for="storage-toggle">
+    <input type="checkbox" id="storage-toggle">
+    Save my answers in this browser
+  </label>
+  <p class="note" id="storage-note"></p>
+  <button type="button" class="danger" id="btn-erase">Erase everything</button>
+</section>
+
+<section id="readiness" class="card readiness"></section>
+
+<div id="checklist"></div>
+
+<section id="timeline" class="card"></section>
+
+<section id="call-script" class="card"></section>
+
+<section class="card handoff no-print">
+  <h2>Continue with Claude</h2>
+  <p>This tool organizes what you know. It can't write your emails or build your plan. Copy the text below into Claude, ChatGPT, or any AI assistant and it'll pick up exactly where you left off.</p>
+  <pre id="handoff-text"></pre>
+  <button type="button" id="btn-copy">Copy this prompt</button>
+</section>
+
+<section class="card no-print actions">
+  <h2>Take it with you</h2>
+  <p class="note">Print gives you a checklist and call script on paper. Download saves a file you can reopen later — but this tool can't read it back in, so keep it as your record.</p>
+  <button type="button" id="btn-print">Print / Save as PDF</button>
+  <button type="button" class="secondary" id="btn-download">Download my answers</button>
+</section>
+
+<footer class="brand">
+  <p><strong>WINNXT</strong> — campaign tools for people who don't have a consultant.<br>
+  We don't believe in fluff, because neither will your voters.<br>
+  <a href="https://www.winnxt.com/">winnxt.com</a></p>
+  <p class="note">This is a planning worksheet, not legal advice. Election rules differ everywhere and change often. Confirm everything with your filing authority, in writing, and talk to a lawyer if something looks complicated.</p>
+</footer>
+
+</main>
+
+<script src="../../shared/storage.js"></script>
+<script src="../../shared/export.js"></script>
+<script src="../../shared/handoff.js"></script>
+<script src="items.js"></script>
+<script src="app.js"></script>

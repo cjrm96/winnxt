@@ -1,0 +1,13 @@
+{
+  "name": "winnxt-campaign-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Single-file HTML campaign tools for local candidates, sold on Etsy.",
+  "scripts": {
+    "build": "node build/inline.js --all",
+    "test": "npm run build && node tests/pre-filing-check.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

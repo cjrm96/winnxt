@@ -1,0 +1,115 @@
+/* Pre-filing readiness check — tool-specific styles. */
+
+.lede { font-size: 1.1rem; color: var(--ink-soft); }
+
+.privacy {
+  border-left: 3px solid var(--ok);
+  padding-left: 0.8em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space);
+  margin-bottom: var(--space);
+}
+
+.checkbox, .radio {
+  display: block;
+  font-weight: 400;
+  margin-bottom: 0.35em;
+}
+
+.checkbox { font-weight: 600; margin-bottom: 0.5em; }
+
+.checkbox input, .radio input { margin-right: 0.4em; }
+
+.section { margin-top: calc(var(--space) * 2); }
+
+.item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.item-head h3 { margin: 0; }
+
+.tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.tag-blocker {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.why { margin: 0.5em 0; color: var(--ink-soft); font-size: 0.95rem; }
+
+.ask {
+  border-left: 3px solid var(--accent);
+  padding: 0.4em 0 0.4em 0.8em;
+  margin: 0.7em 0;
+  font-size: 0.95rem;
+}
+
+.ask-label { font-weight: 700; }
+
+.status {
+  border: 0;
+  padding: 0;
+  margin: 0.8em 0 0.6em;
+}
+
+.status legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-bottom: 0.3em;
+}
+
+.note-label { font-size: 0.9rem; font-weight: 600; }
+
+.item[data-status="written"] { border-left: 4px solid var(--ok); }
+.item[data-status="verbal"] { border-left: 4px solid var(--warn); }
+.item[data-status="unknown"] { border-left: 4px solid var(--line); }
+
+.readiness { border-width: 2px; }
+
+.verdict { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6em; }
+.verdict-no { color: var(--danger); }
+.verdict-yes { color: var(--ok); }
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+  margin-bottom: var(--space);
+}
+
+.bar-fill { height: 100%; background: var(--ok); }
+
+.countdown { font-weight: 600; margin-bottom: 0; }
+
+.timeline-list { padding-left: 1.2em; }
+.timeline-list li { margin-bottom: 0.6em; }
+.timeline-list .when { display: block; font-weight: 700; font-size: 0.9rem; }
+.timeline-list .past { opacity: 0.55; }
+
+.questions li { margin-bottom: 0.5em; }
+
+.actions button { margin-right: 0.5em; }
+
+@media print {
+  .lede, .privacy { font-size: 11pt; }
+  .item[data-status] { border-left-width: 3px; }
+  .ask { break-inside: avoid; }
+  #race-panel { display: block; }
+}

@@ -183,15 +183,17 @@ Options: keep the firm and stickers partisan while shipping the tools nonpartisa
 
 **Note regardless of the answer:** ActBlue excludes Republicans entirely and doesn't serve Connecticut. Any fundraising content must recommend a nonpartisan processor — Anedot (2.9% + $0.30) or Raise The Money.
 
-**Recommendation:** nonpartisan tools, partisan brand. The tools are process, and process is apolitical.
+**DECIDED (Hayley, July 30 2026): nonpartisan tools, partisan brand.** WINNXT and the sticker line stay conservative. The tools ship politically neutral — no partisan framing, no party-specific examples, no assumed primary structure. Process is apolitical.
 
 ### Decision 2: Pricing confirmation
 
-The store's current ceiling is $14.95. The proposed range is $24–$39 with a $99 bundle. Research supports it — a reviewer literally wrote that these templates are what "other political communication firms charge thousands of dollars for" — but it's a real jump and Cole should confirm.
+**DEFERRED (Hayley, July 30 2026).** Pricing is an Etsy listing decision, not a build decision, and gets set at listing time. Nothing in the product depends on it. Do not block build on this and do not hardcode a price anywhere in a tool.
+
+For reference when that decision comes: the store's ceiling is $14.95, the researched range is $24–$39 with a $99 bundle, and a reviewer wrote that these templates are what "other political communication firms charge thousands of dollars for."
 
 ### Decision 3: Compliance products — in or out?
 
-Recommendation is **out for v1**. Thresholds range from $1,000 in New York to $2,000 in California to $7,000 in Washington. Filing authority might be the state, the city secretary, or the school district secretary. Florida penalties run $50/day escalating to $500/day with no extension. A wrong number under WINNXT's name in a race that gets fined is a liability that isn't worth $29.
+**DECIDED (Hayley, July 30 2026): out for v1.** Thresholds range from $1,000 in New York to $2,000 in California to $7,000 in Washington. Filing authority might be the state, the city secretary, or the school district secretary. Florida penalties run $50/day escalating to $500/day with no extension. A wrong number under WINNXT's name in a race that gets fined is a liability that isn't worth $29.
 
 If it ships later, it ships as *process only* — a "go find these nine facts" worksheet plus a deadline calendar generated backward from the election date. Never publish a specific state's dollar figures.
 

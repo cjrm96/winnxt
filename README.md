@@ -50,3 +50,12 @@ Develop each tool in `src/tools/<name>/` as separate HTML/CSS/JS files (normal d
 - No state-specific compliance dollar figures.
 - Zero network requests, zero telemetry, no exceptions — the privacy claim must be literally true.
 - Any Claude-subscription dependency (skills products) disclosed in listing title, first line, first image.
+
+## Test
+
+```
+npm install          # playwright, dev only
+npm test             # builds dist/, then drives it from file:// in a real browser
+```
+
+`tests/pre-filing-check.test.js` opens the shipped file the way a buyer does — off the filesystem, no server — and asserts zero network requests, no console errors, correct blocker logic, timeline math, storage opt-in and erase, mobile layout, print styles, and labeled fields. If Playwright can't find a browser, set `PW_CHROMIUM` to a Chromium binary path.
