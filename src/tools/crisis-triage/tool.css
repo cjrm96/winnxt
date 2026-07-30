@@ -52,7 +52,7 @@
   font-size: 1.15rem;
   line-height: 1.6;
   color: var(--ink-soft);
-  max-width: 35rem;
+  max-width: var(--measure);
   margin: var(--space-l) 0;
   padding-left: 1.5rem;
   border-left: 3px solid var(--accent);
@@ -72,13 +72,13 @@
 }
 
 .intro-block h2 { margin-top: 0; }
-.intro-block p { color: var(--ink-soft); max-width: 34rem; }
+.intro-block p { color: var(--ink-soft); max-width: var(--measure); }
 
 .intro-list {
   margin: var(--space-s) 0 0;
   padding-left: 0;
   list-style: none;
-  max-width: 34rem;
+  max-width: var(--measure);
 }
 
 .intro-list li {
@@ -153,7 +153,7 @@
   text-wrap: balance;
   padding: 0;
   margin: 0 0 var(--space-s);
-  max-width: 32rem;
+  max-width: 26ch;
 }
 
 .q-label:focus { outline: none; }
@@ -163,7 +163,7 @@
   font-size: 0.98rem;
   line-height: 1.5;
   margin: 0 0 var(--space-l);
-  max-width: 36rem;
+  max-width: var(--measure);
 }
 
 .options {
@@ -211,7 +211,7 @@
   font-size: 0.82rem;
   line-height: 1.5;
   color: var(--ink-faint);
-  max-width: 30rem;
+  max-width: var(--measure);
   border-left: 2px solid var(--line-strong);
   padding-left: 0.7em;
 }
@@ -250,7 +250,7 @@
    is how the verdict ended up the same grey as body text. */
 .report-block > p:not(.eyebrow):not(.note):not(.posture):not(.verdict):not(.verdict-line) {
   color: var(--ink-soft);
-  max-width: 34rem;
+  max-width: var(--measure);
 }
 
 /* the hero: the one thing that must land instantly */
@@ -280,7 +280,7 @@
   font-size: 1.1rem;
   line-height: 1.6;
   color: var(--ink-soft);
-  max-width: 35rem;
+  max-width: var(--measure);
   margin: 0;
   padding-left: 1.5rem;
   border-left: 3px solid var(--accent);
@@ -531,10 +531,21 @@ main[data-view="wizard"] .site-foot { display: none; }
   margin-top: var(--space-s);
 }
 .action-reset { margin-top: var(--space-m); }
-.handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
+.handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: var(--measure); }
 
 .brand-line strong { letter-spacing: 0.12em; }
-.brand-blurb { max-width: 34rem; margin-bottom: 0.7em; }
+.brand-blurb { max-width: var(--measure); margin-bottom: 0.7em; }
+
+/* A qualifier under a section heading, carrying the specific value the
+   heading used to swallow. */
+.sub-head {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent-text);
+  margin: -0.2em 0 var(--space);
+}
 
 /* ---- evidence ----------------------------------------------------------- */
 
@@ -563,7 +574,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   border-top: 1px solid var(--line-strong);
   margin: var(--space-m) auto 0;
   padding: var(--space-s) 0 0;
-  max-width: 30rem;
+  max-width: var(--measure);
   text-align: left;
 }
 
@@ -779,7 +790,7 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 .cta .eyebrow { color: var(--accent); }
 .cta h2 { color: var(--bg); }
-.cta p { color: var(--line-strong); max-width: 32rem; }
+.cta p { color: var(--line-strong); max-width: 26ch; }
 
 .cta-link {
   display: inline-block;

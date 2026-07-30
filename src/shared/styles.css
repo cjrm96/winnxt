@@ -24,17 +24,21 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* surfaces, taken from the site stylesheet */
-  --bg: #000000;
-  --surface: #0F0F0F;      /* --bg-card */
-  --bg-soft: #0A0A0A;      /* --bg-elevated */
-  --line: #1A1A1A;
-  --line-strong: #2A2A2A;  /* --ink-faint on the site, used here as a rule */
+  --bg: #0A0A0B;           /* a hair off the site's pure black: at report
+                              length, #000 with light text visibly halates */
+  --surface: #131315;      /* --bg-card */
+  --bg-soft: #0F0F11;      /* --bg-elevated */
+  --line: #1F1F22;
+  --line-strong: #333338;  /* --ink-faint on the site, used here as a rule */
 
-  /* text */
-  --ink: #FFFFFF;          /* 21:1 */
-  --ink-soft: #888888;     /* 5.9:1, the site's --ink-dim */
-  --ink-faint: #9A9A9A;    /* 7.6:1, for smaller copy that must stay legible */
-  --ink-ghost: #6E6E73;    /* 3.9:1, decorative micro-labels only */
+  /* Text ramp, brightest to dimmest. The site uses #888888 for one short
+     tagline; used for every paragraph across a long report it is tiring to
+     read, so body copy sits well above it here and #888 becomes the secondary
+     tier. Ratios are against the page. */
+  --ink: #FFFFFF;          /* 19.8:1, headings */
+  --ink-soft: #C9C9CE;     /* 12.0:1, body copy */
+  --ink-faint: #9A9AA0;    /*  7.1:1, secondary and notes */
+  --ink-ghost: #70707A;    /*  4.0:1, decorative micro-labels only */
 
   /* flame */
   --accent: #C9302C;       /* --flame */
@@ -73,6 +77,7 @@
   --radius-pill: 0;
 
   --max-width: 46rem;
+  --measure: 66ch;   /* one reading measure, used everywhere prose runs */
 
   --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
@@ -87,7 +92,7 @@ body {
   padding: var(--space-l) var(--space-m) var(--space-2xl);
   font-family: var(--font);
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--ink-soft);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -114,12 +119,15 @@ h1 {
   margin-bottom: var(--space-m);
 }
 
+/* Section headings, not hero type. The verdict and the current question are
+   the only things allowed to be enormous; if every heading is, none of them
+   carries rank. */
 h2 {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
   text-transform: uppercase;
 }
 
@@ -165,12 +173,12 @@ a:hover { text-decoration-thickness: 2px; }
   align-items: center;
   gap: 0.75em;
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   color: var(--accent);
-  margin: 0 0 var(--space-m);
+  margin: 0 0 var(--space-s);
 }
 
 .eyebrow::before {

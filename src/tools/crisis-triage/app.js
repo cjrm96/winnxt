@@ -24,7 +24,9 @@
       deadlineHelp: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
       deadlineShort: 'Days to election',
       advisor: 'campaign communications advisor',
-      running: 'running for local office'
+      running: 'running for local office',
+      example: 'A post of mine from 2016 is going around in a local parents group.',
+      examplePart: 'I did write the post. The meaning being put on it is wrong.'
     },
     business: {
       audience: 'customers',
@@ -41,7 +43,9 @@
       deadlineHelp: 'A launch, an earnings call, a board meeting, a conference, a renewal deadline. Leave it blank if nothing is coming. The closer the pressure point, the less room you have to recover.',
       deadlineShort: 'Days to next big moment',
       advisor: 'corporate communications advisor',
-      running: 'responsible for an organisation'
+      running: 'responsible for an organisation',
+      example: 'A clip of our product failing during a live demo is being reshared everywhere.',
+      examplePart: 'The failure happened. The claim that we knew about it beforehand is wrong.'
     }
   };
 
@@ -75,7 +79,7 @@
       label: 'What happened?',
       help: "Write it the way you'd say it out loud. Or don't type at all: tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
       note: "Dictation belongs to your phone or computer, not to this file, and some of them send the audio off to be transcribed. If that bothers you, type it instead.",
-      placeholder: 'A post from 2016 is going around in a local parents group.'
+      placeholder: '{example}'
     },
     {
       id: 'where', type: 'select', required: true,
@@ -123,7 +127,7 @@
       short: 'The true part',
       label: 'Which part is true?',
       help: 'The true part is the part that gets reported. Name it now so your response does not lean on the wrong half.',
-      placeholder: 'I did miss those meetings. The reason they gave is wrong.'
+      placeholder: '{examplePart}'
     },
     {
       id: 'harm', type: 'radio', required: true,
@@ -513,7 +517,8 @@
 
     // Risk meter.
     var risk = el('section', { class: 'report-block' });
-    risk.appendChild(el('h2', { text: 'Risk level: ' + r.risk.name }));
+    risk.appendChild(el('h2', { text: 'Risk level' }));
+    risk.appendChild(el('p', { class: 'sub-head', text: r.risk.name }));
     var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
     RISK_ORDER.forEach(function (k) {
       var seg = el('div', { class: 'meter-seg' + (k === r.riskKey ? ' is-on' : '') });
@@ -556,7 +561,8 @@
     }
 
     var sk = el('section', { class: 'report-block' });
-    sk.appendChild(el('h2', { text: 'How to build the statement: ' + r.skeleton.title.toLowerCase() }));
+    sk.appendChild(el('h2', { text: 'Build the statement' }));
+    sk.appendChild(el('p', { class: 'sub-head', text: r.skeleton.title }));
     var ol = el('ol', { class: 'skeleton' });
     r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
     sk.appendChild(ol);

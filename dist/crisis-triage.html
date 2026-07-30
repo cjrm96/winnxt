@@ -71,17 +71,21 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* surfaces, taken from the site stylesheet */
-  --bg: #000000;
-  --surface: #0F0F0F;      /* --bg-card */
-  --bg-soft: #0A0A0A;      /* --bg-elevated */
-  --line: #1A1A1A;
-  --line-strong: #2A2A2A;  /* --ink-faint on the site, used here as a rule */
+  --bg: #0A0A0B;           /* a hair off the site's pure black: at report
+                              length, #000 with light text visibly halates */
+  --surface: #131315;      /* --bg-card */
+  --bg-soft: #0F0F11;      /* --bg-elevated */
+  --line: #1F1F22;
+  --line-strong: #333338;  /* --ink-faint on the site, used here as a rule */
 
-  /* text */
-  --ink: #FFFFFF;          /* 21:1 */
-  --ink-soft: #888888;     /* 5.9:1, the site's --ink-dim */
-  --ink-faint: #9A9A9A;    /* 7.6:1, for smaller copy that must stay legible */
-  --ink-ghost: #6E6E73;    /* 3.9:1, decorative micro-labels only */
+  /* Text ramp, brightest to dimmest. The site uses #888888 for one short
+     tagline; used for every paragraph across a long report it is tiring to
+     read, so body copy sits well above it here and #888 becomes the secondary
+     tier. Ratios are against the page. */
+  --ink: #FFFFFF;          /* 19.8:1, headings */
+  --ink-soft: #C9C9CE;     /* 12.0:1, body copy */
+  --ink-faint: #9A9AA0;    /*  7.1:1, secondary and notes */
+  --ink-ghost: #70707A;    /*  4.0:1, decorative micro-labels only */
 
   /* flame */
   --accent: #C9302C;       /* --flame */
@@ -120,6 +124,7 @@
   --radius-pill: 0;
 
   --max-width: 46rem;
+  --measure: 66ch;   /* one reading measure, used everywhere prose runs */
 
   --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
@@ -134,7 +139,7 @@ body {
   padding: var(--space-l) var(--space-m) var(--space-2xl);
   font-family: var(--font);
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--ink-soft);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -161,12 +166,15 @@ h1 {
   margin-bottom: var(--space-m);
 }
 
+/* Section headings, not hero type. The verdict and the current question are
+   the only things allowed to be enormous; if every heading is, none of them
+   carries rank. */
 h2 {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.4rem, 1.15rem + 1.1vw, 1.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
   text-transform: uppercase;
 }
 
@@ -212,12 +220,12 @@ a:hover { text-decoration-thickness: 2px; }
   align-items: center;
   gap: 0.75em;
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   color: var(--accent);
-  margin: 0 0 var(--space-m);
+  margin: 0 0 var(--space-s);
 }
 
 .eyebrow::before {
@@ -671,7 +679,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   font-size: 1.15rem;
   line-height: 1.6;
   color: var(--ink-soft);
-  max-width: 35rem;
+  max-width: var(--measure);
   margin: var(--space-l) 0;
   padding-left: 1.5rem;
   border-left: 3px solid var(--accent);
@@ -691,13 +699,13 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
 }
 
 .intro-block h2 { margin-top: 0; }
-.intro-block p { color: var(--ink-soft); max-width: 34rem; }
+.intro-block p { color: var(--ink-soft); max-width: var(--measure); }
 
 .intro-list {
   margin: var(--space-s) 0 0;
   padding-left: 0;
   list-style: none;
-  max-width: 34rem;
+  max-width: var(--measure);
 }
 
 .intro-list li {
@@ -772,7 +780,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   text-wrap: balance;
   padding: 0;
   margin: 0 0 var(--space-s);
-  max-width: 32rem;
+  max-width: 26ch;
 }
 
 .q-label:focus { outline: none; }
@@ -782,7 +790,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   font-size: 0.98rem;
   line-height: 1.5;
   margin: 0 0 var(--space-l);
-  max-width: 36rem;
+  max-width: var(--measure);
 }
 
 .options {
@@ -830,7 +838,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   font-size: 0.82rem;
   line-height: 1.5;
   color: var(--ink-faint);
-  max-width: 30rem;
+  max-width: var(--measure);
   border-left: 2px solid var(--line-strong);
   padding-left: 0.7em;
 }
@@ -869,7 +877,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
    is how the verdict ended up the same grey as body text. */
 .report-block > p:not(.eyebrow):not(.note):not(.posture):not(.verdict):not(.verdict-line) {
   color: var(--ink-soft);
-  max-width: 34rem;
+  max-width: var(--measure);
 }
 
 /* the hero: the one thing that must land instantly */
@@ -899,7 +907,7 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   font-size: 1.1rem;
   line-height: 1.6;
   color: var(--ink-soft);
-  max-width: 35rem;
+  max-width: var(--measure);
   margin: 0;
   padding-left: 1.5rem;
   border-left: 3px solid var(--accent);
@@ -1150,10 +1158,21 @@ main[data-view="wizard"] .site-foot { display: none; }
   margin-top: var(--space-s);
 }
 .action-reset { margin-top: var(--space-m); }
-.handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
+.handoff p, .actions p { color: var(--ink-soft); font-size: 0.95rem; max-width: var(--measure); }
 
 .brand-line strong { letter-spacing: 0.12em; }
-.brand-blurb { max-width: 34rem; margin-bottom: 0.7em; }
+.brand-blurb { max-width: var(--measure); margin-bottom: 0.7em; }
+
+/* A qualifier under a section heading, carrying the specific value the
+   heading used to swallow. */
+.sub-head {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent-text);
+  margin: -0.2em 0 var(--space);
+}
 
 /* ---- evidence ----------------------------------------------------------- */
 
@@ -1182,7 +1201,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   border-top: 1px solid var(--line-strong);
   margin: var(--space-m) auto 0;
   padding: var(--space-s) 0 0;
-  max-width: 30rem;
+  max-width: var(--measure);
   text-align: left;
 }
 
@@ -1398,7 +1417,7 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 .cta .eyebrow { color: var(--accent); }
 .cta h2 { color: var(--bg); }
-.cta p { color: var(--line-strong); max-width: 32rem; }
+.cta p { color: var(--line-strong); max-width: 26ch; }
 
 .cta-link {
   display: inline-block;
@@ -2281,6 +2300,33 @@ main[data-view="wizard"] .site-foot { display: none; }
         outcome: 'The pattern is well enough established that it should be planned for rather than absorbed. Most tracked incidents originated with people who were not physically present, which is exactly why documentation and reporting matter more than a public response.'
       }
     ],
+    // Business precedents, one per outcome, so a company is not handed four
+    // political examples and asked to translate. Selected the same way the
+    // political ones are: by the decision the subject actually faced.
+    businessFalse: [
+      {
+        who: 'Pepsi',
+        year: 1993,
+        what: 'Claims spread nationally that syringes were being found in cans of Diet Pepsi. The claims were false. The company answered within days, with evidence, and the story collapsed.',
+        lesson: 'A false claim you can disprove is worth answering fast and in public. Speed and evidence together, not one without the other.',
+        background: 'A couple in Washington state reported finding a syringe in a can. Within about a week there were copycat reports from more than twenty states, and the story led national news. Cans are sealed at high speed and inverted before filling, which made contamination at the plant implausible, but implausible is not the same as disproved.',
+        reaction: 'National coverage, calls for a recall, and a fast-moving public assumption that the product was unsafe. Sales fell during the week the story ran.',
+        handling: 'The company refused to recall, on the grounds that a recall would concede the premise. Instead it went on the offensive with evidence: footage of the high-speed canning line showing how little time a can is open, then in-store surveillance video of a customer inserting a syringe into a can. Executives did broad media themselves rather than issuing statements. The FDA commissioner publicly backed the company.',
+        outcome: 'The hoax collapsed in about a week, arrests followed, and sales recovered quickly. It is the standard example of refusing a false premise while producing proof, rather than either denying flatly or capitulating to look responsible.'
+      }
+    ],
+    businessDemo: [
+      {
+        who: 'Tesla',
+        year: 2019,
+        what: 'The Cybertruck\'s armour glass was struck with a steel ball during the live unveiling to demonstrate its strength. It cracked. The demonstration continued with the cracked window in shot.',
+        lesson: 'A failure everyone watched cannot be argued with. Owning it in the moment costs less than explaining it later.',
+        background: 'The truck was revealed at a heavily covered launch event. A designer threw a metal ball at the side window to demonstrate the glass, a set piece rehearsed to succeed.',
+        reaction: 'The clip went everywhere within minutes and became the story of the launch, displacing the product itself. The share price fell sharply the following day.',
+        handling: 'There was no denial available and none was attempted. The company acknowledged it on stage as it happened and made light of it rather than cutting away, and continued the presentation with the damage visible.',
+        outcome: 'The moment is still the most replayed part of the launch. Reservations were nonetheless reported in large numbers in the days after, which is the useful part: a visible, embarrassing failure that harmed nobody is survivable when it is not compounded by a denial.'
+      }
+    ],
     localPattern: [
       {
         who: 'A St. Petersburg, Florida city council candidate',
@@ -2339,7 +2385,12 @@ main[data-view="wizard"] .site-foot { display: none; }
     cites.push(CITES.scct, CITES.scctTest);
     cites.push(CITES.cerc);
 
-    if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
+    if (answers.context === 'business') {
+      // Match the business case to the same decision the political ones are
+      // matched to, rather than bolting one on regardless of the outcome.
+      if (q === 'false-does') cases = cases.concat(CASES.businessFalse);
+      else cases = cases.concat(CASES.businessDemo);
+    } else if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
       cases = cases.concat(CASES.localPattern);
     }
     if (publish !== 'no' && r.channel) {
@@ -2416,7 +2467,9 @@ main[data-view="wizard"] .site-foot { display: none; }
       deadlineHelp: 'Leave this blank if you are not sure. Close to election day the same crisis is a bigger problem, because there is less time to recover from it.',
       deadlineShort: 'Days to election',
       advisor: 'campaign communications advisor',
-      running: 'running for local office'
+      running: 'running for local office',
+      example: 'A post of mine from 2016 is going around in a local parents group.',
+      examplePart: 'I did write the post. The meaning being put on it is wrong.'
     },
     business: {
       audience: 'customers',
@@ -2433,7 +2486,9 @@ main[data-view="wizard"] .site-foot { display: none; }
       deadlineHelp: 'A launch, an earnings call, a board meeting, a conference, a renewal deadline. Leave it blank if nothing is coming. The closer the pressure point, the less room you have to recover.',
       deadlineShort: 'Days to next big moment',
       advisor: 'corporate communications advisor',
-      running: 'responsible for an organisation'
+      running: 'responsible for an organisation',
+      example: 'A clip of our product failing during a live demo is being reshared everywhere.',
+      examplePart: 'The failure happened. The claim that we knew about it beforehand is wrong.'
     }
   };
 
@@ -2467,7 +2522,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       label: 'What happened?',
       help: "Write it the way you'd say it out loud. Or don't type at all: tap the microphone on your keyboard and just talk it through. Ramble. Nobody is reading this but you.",
       note: "Dictation belongs to your phone or computer, not to this file, and some of them send the audio off to be transcribed. If that bothers you, type it instead.",
-      placeholder: 'A post from 2016 is going around in a local parents group.'
+      placeholder: '{example}'
     },
     {
       id: 'where', type: 'select', required: true,
@@ -2515,7 +2570,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       short: 'The true part',
       label: 'Which part is true?',
       help: 'The true part is the part that gets reported. Name it now so your response does not lean on the wrong half.',
-      placeholder: 'I did miss those meetings. The reason they gave is wrong.'
+      placeholder: '{examplePart}'
     },
     {
       id: 'harm', type: 'radio', required: true,
@@ -2905,7 +2960,8 @@ main[data-view="wizard"] .site-foot { display: none; }
 
     // Risk meter.
     var risk = el('section', { class: 'report-block' });
-    risk.appendChild(el('h2', { text: 'Risk level: ' + r.risk.name }));
+    risk.appendChild(el('h2', { text: 'Risk level' }));
+    risk.appendChild(el('p', { class: 'sub-head', text: r.risk.name }));
     var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
     RISK_ORDER.forEach(function (k) {
       var seg = el('div', { class: 'meter-seg' + (k === r.riskKey ? ' is-on' : '') });
@@ -2948,7 +3004,8 @@ main[data-view="wizard"] .site-foot { display: none; }
     }
 
     var sk = el('section', { class: 'report-block' });
-    sk.appendChild(el('h2', { text: 'How to build the statement: ' + r.skeleton.title.toLowerCase() }));
+    sk.appendChild(el('h2', { text: 'Build the statement' }));
+    sk.appendChild(el('p', { class: 'sub-head', text: r.skeleton.title }));
     var ol = el('ol', { class: 'skeleton' });
     r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
     sk.appendChild(ol);

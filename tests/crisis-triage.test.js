@@ -167,8 +167,12 @@ const base = {
     /font-src data:/.test(csp), csp);
   check('the policy still forbids everything remote', /default-src 'none'/.test(csp));
 
-  check('page background is the brand black',
-    (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(0, 0, 0)');
+  // A hair off the site's pure #000: at report length, light text on true
+  // black visibly halates. Still reads as black, and must stay that dark.
+  const pageBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const bgChannels = pageBg.match(/\d+/g).map(Number);
+  check('the page is black, within a shade of the site',
+    bgChannels.every(c => c <= 16), pageBg);
 
   // --- the logo -----------------------------------------------------------
   //
@@ -728,6 +732,51 @@ const base = {
   check('focus lands on the report heading, not the body',
     focused === 'report-heading', focused);
 
+  // --- legibility ----------------------------------------------------------
+  //
+  // Body copy was set in the site's #888888 tagline grey. Over a long report on
+  // black that is tiring, and the ramp was inverted: "faint" was brighter than
+  // body. Guard both the brightness and the ordering.
+
+  const ramp = await page.evaluate(() => {
+    const val = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const lum = hex => {
+      const c = hex.replace('#','').match(/../g).map(x => {
+        const v = parseInt(x,16)/255;
+        return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+      });
+      return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+    };
+    return {
+      body: lum(val('--ink-soft')),
+      secondary: lum(val('--ink-faint')),
+      micro: lum(val('--ink-ghost')),
+      ink: lum(val('--ink'))
+    };
+  });
+  check('the text ramp descends: ink, body, secondary, micro',
+    ramp.ink > ramp.body && ramp.body > ramp.secondary && ramp.secondary > ramp.micro,
+    JSON.stringify(ramp));
+
+  const proseContrast = await page.evaluate(() => {
+    const el = document.querySelector('.case-what') || document.querySelector('#plan p');
+    const parse = c => c.match(/\d+/g).map(Number);
+    const lin = v => { v/=255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+    const lum = ([r,g,b]) => 0.2126*lin(r) + 0.7152*lin(g) + 0.0722*lin(b);
+    const fg = lum(parse(getComputedStyle(el).color));
+    const bg = lum(parse(getComputedStyle(document.body).backgroundColor));
+    return (Math.max(fg,bg)+0.05) / (Math.min(fg,bg)+0.05);
+  });
+  check('body copy is comfortably above the AA floor, not sitting on it',
+    proseContrast > 9, proseContrast.toFixed(1) + ':1');
+
+  const sizes = await page.evaluate(() => ({
+    verdict: parseFloat(getComputedStyle(document.querySelector('.verdict')).fontSize),
+    heading: parseFloat(getComputedStyle(document.querySelector('#plan h2')).fontSize)
+  }));
+  check('the verdict outranks section headings by a wide margin',
+    sizes.verdict > sizes.heading * 2, JSON.stringify(sizes));
+
   // --- one job for red -----------------------------------------------------
 
   // The brand sets section labels in flame red with a 40px rule, so red here
@@ -797,6 +846,24 @@ const base = {
   check('business run talks about customers', /customers/i.test(businessCopy));
   check('business run avoids election language', !/\belection\b/i.test(businessCopy),
     (businessCopy.match(/.{0,60}election.{0,40}/i) || [''])[0]);
+  check('business run gets a business case, not four political ones',
+    /Tesla|Pepsi/.test(businessCopy), (businessCopy.match(/.{0,40}(Tesla|Pepsi).{0,40}/) || [''])[0]);
+
+  // The business case is chosen by the same decision the political ones are.
+  const bizCases = await page.evaluate(() => {
+    const pick = (over) => {
+      const a = Object.assign({ where: 'social', spread: 'many-groups', truth: 'false',
+        harm: 'serious', fault: 'victim', proof: 'yes', safety: 'no', daysOut: '30',
+        context: 'business' }, over);
+      return window.CrisisEvidence.forAssessment(window.CrisisLogic.assess(a), a)
+        .cases.map(c => c.who);
+    };
+    return { falseDoes: pick({}), trueDoes: pick({ truth: 'true', fault: 'accidental' }) };
+  });
+  check('a false damaging claim shows the false-claim business case',
+    bizCases.falseDoes.some(w => /Pepsi/.test(w)), bizCases.falseDoes.join(' | '));
+  check('a true damaging one shows a different business case',
+    !bizCases.trueDoes.some(w => /Pepsi/.test(w)), bizCases.trueDoes.join(' | '));
   check('business handoff briefs a corporate advisor',
     /corporate communications advisor/.test(await page.locator('#handoff-text').textContent()));
 
@@ -817,6 +884,27 @@ const base = {
   const deadlineQ = await page.locator('.q-label').textContent();
   check('business deadline question is not about the election',
     /next big moment/i.test(deadlineQ), deadlineQ);
+
+  // The worked example in the first field has to belong to the reader's world.
+  await page.reload();
+  await page.waitForTimeout(300);
+  await page.click('#btn-start');
+  await page.waitForTimeout(400);
+  await page.check('#context-business');
+  await page.waitForTimeout(700);
+  const bizPlaceholder = await page.locator('#what').getAttribute('placeholder');
+  check('business example is a business example',
+    /live demo/i.test(bizPlaceholder) && !/parents group/i.test(bizPlaceholder), bizPlaceholder);
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await page.click('#btn-start');
+  await page.waitForTimeout(400);
+  await page.check('#context-political');
+  await page.waitForTimeout(700);
+  const polPlaceholder = await page.locator('#what').getAttribute('placeholder');
+  check('political example is a political example',
+    /parents group/i.test(polPlaceholder), polPlaceholder);
 
   await page.reload();
   await page.waitForTimeout(300);

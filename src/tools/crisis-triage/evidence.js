@@ -193,6 +193,33 @@
         outcome: 'The pattern is well enough established that it should be planned for rather than absorbed. Most tracked incidents originated with people who were not physically present, which is exactly why documentation and reporting matter more than a public response.'
       }
     ],
+    // Business precedents, one per outcome, so a company is not handed four
+    // political examples and asked to translate. Selected the same way the
+    // political ones are: by the decision the subject actually faced.
+    businessFalse: [
+      {
+        who: 'Pepsi',
+        year: 1993,
+        what: 'Claims spread nationally that syringes were being found in cans of Diet Pepsi. The claims were false. The company answered within days, with evidence, and the story collapsed.',
+        lesson: 'A false claim you can disprove is worth answering fast and in public. Speed and evidence together, not one without the other.',
+        background: 'A couple in Washington state reported finding a syringe in a can. Within about a week there were copycat reports from more than twenty states, and the story led national news. Cans are sealed at high speed and inverted before filling, which made contamination at the plant implausible, but implausible is not the same as disproved.',
+        reaction: 'National coverage, calls for a recall, and a fast-moving public assumption that the product was unsafe. Sales fell during the week the story ran.',
+        handling: 'The company refused to recall, on the grounds that a recall would concede the premise. Instead it went on the offensive with evidence: footage of the high-speed canning line showing how little time a can is open, then in-store surveillance video of a customer inserting a syringe into a can. Executives did broad media themselves rather than issuing statements. The FDA commissioner publicly backed the company.',
+        outcome: 'The hoax collapsed in about a week, arrests followed, and sales recovered quickly. It is the standard example of refusing a false premise while producing proof, rather than either denying flatly or capitulating to look responsible.'
+      }
+    ],
+    businessDemo: [
+      {
+        who: 'Tesla',
+        year: 2019,
+        what: 'The Cybertruck\'s armour glass was struck with a steel ball during the live unveiling to demonstrate its strength. It cracked. The demonstration continued with the cracked window in shot.',
+        lesson: 'A failure everyone watched cannot be argued with. Owning it in the moment costs less than explaining it later.',
+        background: 'The truck was revealed at a heavily covered launch event. A designer threw a metal ball at the side window to demonstrate the glass, a set piece rehearsed to succeed.',
+        reaction: 'The clip went everywhere within minutes and became the story of the launch, displacing the product itself. The share price fell sharply the following day.',
+        handling: 'There was no denial available and none was attempted. The company acknowledged it on stage as it happened and made light of it rather than cutting away, and continued the presentation with the damage visible.',
+        outcome: 'The moment is still the most replayed part of the launch. Reservations were nonetheless reported in large numbers in the days after, which is the useful part: a visible, embarrassing failure that harmed nobody is survivable when it is not compounded by a denial.'
+      }
+    ],
     localPattern: [
       {
         who: 'A St. Petersburg, Florida city council candidate',
@@ -251,7 +278,12 @@
     cites.push(CITES.scct, CITES.scctTest);
     cites.push(CITES.cerc);
 
-    if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
+    if (answers.context === 'business') {
+      // Match the business case to the same decision the political ones are
+      // matched to, rather than bolting one on regardless of the outcome.
+      if (q === 'false-does') cases = cases.concat(CASES.businessFalse);
+      else cases = cases.concat(CASES.businessDemo);
+    } else if (answers.where === 'facebook-group' || answers.where === 'neighborhood-app') {
       cases = cases.concat(CASES.localPattern);
     }
     if (publish !== 'no' && r.channel) {
