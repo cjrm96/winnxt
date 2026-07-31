@@ -51,6 +51,19 @@ Develop each tool in `src/tools/<name>/` as separate HTML/CSS/JS files (normal d
 - Zero network requests, zero telemetry, no exceptions — the privacy claim must be literally true.
 - Any Claude-subscription dependency (skills products) disclosed in listing title, first line, first image.
 
+## What ships to a buyer
+
+| File | Built from | Notes |
+|---|---|---|
+| `dist/crisis-triage.html` | `src/tools/crisis-triage/` | The product. One file, zero requests. |
+| `dist/quickstart.pdf` | `src/quickstart/` | One page. How to open it, what the five verdicts mean, when to stop and call someone. |
+
+The quickstart is generated, not hand-maintained, so it cannot drift from the
+tool: `npm run quickstart` inlines it and renders the PDF through headless
+Chromium. The renderer fails the build if the page makes a network request,
+which is the same guarantee the tools carry, and the reason the brand fonts are
+embedded rather than linked.
+
 ## Test
 
 ```

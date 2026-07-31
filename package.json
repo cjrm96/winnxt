@@ -4,8 +4,9 @@
   "private": true,
   "description": "Single-file HTML campaign tools for local candidates, sold on Etsy.",
   "scripts": {
-    "build": "node build/inline.js --all",
-    "test": "npm run build && node tests/pre-filing-check.test.js && node tests/crisis-triage.test.js"
+    "build": "node build/inline.js --all && npm run quickstart",
+    "test": "npm run build && node tests/pre-filing-check.test.js && node tests/crisis-triage.test.js",
+    "quickstart": "node build/inline.js src/quickstart/index.html dist/quickstart.html && node build/pdf.js dist/quickstart.html dist/quickstart.pdf"
   },
   "devDependencies": {
     "playwright": "^1.49.0"
