@@ -609,18 +609,25 @@ const base = {
   // The cases are the most persuasive thing on the page, so they sit with the
   // advice rather than at the bottom under the citations.
 
-  const order = await page.evaluate(() => {
-    const blocks = [...document.querySelectorAll('#plan > .report-block')];
-    return blocks.map(b => (b.querySelector('h2') || {}).textContent || '');
-  });
+  // Read across the whole report, not one container: the sections now live in
+  // several slots and what matters is the order a person meets them in.
+  const order = await page.evaluate(() =>
+    [...document.querySelectorAll('#report h2')].map(h => h.textContent || ''));
   const iPlan = order.findIndex(t => /What to do, in order/.test(t));
   const iCases = order.findIndex(t => /How this has gone before/.test(t));
   const iSources = order.findIndex(t => /Why this is the advice/.test(t));
+  const iDraft = order.findIndex(t => /Your statement|publish it later|Do not publish/.test(t));
+  const iSummary = order.findIndex(t => /What you told it/.test(t));
   check('quadrant and blame are stated once, not twice',
     order.filter(t => /True, and it hurts|False, and it hurts|minimal blame|low blame|high blame/.test(t)).length === 0,
     order.join(' > '));
   check('precedent follows the advice', iCases > iPlan && iPlan !== -1, order.join(' > '));
   check('precedent comes before the citations', iCases < iSources, order.join(' > '));
+  // Be told whether to speak, see that it worked for other people, then write.
+  check('drafting comes after the precedent', iDraft > iCases && iDraft !== -1, order.join(' > '));
+  // Receipts last. Nobody arrives at a crisis report wanting to re-read their
+  // own answers first.
+  check('the answer log is at the end', iSummary > iDraft && iSummary > iSources, order.join(' > '));
 
   check('each case has an expandable history',
     (await page.locator('.case-more').count()) === (await page.locator('.case').count()),
@@ -699,6 +706,34 @@ const base = {
   check('required gaps are called out before they are filled',
     await page.locator('#draft-missing').isVisible());
 
+  // --- what they typed has to go somewhere --------------------------------
+  //
+  // A tester wrote the whole story into the wizard, never saw it again, and
+  // was then asked to type it a second time into the draft.
+
+  const situation = await page.locator('.situation').textContent();
+  check('the report quotes the description back',
+    /doctored screenshot is going around/.test(situation), situation.slice(0, 120));
+  check('the situation block carries the surrounding facts',
+    /Spread/.test(situation) && /Surfaced on/.test(situation), situation.slice(0, 200));
+  const situationTop = await page.evaluate(() => {
+    const s = document.querySelector('.situation');
+    const p = document.querySelector('#plan');
+    return s.getBoundingClientRect().top < p.getBoundingClientRect().top;
+  });
+  check('it sits with the read, not at the bottom of the page', situationTop);
+
+  const seededClaim = await page.inputValue('#draft-claim');
+  check('a false story prefills the claim from what they typed',
+    /doctored screenshot/.test(seededClaim), seededClaim);
+  check('a prefilled field says it needs editing',
+    /Carried over/.test(await page.locator('.draft-field[data-seeded]').first().textContent()));
+
+  await page.fill('#draft-claim', 'that I doctored the minutes');
+  await page.waitForTimeout(200);
+  check('editing a prefilled field clears the carried-over marker',
+    await page.locator('.draft-field[data-seeded]').count() === 0);
+
   await page.fill('#draft-truth', 'I voted for the after-school programme in full');
   await page.fill('#draft-claim', 'that I voted to cut after-school funding');
   await page.waitForTimeout(300);
@@ -759,6 +794,30 @@ const base = {
     /Do not publish anything/.test(await page.locator('.draft-block').textContent()));
   check('a stay-quiet read does not ask for statement material',
     await page.locator('.draft-fields').count() === 0);
+
+  // A true story runs down the other side of the shape: the description
+  // becomes what happened, and the part they said was true becomes context.
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {
+    truth: 'partly', harm: 'serious', fault: 'preventable',
+    what: 'I posted about the school budget in 2016.',
+    truePart: 'I did write the post.'
+  });
+  check('a true story prefills what happened',
+    /school budget in 2016/.test(await page.inputValue('#draft-happened')));
+  // Deliberately not seeded into the context slot: "which part is true" is a
+  // different question from "the context that matters", and putting it there
+  // built a statement that argued with itself. It surfaces in the report, the
+  // answer log and the handoff instead.
+  check('the true part is not forced into the context slot',
+    (await page.inputValue('#draft-context')) === '');
+  check('both quotes appear in the report',
+    /school budget in 2016/.test(await page.locator('.situation').textContent()) &&
+    /I did write the post/.test(await page.locator('.situation').textContent()));
+  const seededShort = await page.locator('#draft-text-short').textContent();
+  check('the statement is usable straight away from the wizard answers',
+    /school budget in 2016/.test(seededShort), seededShort.slice(0, 140));
 
   // Hold: write it, do not publish it.
   await page.reload();
@@ -901,7 +960,9 @@ const base = {
     getComputedStyle(e, '::before').backgroundColor + ' ' + getComputedStyle(e, '::before').width);
   check('eyebrows carry the brand rule', /rgb\(201, 48, 44\) 40px/.test(rule), rule);
   const eyebrowCount = await page.locator('#report .eyebrow').count();
-  check('eyebrows are rationed to act boundaries', eyebrowCount <= 5, 'got ' + eyebrowCount);
+  // One per act, and the report has six: the situation, the plan, the
+  // precedent, the drafting, the evidence, and taking it with you.
+  check('eyebrows are rationed to act boundaries', eyebrowCount <= 6, 'got ' + eyebrowCount);
 
   // --- the plan reads as a schedule ---------------------------------------
 
@@ -1178,6 +1239,23 @@ const base = {
   await page.waitForTimeout(200);
   check('no horizontal overflow at 375px', !(await page.evaluate(() =>
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)));
+
+  // The paired sections break out of the reading column on a big screen, which
+  // is exactly the kind of thing that ends up two pixels wider than the window.
+  for (const w of [1280, 1440, 1920]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.waitForTimeout(150);
+    check('no horizontal overflow at ' + w + 'px', !(await page.evaluate(() =>
+      document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)));
+  }
+  const columns = await page.evaluate(() => {
+    const p = document.querySelector('#plan .duo-panel .duo');
+    const cols = [...p.children];
+    return cols[0].getBoundingClientRect().top === cols[1].getBoundingClientRect().top;
+  });
+  check('paired sections sit side by side on a wide screen', columns);
+  await page.setViewportSize({ width: 375, height: 720 });
+  await page.waitForTimeout(150);
 
   await page.emulateMedia({ media: 'print' });
   check('buttons hidden in print', await page.locator('#btn-print').isHidden());

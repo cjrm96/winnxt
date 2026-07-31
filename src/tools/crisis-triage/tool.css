@@ -278,6 +278,107 @@
 
 .panel + .panel { margin-top: calc(var(--space-l) * -1 + 1px); }
 
+/* Two columns, but only once there is genuinely room for two readable measures
+   side by side. Below that they stack, in source order, which is the order they
+   would have been read in anyway. The report is long because a crisis has a lot
+   of parts; pairing the halves that answer the same question cuts the scroll
+   roughly in half without hiding anything. */
+.duo { display: grid; gap: var(--space-l); }
+.duo-col { min-width: 0; }
+.duo-col h2 { margin-top: 0; }
+.duo-col > p:not(.eyebrow):not(.note):not(.posture) {
+  color: var(--ink-soft);
+  max-width: var(--measure);
+}
+
+/* Two columns need more room than the reading column has, so the paired panels
+   break out of it. They are the only thing on the page that does, which is
+   what makes them read as one unit rather than as more of the same column. */
+@media (min-width: 76rem) {
+  /* Written as .report-block.duo-panel because .report-block.panel above sets
+     its own negative margins, and a single class would lose to it. */
+  .report-block.duo-panel {
+    /* Negative margins rather than a transform: a transformed box still
+       contributes its untransformed width to the scrollable area, which is a
+       horizontal scrollbar on a page that should never have one. */
+    --duo-w: min(68rem, calc(100vw - 3rem));
+    width: var(--duo-w);
+    margin-left: calc((100% - var(--duo-w)) / 2);
+    margin-right: calc((100% - var(--duo-w)) / 2);
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+  .report-block.duo-panel + .duo-panel { margin-top: calc(var(--space-l) * -1 + 1px); }
+
+  .duo {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+  }
+  /* A hairline between the halves so they read as a pair rather than as two
+     unrelated things that happen to be level. */
+  .duo > .duo-col + .duo-col {
+    border-left: 1px solid var(--line);
+    padding-left: var(--space-xl);
+  }
+  .duo .summary-list { grid-template-columns: 7.5rem 1fr; }
+}
+
+/* An empty column (no citations for this read) must not leave a stranded rule
+   down the middle. */
+.duo-col:empty { display: none; }
+.duo:has(> .duo-col:empty) { grid-template-columns: 1fr; }
+
+/* ---- the situation, quoted back ---------------------------------------- */
+
+.situation { border-top: 0; padding-top: 0; }
+
+.situation-quote {
+  margin: var(--space-s) 0 0;
+  padding-left: var(--space);
+  border-left: 2px solid var(--line);
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.6;
+  white-space: pre-wrap;      /* they typed paragraphs; keep them */
+  max-width: var(--measure);
+}
+
+.situation-label {
+  margin: var(--space) 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+}
+
+.situation-facts {
+  list-style: none;
+  padding: 0;
+  margin: var(--space) 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0 var(--space-l);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-s);
+}
+.situation-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding: var(--space-s) 0;
+}
+.situation-key {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+}
+.situation-val { color: var(--ink-soft); font-size: 0.9rem; }
+
 /* the hero: the one thing that must land instantly */
 
 .hero {
@@ -509,14 +610,12 @@
   color: var(--ink-faint);
   margin-top: 0.8em;
 }
-.summary-list dd {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7em;
-  flex-wrap: wrap;
-  margin: 0.1em 0 0;
-}
+/* The value and its Change button run as one line of text. As a flex row they
+   wrapped the button onto a line of its own, where it read as belonging to the
+   next answer down. */
+.summary-list dd { margin: 0.1em 0 0; }
 .summary-value { color: var(--ink); }
+.summary-list dd .link { margin-left: 0.7em; }
 
 @media (min-width: 34rem) {
   .summary-list {
@@ -576,11 +675,41 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 .draft-warning { margin: var(--space) 0 var(--space-l); }
 
+/* The structure the read prescribed, sitting directly above the fields that
+   fill it in. */
+.skeleton-block {
+  border-left: 2px solid var(--accent);
+  padding: var(--space-s) 0 var(--space-s) var(--space);
+  margin: 0 0 var(--space-l);
+}
+.skeleton-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.skeleton-block .skeleton { color: var(--ink-soft); margin-bottom: 0; }
+
 .draft-fields { margin-bottom: var(--space-l); }
-.draft-fields label { margin-top: var(--space-m); }
-.draft-fields label:first-child { margin-top: 0; }
+.draft-field { margin-top: var(--space-m); }
+.draft-field:first-child { margin-top: 0; }
+.draft-field label { margin-top: 0; }
 .draft-help { margin: 0 0 0.5em; font-size: 0.85rem; color: var(--ink-faint); }
 .draft-fields textarea { min-height: 3.4em; }
+
+/* A field prefilled from the wizard. Marked, because it is raw and it needs
+   editing, and unmarked the instant it is touched. */
+.draft-field[data-seeded] textarea { border-color: var(--accent); }
+.draft-carried {
+  margin: 0 0 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-text);
+}
 
 .draft-missing {
   font-family: var(--font-mono);
@@ -591,6 +720,17 @@ main[data-view="wizard"] .site-foot { display: none; }
   margin-bottom: var(--space-l);
 }
 .draft-missing[hidden] { display: none; }
+
+/* The output column tracks the fields as they are filled in, so it stays put
+   while the left side is being typed into. */
+@media (min-width: 76rem) {
+  .draft-right {
+    position: sticky;
+    top: var(--space);
+    align-self: start;
+  }
+  .draft-right .draft-out:first-child { border-top: 0; padding-top: 0; }
+}
 
 .draft-out {
   border-top: 1px solid var(--line);
@@ -966,4 +1106,23 @@ main[data-view="wizard"] .site-foot { display: none; }
   .case-body { animation: none; }
   .case, .sources li { break-inside: avoid; }
   .cite { border-left: 2px solid var(--line); }
+  /* Paper is one column. Side by side on a page break is how a plan ends up
+     printed away from the half of the plan it belongs to. */
+  .duo { display: block; }
+  .duo > .duo-col + .duo-col {
+    border-left: 0;
+    padding-left: 0;
+    margin-top: var(--space-l);
+  }
+  .duo-panel {
+    width: auto;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .duo-col { break-inside: avoid; }
+  .situation-quote { border-left: 2px solid var(--line); }
+  .skeleton-block { border-left: 2px solid var(--line); }
+  .draft-carried { display: none; }
 }

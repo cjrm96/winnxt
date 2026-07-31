@@ -506,8 +506,14 @@
     tiles.appendChild(tile('Strategy', r.scct.strategy));
     box.appendChild(tiles);
 
+    // What they actually described, in their own words, directly under the
+    // verdict. A tester typed the whole story into the wizard and then never
+    // saw it again, which made the read feel like it had been produced about
+    // somebody else's situation.
+    renderSituation();
+
     // Risk meter.
-    var risk = el('section', { class: 'report-block' });
+    var risk = el('div', { class: 'duo-col' });
     risk.appendChild(el('h2', { text: 'Risk level' }));
     risk.appendChild(el('p', { class: 'sub-head', text: r.risk.name }));
     var meter = el('div', { class: 'meter', role: 'img', 'aria-label': 'Risk level: ' + r.risk.name });
@@ -524,13 +530,12 @@
         dl.appendChild(el('dd', { text: p[1] }));
       });
     risk.appendChild(dl);
-    box.appendChild(risk);
 
     // The tiles above already state the quadrant, the blame and the strategy.
     // Repeating those headlines here and then explaining them was saying the
     // same thing twice within one screen, so this block carries the reasoning
     // only.
-    var why = el('section', { class: 'report-block' });
+    var why = el('div', { class: 'duo-col' });
     why.appendChild(el('h2', { text: 'Why this read' }));
     why.appendChild(el('p', { class: 'posture', text: r.quadrant.posture }));
     why.appendChild(el('p', { text: r.quadrant.detail }));
@@ -541,7 +546,11 @@
     why.appendChild(cite(window.CrisisEvidence.scct));
     var callCite = window.CrisisEvidence.forCall(r.call.publish);
     if (callCite) why.appendChild(cite(callCite));
-    box.appendChild(why);
+
+    // The reasoning and the risk grade answer the same question from two
+    // directions, so they sit beside each other rather than costing two
+    // screens of scrolling.
+    box.appendChild(duoPanel(why, risk));
 
     if (r.channel && r.call.publish !== 'no') {
       var ch = el('section', { class: 'report-block' });
@@ -551,23 +560,63 @@
       box.appendChild(ch);
     }
 
-    var sk = el('section', { class: 'report-block' });
-    sk.appendChild(el('h2', { text: 'Build the statement' }));
-    sk.appendChild(el('p', { class: 'sub-head', text: r.skeleton.title }));
-    var ol = el('ol', { class: 'skeleton' });
-    r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
-    sk.appendChild(ol);
-    sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
-    box.appendChild(sk);
-
-    renderDraft(r);
+    // Order below is the order somebody in a crisis needs it: what to do, the
+    // proof that this is what worked for other people, and only then the words
+    // to say. Drafting used to come before the plan and before the precedent,
+    // which asked the user to write a statement before being told whether the
+    // situation warranted one.
     renderPlan(r);
-    renderCases(r);        // right after the advice, the persuasive part
-    renderSources(r);
-    renderSummary();       // a receipt, so it sits after everything it records
+    renderCases(r);
+    renderDraft(r);        // the skeleton and the fields, together, at the end
+    renderReceipts(r);     // sources and the answer log, side by side, last
     renderHandoff();
     setupVerdictBar(r);    // after the hero exists, since that is what gets observed
     maybeWarnAboutSafety();
+  }
+
+  // Their own words, quoted back. Nothing is interpreted here; the point is
+  // that the read is visibly about the thing they described.
+  function renderSituation() {
+    var a = state.answers;
+    if (!a.what && !a.truePart) return;
+    var box = document.getElementById('read');
+
+    var wrap = el('section', { class: 'report-block situation' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'The situation you described' }));
+
+    if (a.what) wrap.appendChild(el('blockquote', { class: 'situation-quote', text: a.what }));
+    if (a.truePart) {
+      wrap.appendChild(el('p', { class: 'situation-label', text: 'The part you said is true' }));
+      wrap.appendChild(el('blockquote', { class: 'situation-quote', text: a.truePart }));
+    }
+
+    var facts = el('ul', { class: 'situation-facts' });
+    [
+      ['Surfaced on', labelOf('where')],
+      ['Spread', labelOf('spread')],
+      [T('Damage with {audience}'), labelOf('harm')],
+      [T('{deadlineShort}'), a.daysOut ? a.daysOut + ' days' : '']
+    ].forEach(function (f) {
+      if (!f[1]) return;
+      var li = el('li');
+      li.appendChild(el('span', { class: 'situation-key', text: f[0] }));
+      li.appendChild(el('span', { class: 'situation-val', text: f[1] }));
+      facts.appendChild(li);
+    });
+    wrap.appendChild(facts);
+    box.appendChild(wrap);
+  }
+
+  // One label for the pair, above both, so the two headings start on the same
+  // line instead of one being pushed down by an eyebrow the other lacks.
+  function duoPanel(a, b, eyebrow) {
+    var panel = el('section', { class: 'report-block panel duo-panel' });
+    if (eyebrow) panel.appendChild(el('p', { class: 'eyebrow', text: eyebrow }));
+    var grid = el('div', { class: 'duo' });
+    grid.appendChild(a);
+    grid.appendChild(b);
+    panel.appendChild(grid);
+    return panel;
   }
 
   // The report runs to several screens. Once the verdict scrolls away the
@@ -651,13 +700,48 @@
   // --- the draft ----------------------------------------------------------
 
   var draftValues = {};
+  // Which fields were filled from the wizard rather than typed here. Used only
+  // to show the "carried over, tidy it up" note, which disappears the moment
+  // the field is touched.
+  var seeded = {};
+
+  // What somebody typed in the wizard is the same material the statement needs,
+  // so it arrives already in the box instead of being asked for twice. It is
+  // never overwritten: anything already typed here wins.
+  function seedDraft(r) {
+    var a = state.answers;
+    var ids = window.CrisisStatements.slotsFor(r.quadrantKey).map(function (s) { return s.id; });
+    var isFalse = r.quadrantKey.indexOf('false-') === 0;
+
+    function put(id, text) {
+      if (ids.indexOf(id) === -1) return;
+      if (!text || !String(text).trim()) return;
+      if (draftValues[id] && draftValues[id].trim()) return;
+      draftValues[id] = String(text).trim();
+      seeded[id] = true;
+    }
+
+    if (isFalse) {
+      // What they described is the claim being made about them; the part they
+      // said was true is the fact that replaces it.
+      put('claim', a.what);
+      put('truth', a.truePart);
+    } else {
+      // Only what happened. "Which part is true" is not the same thing as
+      // "the context that matters", and dropping it into that slot produced a
+      // statement that argued with itself. It still reaches the report, the
+      // answer log and the handoff.
+      put('happened', a.what);
+    }
+  }
 
   function renderDraft(r) {
-    var box = document.getElementById('read');
+    var box = document.getElementById('plan');
     var mode = window.CrisisStatements.modeFor(r.call.publish);
     var slots = window.CrisisStatements.slotsFor(r.quadrantKey);
+    seedDraft(r);
 
-    var wrap = el('section', { class: 'report-block draft-block' });
+    var wrap = el('section', { class: 'report-block draft-block panel duo-panel' });
     wrap.appendChild(el('p', { class: 'eyebrow', text: 'Draft it' }));
 
     if (mode === 'reactive') {
@@ -679,25 +763,62 @@
     note.appendChild(el('p', { text: 'These are written in a flat, neutral voice on purpose. Put them into your own words before anything goes out. It should sound like you, or like your organisation, and not like a tool. If any part of this touches a legal question, have a lawyer read it first.' }));
     wrap.appendChild(note);
 
+    // The structure used to sit several blocks above the fields that implement
+    // it. It belongs here, next to the work it describes.
+    var sk = el('div', { class: 'skeleton-block' });
+    sk.appendChild(el('h3', { class: 'skeleton-title', text: r.skeleton.title }));
+    var ol = el('ol', { class: 'skeleton' });
+    r.skeleton.steps.forEach(function (s) { ol.appendChild(el('li', { text: s })); });
+    sk.appendChild(ol);
+    wrap.appendChild(sk);
+
+    // Fields on one side, the statement they are assembling on the other, so
+    // the effect of a sentence is visible while it is being typed instead of
+    // three screens further down.
+    var grid = el('div', { class: 'duo draft-duo' });
+    var left = el('div', { class: 'duo-col draft-left' });
+    var right = el('div', { class: 'duo-col draft-right' });
+
     var fields = el('div', { class: 'draft-fields' });
     slots.forEach(function (slot) {
       var id = 'draft-' + slot.id;
-      fields.appendChild(el('label', { for: id, text: slot.label + (slot.required ? '' : ' (optional)') }));
-      fields.appendChild(el('p', { class: 'help draft-help', text: slot.help }));
+      var field = el('div', { class: 'draft-field' });
+      field.appendChild(el('label', { for: id, text: slot.label + (slot.required ? '' : ' (optional)') }));
+      field.appendChild(el('p', { class: 'help draft-help', text: slot.help }));
       var input = el('textarea', { id: id, rows: '2', placeholder: slot.placeholder });
       input.value = draftValues[slot.id] || '';
+      // A carried-over answer can be a paragraph. Two rows would hide most of
+      // it behind a scrollbar, which defeats the point of showing it back.
+      if (input.value.length > 90) input.rows = Math.min(7, Math.ceil(input.value.length / 60) + 1);
+      if (seeded[slot.id]) {
+        field.setAttribute('data-seeded', '');
+        field.appendChild(el('p', { class: 'draft-carried', text: 'Carried over from your answer. Cut it down to one clean sentence.' }));
+      }
       input.addEventListener('input', function () {
         draftValues[slot.id] = input.value;
+        if (seeded[slot.id]) {
+          seeded[slot.id] = false;
+          field.removeAttribute('data-seeded');
+          var n = field.querySelector('.draft-carried');
+          if (n) n.parentNode.removeChild(n);
+        }
         refreshDrafts(r);
       });
-      fields.appendChild(input);
+      field.appendChild(input);
+      fields.appendChild(field);
     });
-    wrap.appendChild(fields);
+    left.appendChild(fields);
+    left.appendChild(el('p', { class: 'draft-missing', id: 'draft-missing' }));
 
-    wrap.appendChild(el('p', { class: 'draft-missing', id: 'draft-missing' }));
-    wrap.appendChild(outputBlock('First hour: the holding line', 'holding', r, false));
-    wrap.appendChild(outputBlock(mode === 'prepare' ? 'Ready to publish if it spreads' : 'The statement', 'short', r, false));
-    wrap.appendChild(outputBlock('Longer version, for a site or a letter', 'long', r, false));
+    // Chronological: the line for the next hour, the statement, then the long
+    // version for a page somebody reads later.
+    right.appendChild(outputBlock('First hour: the holding line', 'holding', r, false));
+    right.appendChild(outputBlock(mode === 'prepare' ? 'Ready to publish if it spreads' : 'The statement', 'short', r, false));
+    right.appendChild(outputBlock('Longer version, for a site or a letter', 'long', r, false));
+
+    grid.appendChild(left);
+    grid.appendChild(right);
+    wrap.appendChild(grid);
 
     box.appendChild(wrap);
     refreshDrafts(r);
@@ -759,8 +880,7 @@
     var box = document.getElementById('plan');
     box.textContent = '';
 
-    var seq = el('section', { class: 'report-block plan-block panel' });
-    seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
+    var seq = el('div', { class: 'duo-col plan-block' });
     seq.appendChild(el('h2', { text: 'What to do, in order' }));
     // Grouped by time band. Repeating "TODAY" over four consecutive steps read
     // as noise; one heading per band reads as a schedule.
@@ -774,14 +894,14 @@
       }
       ol.appendChild(el('li', {}, [el('span', { class: 'what', text: item.what })]));
     });
-    box.appendChild(seq);
 
-    var no = el('section', { class: 'report-block donts-block panel' });
+    var no = el('div', { class: 'duo-col donts-block' });
     no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
     no.appendChild(ul);
-    box.appendChild(no);
+
+    box.appendChild(duoPanel(seq, no, 'Do this'));
   }
 
   function renderCases(r) {
@@ -837,13 +957,20 @@
     return card;
   }
 
-  function renderSources(r) {
-    var ev = window.CrisisEvidence.forAssessment(r, state.answers);
-    if (!ev.citations.length) return;
-    var box = document.getElementById('plan');
+  // The two blocks nobody reads first and everybody wants later: where the
+  // advice came from, and what they told it. Paired, and at the very end.
+  function renderReceipts(r) {
+    var box = document.getElementById('summary-slot');
+    box.textContent = '';
+    var src = sourcesColumn(r);
+    box.appendChild(duoPanel(src, summaryColumn(), src.childNodes.length ? 'Evidence' : ''));
+  }
 
-    var src = el('section', { class: 'report-block sources-block' });
-    src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
+  function sourcesColumn(r) {
+    var ev = window.CrisisEvidence.forAssessment(r, state.answers);
+    var src = el('div', { class: 'duo-col sources-block' });
+    if (!ev.citations.length) return src;
+
     src.appendChild(el('h2', { text: 'Why this is the advice' }));
     src.appendChild(el('p', { class: 'note', text: 'Everything above traces back to these. Look any of it up. None of it is ours.' }));
     // The claims are already stated inline beside the advice they support, so
@@ -853,13 +980,11 @@
       ol.appendChild(el('li', {}, [el('span', { class: 'source-ref', text: c.source })]));
     });
     src.appendChild(ol);
-    box.appendChild(src);
+    return src;
   }
 
-  function renderSummary() {
-    var box = document.getElementById('summary-slot');
-    box.textContent = '';
-    var wrap = el('section', { class: 'report-block summary' });
+  function summaryColumn() {
+    var wrap = el('div', { class: 'duo-col summary' });
     wrap.appendChild(el('h2', { text: 'What you told it' }));
 
     var list = el('dl', { class: 'summary-list' });
@@ -878,7 +1003,7 @@
       list.appendChild(dd);
     });
     wrap.appendChild(list);
-    box.appendChild(wrap);
+    return wrap;
   }
 
   // ---- handoff -----------------------------------------------------------
@@ -986,6 +1111,8 @@
     document.getElementById('btn-restart').addEventListener('click', function () {
       if (!confirm('Clear your answers and start over? This cannot be undone.')) return;
       state = { answers: {} };
+      draftValues = {};
+      seeded = {};
       step = 0;
       goto('intro');
     });
