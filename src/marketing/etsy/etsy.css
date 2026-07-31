@@ -142,37 +142,67 @@ h1 {
 
 /* ---- 1: cover ------------------------------------------------------------ */
 
-/* An inline SVG in a flex column stretches, and preserveAspectRatio then
-   centres the artwork inside it. Pin it left. */
-.cover .lockup { align-self: flex-start; margin-bottom: 18px; }
-.cover h1 { font-size: 82px; }
-.cover .sub {
+/* Tighter than the others on purpose. On the cover, margin is wasted frame. */
+.cover { padding: 0; }
+
+.cover-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 24px 14px;
+}
+
+.cover-mark { height: 30px; width: auto; flex: none; color: var(--ink); }
+
+.cover-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* The whole point of the image. Sized to run nearly edge to edge, because a
+   headline that fills the frame is the only thing that survives the grid. */
+.mega {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 38px;
-  line-height: 0.9;
+  font-size: 164px;
+  line-height: 0.78;
+  letter-spacing: -0.035em;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
-  margin: 4px 0 0;
+  margin: 0;
+  padding: 0 24px;
+  color: var(--ink);
 }
-.cover .strap { margin-top: 18px; max-width: 330px; }
-.cover .rule { height: 1px; background: var(--line); margin: 20px 0 0; }
 
-.tagrow {
-  display: flex;
-  gap: 6px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-.tag {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.14em;
+/* Full bleed, so there is one hard horizontal edge that reads as structure at
+   any size, and so the red is a block rather than a detail. */
+.redbar {
+  margin-top: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
-  color: var(--ink-soft);
-  border: 1px solid var(--line-strong);
-  padding: 5px 8px;
+  padding: 8px 24px 10px;
 }
+
+.pitch {
+  margin: 0;
+  padding: 18px 24px 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  max-width: 400px;
+}
+
+.cover .band { margin: auto 0 0; padding: 10px 24px; }
 
 /* ---- 2: the five calls --------------------------------------------------- */
 
