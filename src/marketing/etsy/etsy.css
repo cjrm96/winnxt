@@ -1,0 +1,323 @@
+/* Etsy listing images. 500x500 by design, rendered at 4x so the same artwork
+   ships as a 2000x2000 PNG, which is what Etsy actually wants.
+
+   Everything is sized for the grid thumbnail, which is roughly 230px wide. If a
+   line of type would not survive being halved twice, it does not belong here.
+   Same tokens as the tool, so the listing and the product look like one thing. */
+
+:root {
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --bg: #0A0A0B;
+  --surface: #131315;
+  --line: #1F1F22;
+  --line-strong: #333338;
+  --ink: #FFFFFF;
+  --ink-soft: #C9C9CE;
+  --ink-faint: #9A9AA0;
+  --accent: #C9302C;
+  --accent-text: #E0413C;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #202024; }
+
+.ad {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 32px 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shared furniture --------------------------------------------------- */
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.meta .lit { color: var(--accent-text); }
+
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  line-height: 0.85;
+  margin: 0;
+  color: var(--ink);
+}
+
+.outline {
+  color: transparent;
+  -webkit-text-stroke: 1.6px var(--ink);
+}
+
+.red { color: var(--accent-text); }
+
+.strap {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.body { flex: 1; display: flex; flex-direction: column; padding-top: 22px; }
+.push { margin-top: auto; }
+
+/* The red band, as on the site. Full bleed at the bottom of the frame. */
+.band {
+  margin: 0 -32px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 9px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footnote {
+  margin: 0 -32px;
+  padding: 12px 32px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+
+.footnote strong { color: var(--ink-soft); font-weight: 600; }
+
+/* ---- 1: cover ------------------------------------------------------------ */
+
+/* An inline SVG in a flex column stretches, and preserveAspectRatio then
+   centres the artwork inside it. Pin it left. */
+.cover .lockup { align-self: flex-start; margin-bottom: 18px; }
+.cover h1 { font-size: 82px; }
+.cover .sub {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 38px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 4px 0 0;
+}
+.cover .strap { margin-top: 18px; max-width: 330px; }
+.cover .rule { height: 1px; background: var(--line); margin: 20px 0 0; }
+
+.tagrow {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px solid var(--line-strong);
+  padding: 5px 8px;
+}
+
+/* ---- 2: the five calls --------------------------------------------------- */
+
+.calls h1 { font-size: 50px; }
+.calls .list { margin: 22px 0 0; padding: 0; list-style: none; }
+.calls .list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.calls .list li:last-child { border-bottom: 1px solid var(--line); }
+.calls .n { color: var(--accent-text); font-size: 9px; flex: none; width: 14px; }
+.calls .list li.is-on { color: var(--ink); }
+
+/* ---- 3: the product shot ------------------------------------------------- */
+
+.shot .verdict {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 70px;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  margin: 0;
+}
+
+.shot .line {
+  margin: 14px 0 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--accent);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 360px;
+}
+
+.meter { display: flex; gap: 1px; margin-top: 30px; background: var(--line); }
+.meter span {
+  flex: 1;
+  padding: 8px 0;
+  text-align: center;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.meter span.is-on { background: var(--accent); color: #fff; font-weight: 700; }
+
+.steps { margin: 26px 0 0; padding: 0; list-style: none; }
+.steps li {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  padding: 8px 0;
+}
+.steps b {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--accent-text);
+  flex: none;
+  width: 64px;
+  text-transform: uppercase;
+}
+
+/* ---- 4: precedent -------------------------------------------------------- */
+
+.cases h1 { font-size: 50px; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 22px;
+  margin-top: 20px;
+}
+.grid div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.grid .yr {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--ink-faint);
+  flex: none;
+}
+
+/* ---- 5: what you get ----------------------------------------------------- */
+
+.gets h1 { font-size: 52px; }
+.gets ul { margin: 20px 0 0; padding: 0; list-style: none; }
+.gets li {
+  position: relative;
+  padding: 0 0 0 20px;
+  margin-bottom: 22px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.gets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+}
+.gets li strong { color: var(--ink); font-weight: 600; }
+
+.files {
+  display: flex;
+  gap: 8px;
+  margin-top: 28px;
+}
+.file {
+  flex: 1;
+  border: 1px solid var(--line-strong);
+  padding: 15px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.file span { display: block; color: var(--ink-faint); font-size: 7.5px; margin-top: 4px; letter-spacing: 0.14em; }
+
+/* ---- the mark ------------------------------------------------------------ */
+
+.mark { height: 34px; width: auto; color: var(--ink); }
+.lockup { height: 40px; width: auto; color: var(--ink); }

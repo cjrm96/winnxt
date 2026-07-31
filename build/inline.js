@@ -103,6 +103,11 @@ function build(entry, out) {
   console.log('built ' + path.relative(ROOT, out) + ' (' + kb + ' KB)');
 }
 
+module.exports = { inline, build };
+
+// Importable as a module (build/etsy.js uses it) as well as runnable.
+if (require.main !== module) return;
+
 const args = process.argv.slice(2);
 
 if (args[0] === '--all') {

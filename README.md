@@ -64,6 +64,29 @@ Chromium. The renderer fails the build if the page makes a network request,
 which is the same guarantee the tools carry, and the reason the brand fonts are
 embedded rather than linked.
 
+## Listing images
+
+`npm run etsy` renders `src/marketing/etsy/ad-*.html` to `dist/etsy/*.png`. They
+are laid out at 500x500 and screenshotted at a device scale of 4, so what Etsy
+receives is 2000x2000, which is what it actually wants.
+
+| Image | Job |
+|---|---|
+| `1-cover.png` | What it is, who it is for. Has to work as a 230px thumbnail. |
+| `2-calls.png` | The five verdicts, led on the one nothing else offers: say nothing. |
+| `3-report.png` | The actual output. Verdict, risk level, plan in order. |
+| `4-precedent.png` | The case library. Credibility. |
+| `5-format.png` | One file, nothing saved, **not a Canva template**. |
+
+That last one is not optional. The rest of the shop is Canva templates, so a
+buyer arrives expecting a share link and a printable. The listing has to say
+plainly that this is an interactive file, or the refunds and one-star reviews
+write themselves.
+
+The renderer fails on a network request and on any layout that overflows its
+square, because the frame crops rather than breaks and a clipped last line is
+easy to miss.
+
 ## Test
 
 ```
