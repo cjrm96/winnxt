@@ -653,6 +653,25 @@ async function start(page) {
     await page.locator('.session-head').textContent());
   await page.setViewportSize({ width: 1100, height: 900 });
 
+  // --- the companion tool -------------------------------------------------
+  //
+  // The two tools are halves of one job: one for before anything happens, one
+  // for the hour after. Each report points at the other.
+
+  const sib = await page.locator('.sibling').textContent();
+  check('the report points at the companion tool',
+    /Crisis Triage and Rapid Response/.test(sib), sib.slice(0, 80));
+  check('the cross-sell links to the shop',
+    (await page.locator('.sibling .cta-link').getAttribute('href')) === 'https://www.etsy.com/shop/WINNXTetsy');
+  check('the cross-sell sits below the ask for a professional, not above it',
+    await page.evaluate(() => {
+      const cta = document.querySelector('.cta');
+      const sib = document.querySelector('.sibling');
+      return !!(cta.compareDocumentPosition(sib) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }));
+  check('the cross-sell never prints', await page.locator('.sibling').evaluate(
+    e => e.classList.contains('no-print')));
+
   check('still zero network requests at end', requests.length === 0, requests.join(', '));
   check('still no errors at end', errors.length === 0, errors.join(' | '));
 

@@ -1304,3 +1304,18 @@ main[data-view="wizard"] .site-foot { display: none; }
     margin-right: calc((100% - var(--wide)) / 2);
   }
 }
+
+/* ---- the companion tool ------------------------------------------------- */
+
+/* Quieter than the closing CTA above it. This is a suggestion, not the ask,
+   and it should not compete with getting a professional on the phone. */
+.sibling {
+  border-top: 1px solid var(--line);
+  margin-top: var(--space-l);
+}
+.sibling h2 { font-size: 1.35rem; }
+.sibling-name {
+  margin: var(--space-s) 0;
+  color: var(--accent-text);
+  font-weight: 700;
+}
