@@ -560,6 +560,7 @@
     sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
     box.appendChild(sk);
 
+    renderDraft(r);
     renderPlan(r);
     renderCases(r);        // right after the advice, the persuasive part
     renderSources(r);
@@ -647,11 +648,118 @@
     return box;
   }
 
+  // --- the draft ----------------------------------------------------------
+
+  var draftValues = {};
+
+  function renderDraft(r) {
+    var box = document.getElementById('read');
+    var mode = window.CrisisStatements.modeFor(r.call.publish);
+    var slots = window.CrisisStatements.slotsFor(r.quadrantKey);
+
+    var wrap = el('section', { class: 'report-block draft-block' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Draft it' }));
+
+    if (mode === 'reactive') {
+      wrap.appendChild(el('h2', { text: 'Do not publish anything' }));
+      wrap.appendChild(el('p', { text: 'The read says stay quiet, so there is nothing here to post. What you need is one line for the moment somebody asks you directly, and that is all.' }));
+      wrap.appendChild(outputBlock('If you are asked directly', 'holding', r, true));
+      box.appendChild(wrap);
+      return;
+    }
+
+    wrap.appendChild(el('h2', { text: mode === 'prepare' ? 'Write it now, publish it later' : 'Your statement' }));
+    wrap.appendChild(el('p', {
+      text: mode === 'prepare'
+        ? 'The read says hold. Write it while you are calm rather than at the moment it spreads, then keep it in your pocket.'
+        : 'Fill in your own words below. The structure comes from the read above; the substance has to be yours.'
+    }));
+
+    var note = el('div', { class: 'callout callout-warn draft-warning' });
+    note.appendChild(el('p', { text: 'These are written in a flat, neutral voice on purpose. Put them into your own words before anything goes out. It should sound like you, or like your organisation, and not like a tool. If any part of this touches a legal question, have a lawyer read it first.' }));
+    wrap.appendChild(note);
+
+    var fields = el('div', { class: 'draft-fields' });
+    slots.forEach(function (slot) {
+      var id = 'draft-' + slot.id;
+      fields.appendChild(el('label', { for: id, text: slot.label + (slot.required ? '' : ' (optional)') }));
+      fields.appendChild(el('p', { class: 'help draft-help', text: slot.help }));
+      var input = el('textarea', { id: id, rows: '2', placeholder: slot.placeholder });
+      input.value = draftValues[slot.id] || '';
+      input.addEventListener('input', function () {
+        draftValues[slot.id] = input.value;
+        refreshDrafts(r);
+      });
+      fields.appendChild(input);
+    });
+    wrap.appendChild(fields);
+
+    wrap.appendChild(el('p', { class: 'draft-missing', id: 'draft-missing' }));
+    wrap.appendChild(outputBlock('First hour: the holding line', 'holding', r, false));
+    wrap.appendChild(outputBlock(mode === 'prepare' ? 'Ready to publish if it spreads' : 'The statement', 'short', r, false));
+    wrap.appendChild(outputBlock('Longer version, for a site or a letter', 'long', r, false));
+
+    box.appendChild(wrap);
+    refreshDrafts(r);
+  }
+
+  function outputBlock(title, kind, r, soloed) {
+    var block = el('div', { class: 'draft-out', 'data-kind': kind });
+    var head = el('div', { class: 'draft-out-head' });
+    head.appendChild(el('h3', { text: title }));
+    head.appendChild(el('span', { class: 'draft-count', id: 'count-' + kind }));
+    block.appendChild(head);
+
+    var pre = el('pre', { class: 'draft-text', id: 'draft-text-' + kind });
+    block.appendChild(pre);
+
+    var btn = el('button', { type: 'button', class: 'secondary no-print' });
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      window.WinnxtExport.copyText(pre.textContent, function (ok) {
+        btn.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2200);
+      });
+    });
+    block.appendChild(btn);
+
+    if (soloed) block.setAttribute('data-solo', '');
+    return block;
+  }
+
+  function refreshDrafts(r) {
+    ['holding', 'short', 'long'].forEach(function (kind) {
+      var pre = document.getElementById('draft-text-' + kind);
+      if (!pre) return;
+      var text = window.CrisisStatements.build(r, draftValues, kind);
+      pre.textContent = text;
+      var count = document.getElementById('count-' + kind);
+      if (count) count.textContent = window.CrisisStatements.words(text) + ' words';
+    });
+
+    // The handoff quotes the draft, so it has to move when the draft moves.
+    renderHandoff();
+
+    var gap = document.getElementById('draft-missing');
+    if (!gap) return;
+    var need = window.CrisisStatements.missing(r.quadrantKey, draftValues);
+    if (!need.length) {
+      gap.textContent = '';
+      gap.setAttribute('hidden', '');
+    } else {
+      var labels = window.CrisisStatements.slotsFor(r.quadrantKey)
+        .filter(function (s) { return need.indexOf(s.id) !== -1; })
+        .map(function (s) { return s.label.toLowerCase(); });
+      gap.textContent = 'Still blank, and the draft will read as unfinished without it: ' + labels.join('; ') + '.';
+      gap.removeAttribute('hidden');
+    }
+  }
+
   function renderPlan(r) {
     var box = document.getElementById('plan');
     box.textContent = '';
 
-    var seq = el('section', { class: 'report-block plan-block' });
+    var seq = el('section', { class: 'report-block plan-block panel' });
     seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
     seq.appendChild(el('h2', { text: 'What to do, in order' }));
     // Grouped by time band. Repeating "TODAY" over four consecutive steps read
@@ -668,7 +776,7 @@
     });
     box.appendChild(seq);
 
-    var no = el('section', { class: 'report-block donts-block' });
+    var no = el('section', { class: 'report-block donts-block panel' });
     no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
@@ -681,7 +789,7 @@
     if (!ev.cases.length) return;
     var box = document.getElementById('plan');
 
-    var wrap = el('section', { class: 'report-block cases-block' });
+    var wrap = el('section', { class: 'report-block cases-block panel' });
     wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
     wrap.appendChild(el('h2', { text: 'How this has gone before' }));
     wrap.appendChild(el('p', { class: 'note', text: 'People who faced the decision you are facing now, and what it cost or saved them. Different scale, same mechanics.' }));
@@ -789,7 +897,7 @@
       asks.push('Draft the statement I would put out if this spreads, so it is ready and I am not writing it under pressure.');
       asks.push('Tell me what specifically would signal that it is time to publish.');
     } else {
-      asks.push('Draft a short statement using the structure above. Under 120 words, in plain speech, no jargon and no press-release voice.');
+      asks.push('I have a rough draft below in a flat neutral voice. Rewrite it so it sounds like a real person speaking, keep it under 120 words, and cut anything that reads as press-release language.');
       asks.push('Draft a longer version for my website or a letter, under 350 words.');
       asks.push(T('Write the two sentences I want {supportersShort} repeating on my behalf.'));
       asks.push('Give me the five hardest follow-up questions I will get, and a straight answer to each.');
@@ -822,10 +930,17 @@
             'Call: ' + r.call.verdict
           ]
         },
-        { title: 'Statement structure to follow: ' + r.skeleton.title, items: r.skeleton.steps }
+        { title: 'Statement structure to follow: ' + r.skeleton.title, items: r.skeleton.steps },
+        { title: 'My draft so far', items: draftText(r) }
       ],
       asks: asks
     });
+  }
+
+  // Only pass the draft along when there is something in it beyond scaffolding.
+  function draftText(r) {
+    if (window.CrisisStatements.missing(r.quadrantKey, draftValues).length) return [];
+    return [window.CrisisStatements.build(r, draftValues, 'short')];
   }
 
   function renderHandoff() {

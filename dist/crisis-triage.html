@@ -880,6 +880,31 @@ button.link:hover { transform: none; background: none; color: var(--ink); }
   max-width: var(--measure);
 }
 
+/* Alternating panels, so a long report reads as a sequence of blocks rather
+   than one column of text. Squared off: the brand has no rounded corners
+   anywhere, and softening them here would make this the one screen that does
+   not belong to it. */
+.report-block.panel {
+  background: var(--bg-soft);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-l) var(--space-m);
+  margin: var(--space-l) 0;
+}
+
+@media (min-width: 40rem) {
+  .report-block.panel {
+    /* Slightly wider than the reading column, so the panel reads as ground the
+       text sits on rather than as a box around it. */
+    margin-left: calc(var(--space-m) * -1);
+    margin-right: calc(var(--space-m) * -1);
+    padding-left: var(--space-l);
+    padding-right: var(--space-l);
+  }
+}
+
+.panel + .panel { margin-top: calc(var(--space-l) * -1 + 1px); }
+
 /* the hero: the one thing that must land instantly */
 
 .hero {
@@ -1172,6 +1197,66 @@ main[data-view="wizard"] .site-foot { display: none; }
   letter-spacing: 0.16em;
   color: var(--accent-text);
   margin: -0.2em 0 var(--space);
+}
+
+/* ---- the draft ---------------------------------------------------------- */
+
+.draft-warning { margin: var(--space) 0 var(--space-l); }
+
+.draft-fields { margin-bottom: var(--space-l); }
+.draft-fields label { margin-top: var(--space-m); }
+.draft-fields label:first-child { margin-top: 0; }
+.draft-help { margin: 0 0 0.5em; font-size: 0.85rem; color: var(--ink-faint); }
+.draft-fields textarea { min-height: 3.4em; }
+
+.draft-missing {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--warn);
+  margin-bottom: var(--space-l);
+}
+.draft-missing[hidden] { display: none; }
+
+.draft-out {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space);
+  margin-bottom: var(--space-l);
+}
+
+.draft-out[data-solo] { border-top: 0; padding-top: 0; }
+
+.draft-out-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space);
+  margin-bottom: var(--space-s);
+}
+
+.draft-out-head h3 { margin: 0; }
+
+.draft-count {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-ghost);
+  white-space: nowrap;
+}
+
+.draft-text {
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  color: var(--ink);
+  background: var(--bg-soft);
+  border-left: 2px solid var(--accent);
+  padding: var(--space) var(--space-m);
+  margin: 0 0 var(--space-s);
+  max-width: var(--measure);
 }
 
 /* ---- evidence ----------------------------------------------------------- */
@@ -1499,6 +1584,10 @@ main[data-view="wizard"] .site-foot { display: none; }
   .logo-lockup { height: 60pt; }
   .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
   /* A printed report is for reading later, so expand every case. */
+  .report-block.panel { background: none; margin: 0; padding: var(--space-l) 0; }
+  .draft-fields, .draft-warning { display: none; }
+  .draft-out { break-inside: avoid; }
+  .draft-text { background: none; border-left: 2px solid var(--line); }
   .case-more:not([open]) > *:not(summary) { display: block; }
   .case-more summary { display: none; }
   .case-body { animation: none; }
@@ -2507,6 +2596,229 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 </script>
 <script>
+// Statement assembly.
+//
+// Not templates. The connective tissue is ours and follows the structure the
+// read already prescribed; the substance is the user's own words. That is what
+// keeps five hundred campaigns from publishing the same paragraph, and what
+// keeps the tool from inventing facts about a situation it cannot see.
+//
+// Voice is deliberately neutral. These are not written in WINNXT's voice and
+// they should not go out in it either: they are scaffolding for someone else's
+// words, and the interface says so plainly.
+//
+// Two rules that must hold:
+//   1. When the read says stay quiet, this produces nothing publishable. Only
+//      the line to use if someone asks directly.
+//   2. Empty slots stay visibly empty. No plausible filler, ever, because
+//      filler is how somebody publishes something untrue about themselves.
+(function () {
+
+  var SLOTS = {
+    happened: {
+      label: 'What happened, in one sentence',
+      help: 'Plain and factual. No adjectives, no defending it yet.',
+      placeholder: 'In 2016 I posted something about the school budget that I would not write today.'
+    },
+    context: {
+      label: 'The context that matters',
+      help: 'Optional. Only include it if it is true and it would matter to someone who is not you.',
+      placeholder: 'It was written during a heated public argument about a bond measure.'
+    },
+    affected: {
+      label: 'Who it affected',
+      help: 'Name them specifically. A general apology to nobody in particular reads as no apology.',
+      placeholder: 'teachers in this district, and the families who read it'
+    },
+    fix: {
+      label: 'What you are doing about it',
+      help: 'Concrete enough that somebody could check whether you did it.',
+      placeholder: 'I have asked to meet the union directly this week, and I will report back publicly.'
+    },
+    claim: {
+      label: 'The claim being made',
+      help: 'State it once, briefly, in neutral words. You will mention it only once in the statement.',
+      placeholder: 'that I voted to cut the after-school programme'
+    },
+    truth: {
+      label: 'What is actually true',
+      help: 'The fact that replaces the claim. Lead with this, not with the denial.',
+      placeholder: 'I voted for the budget that funded the after-school programme in full.'
+    },
+    proof: {
+      label: 'The proof you can show',
+      help: 'Optional. The record, the document, the person who will confirm it by name.',
+      placeholder: 'The vote is in the minutes of the 12 March meeting.'
+    },
+    forward: {
+      label: 'What you want to get back to',
+      help: 'Optional. One clause. This is how you end without trailing off.',
+      placeholder: 'the work of getting class sizes down'
+    }
+  };
+
+  // Which slots a given read actually needs.
+  var SHAPE = {
+    'true-does':   ['happened', 'context', 'affected', 'fix', 'forward'],
+    'true-doesnt': ['happened', 'context', 'forward'],
+    'false-does':  ['truth', 'claim', 'proof', 'forward'],
+    'false-doesnt':['truth', 'claim']
+  };
+
+  var REQUIRED = {
+    'true-does':   ['happened', 'fix'],
+    'true-doesnt': ['happened'],
+    'false-does':  ['truth', 'claim'],
+    'false-doesnt':['truth', 'claim']
+  };
+
+  // The responsibility clause is the one place the blame type changes the
+  // words rather than the order. Getting this wrong in either direction is the
+  // classic failure the read already warned about.
+  var RESPONSIBILITY = {
+    preventable: {
+      own: 'That was my decision and my responsibility.',
+      sorry: 'I am sorry'
+    },
+    accidental: {
+      own: 'That was a mistake on my part. It was not what I intended, which does not undo it.',
+      sorry: 'I am sorry'
+    },
+    victim: {
+      own: 'I did not cause this, and I am not going to pretend otherwise.',
+      sorry: null
+    }
+  };
+
+  function has(v) { return typeof v === 'string' && v.trim().length > 0; }
+  function clean(v) { return String(v || '').trim().replace(/\s+$/, ''); }
+  function sentence(v) {
+    var t = clean(v);
+    if (!t) return '';
+    return /[.!?]$/.test(t) ? t : t + '.';
+  }
+
+  function slotsFor(quadrantKey) {
+    var ids = SHAPE[quadrantKey] || [];
+    var req = REQUIRED[quadrantKey] || [];
+    return ids.map(function (id) {
+      return {
+        id: id,
+        label: SLOTS[id].label,
+        help: SLOTS[id].help,
+        placeholder: SLOTS[id].placeholder,
+        required: req.indexOf(id) !== -1
+      };
+    });
+  }
+
+  function missing(quadrantKey, v) {
+    return (REQUIRED[quadrantKey] || []).filter(function (id) { return !has(v[id]); });
+  }
+
+  // --- the three lengths ---------------------------------------------------
+
+  function holding(q, scctKey, v) {
+    if (q === 'false-does' || q === 'false-doesnt') {
+      return 'I have seen the claim going around. It is not accurate. I am putting the facts together now and I will set them out today.';
+    }
+    if (q === 'true-doesnt') {
+      return has(v.happened)
+        ? 'Yes, that is accurate. ' + sentence(v.happened) + ' I am happy to talk about it.'
+        : 'Yes, that is accurate, and I am happy to talk about it.';
+    }
+    var lead = has(v.happened) ? sentence(v.happened) : 'I am aware of the reports.';
+    return lead + ' I am looking into it properly rather than reacting, and I will have more to say today.';
+  }
+
+  function short(q, scctKey, v) {
+    var out = [];
+
+    if (q === 'false-does' || q === 'false-doesnt') {
+      // Fact, then the claim once, then the fact again.
+      out.push(sentence(v.truth));
+      if (has(v.claim)) out.push('A claim is circulating ' + clean(v.claim).replace(/^that\s+/i, 'that ') + '. That is not true.');
+      if (has(v.proof)) out.push(sentence(v.proof));
+      out.push('The record is what it is, and it is not in dispute.');
+      if (has(v.forward)) out.push('I am going to keep my attention on ' + clean(v.forward) + '.');
+      return out.filter(Boolean).join(' ');
+    }
+
+    if (q === 'true-doesnt') {
+      out.push('I want to be straightforward about this.');
+      out.push(sentence(v.happened));
+      if (has(v.context)) out.push(sentence(v.context));
+      out.push('It is not something I have hidden and it is not something I am worried about.');
+      if (has(v.forward)) out.push('What I care about is ' + clean(v.forward) + '.');
+      return out.filter(Boolean).join(' ');
+    }
+
+    // true and damaging: admit, place it, own it, fix it, close.
+    var r = RESPONSIBILITY[scctKey] || RESPONSIBILITY.accidental;
+    out.push('I want to address this directly rather than let it be described for me.');
+    out.push(sentence(v.happened));
+    if (has(v.context)) out.push(sentence(v.context) + ' I am not offering that as an excuse.');
+    out.push(r.own);
+    if (r.sorry) {
+      out.push(has(v.affected) ? r.sorry + ' to ' + clean(v.affected) + '.' : r.sorry + '.');
+    }
+    if (has(v.fix)) out.push('Here is what I am doing about it. ' + sentence(v.fix));
+    if (has(v.forward)) out.push('Then I am getting back to ' + clean(v.forward) + '.');
+    return out.filter(Boolean).join(' ');
+  }
+
+  function long(q, scctKey, v) {
+    var body = short(q, scctKey, v);
+    var tail = [];
+
+    if (q === 'false-does' || q === 'false-doesnt') {
+      tail.push('I understand why anyone hearing this for the first time would want to check it, and I would rather people checked than took my word for it.');
+      tail.push('Anyone who wants to see the record can ask me for it directly and I will send it.');
+    } else if (q === 'true-doesnt') {
+      tail.push('If it would be useful to talk about it at more length, I am willing to do that.');
+    } else {
+      tail.push('I know that an explanation is not the same as a change, and that people will judge this on what happens next rather than on this statement.');
+      tail.push('I am not going to litigate this in comments. Anyone who wants to talk about it properly can contact me directly.');
+    }
+
+    return body + '\n\n' + tail.join(' ');
+  }
+
+  // --- what the read allows ------------------------------------------------
+
+  // The read comes first. If it says stay quiet, this produces a line for when
+  // somebody asks, and nothing that could be pasted into a post.
+  function modeFor(publish) {
+    if (publish === 'no') return 'reactive';
+    if (publish === 'hold') return 'prepare';
+    return 'publish';
+  }
+
+  function build(r, values, kind) {
+    var q = r.quadrantKey;
+    var scctKey = r.scctKey;
+    var v = values || {};
+    if (kind === 'holding') return holding(q, scctKey, v);
+    if (kind === 'long') return long(q, scctKey, v);
+    return short(q, scctKey, v);
+  }
+
+  function words(text) {
+    var t = clean(text);
+    return t ? t.split(/\s+/).length : 0;
+  }
+
+  window.CrisisStatements = {
+    slotsFor: slotsFor,
+    missing: missing,
+    build: build,
+    modeFor: modeFor,
+    words: words
+  };
+})();
+
+</script>
+<script>
 (function () {
   // This tool deliberately stores nothing. Not localStorage, not sessionStorage,
   // not a cookie. A candidate typing their worst moment into a shared family
@@ -3069,6 +3381,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     sk.appendChild(el('p', { class: 'note', text: 'This tool gives you the shape. Use the handoff below to get actual words.' }));
     box.appendChild(sk);
 
+    renderDraft(r);
     renderPlan(r);
     renderCases(r);        // right after the advice, the persuasive part
     renderSources(r);
@@ -3156,11 +3469,118 @@ main[data-view="wizard"] .site-foot { display: none; }
     return box;
   }
 
+  // --- the draft ----------------------------------------------------------
+
+  var draftValues = {};
+
+  function renderDraft(r) {
+    var box = document.getElementById('read');
+    var mode = window.CrisisStatements.modeFor(r.call.publish);
+    var slots = window.CrisisStatements.slotsFor(r.quadrantKey);
+
+    var wrap = el('section', { class: 'report-block draft-block' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Draft it' }));
+
+    if (mode === 'reactive') {
+      wrap.appendChild(el('h2', { text: 'Do not publish anything' }));
+      wrap.appendChild(el('p', { text: 'The read says stay quiet, so there is nothing here to post. What you need is one line for the moment somebody asks you directly, and that is all.' }));
+      wrap.appendChild(outputBlock('If you are asked directly', 'holding', r, true));
+      box.appendChild(wrap);
+      return;
+    }
+
+    wrap.appendChild(el('h2', { text: mode === 'prepare' ? 'Write it now, publish it later' : 'Your statement' }));
+    wrap.appendChild(el('p', {
+      text: mode === 'prepare'
+        ? 'The read says hold. Write it while you are calm rather than at the moment it spreads, then keep it in your pocket.'
+        : 'Fill in your own words below. The structure comes from the read above; the substance has to be yours.'
+    }));
+
+    var note = el('div', { class: 'callout callout-warn draft-warning' });
+    note.appendChild(el('p', { text: 'These are written in a flat, neutral voice on purpose. Put them into your own words before anything goes out. It should sound like you, or like your organisation, and not like a tool. If any part of this touches a legal question, have a lawyer read it first.' }));
+    wrap.appendChild(note);
+
+    var fields = el('div', { class: 'draft-fields' });
+    slots.forEach(function (slot) {
+      var id = 'draft-' + slot.id;
+      fields.appendChild(el('label', { for: id, text: slot.label + (slot.required ? '' : ' (optional)') }));
+      fields.appendChild(el('p', { class: 'help draft-help', text: slot.help }));
+      var input = el('textarea', { id: id, rows: '2', placeholder: slot.placeholder });
+      input.value = draftValues[slot.id] || '';
+      input.addEventListener('input', function () {
+        draftValues[slot.id] = input.value;
+        refreshDrafts(r);
+      });
+      fields.appendChild(input);
+    });
+    wrap.appendChild(fields);
+
+    wrap.appendChild(el('p', { class: 'draft-missing', id: 'draft-missing' }));
+    wrap.appendChild(outputBlock('First hour: the holding line', 'holding', r, false));
+    wrap.appendChild(outputBlock(mode === 'prepare' ? 'Ready to publish if it spreads' : 'The statement', 'short', r, false));
+    wrap.appendChild(outputBlock('Longer version, for a site or a letter', 'long', r, false));
+
+    box.appendChild(wrap);
+    refreshDrafts(r);
+  }
+
+  function outputBlock(title, kind, r, soloed) {
+    var block = el('div', { class: 'draft-out', 'data-kind': kind });
+    var head = el('div', { class: 'draft-out-head' });
+    head.appendChild(el('h3', { text: title }));
+    head.appendChild(el('span', { class: 'draft-count', id: 'count-' + kind }));
+    block.appendChild(head);
+
+    var pre = el('pre', { class: 'draft-text', id: 'draft-text-' + kind });
+    block.appendChild(pre);
+
+    var btn = el('button', { type: 'button', class: 'secondary no-print' });
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      window.WinnxtExport.copyText(pre.textContent, function (ok) {
+        btn.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2200);
+      });
+    });
+    block.appendChild(btn);
+
+    if (soloed) block.setAttribute('data-solo', '');
+    return block;
+  }
+
+  function refreshDrafts(r) {
+    ['holding', 'short', 'long'].forEach(function (kind) {
+      var pre = document.getElementById('draft-text-' + kind);
+      if (!pre) return;
+      var text = window.CrisisStatements.build(r, draftValues, kind);
+      pre.textContent = text;
+      var count = document.getElementById('count-' + kind);
+      if (count) count.textContent = window.CrisisStatements.words(text) + ' words';
+    });
+
+    // The handoff quotes the draft, so it has to move when the draft moves.
+    renderHandoff();
+
+    var gap = document.getElementById('draft-missing');
+    if (!gap) return;
+    var need = window.CrisisStatements.missing(r.quadrantKey, draftValues);
+    if (!need.length) {
+      gap.textContent = '';
+      gap.setAttribute('hidden', '');
+    } else {
+      var labels = window.CrisisStatements.slotsFor(r.quadrantKey)
+        .filter(function (s) { return need.indexOf(s.id) !== -1; })
+        .map(function (s) { return s.label.toLowerCase(); });
+      gap.textContent = 'Still blank, and the draft will read as unfinished without it: ' + labels.join('; ') + '.';
+      gap.removeAttribute('hidden');
+    }
+  }
+
   function renderPlan(r) {
     var box = document.getElementById('plan');
     box.textContent = '';
 
-    var seq = el('section', { class: 'report-block plan-block' });
+    var seq = el('section', { class: 'report-block plan-block panel' });
     seq.appendChild(el('p', { class: 'eyebrow', text: 'Do this' }));
     seq.appendChild(el('h2', { text: 'What to do, in order' }));
     // Grouped by time band. Repeating "TODAY" over four consecutive steps read
@@ -3177,7 +3597,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     });
     box.appendChild(seq);
 
-    var no = el('section', { class: 'report-block donts-block' });
+    var no = el('section', { class: 'report-block donts-block panel' });
     no.appendChild(el('h2', { text: 'What not to do' }));
     var ul = el('ul', { class: 'donts' });
     r.donts.forEach(function (d) { ul.appendChild(el('li', { text: d })); });
@@ -3190,7 +3610,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     if (!ev.cases.length) return;
     var box = document.getElementById('plan');
 
-    var wrap = el('section', { class: 'report-block cases-block' });
+    var wrap = el('section', { class: 'report-block cases-block panel' });
     wrap.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
     wrap.appendChild(el('h2', { text: 'How this has gone before' }));
     wrap.appendChild(el('p', { class: 'note', text: 'People who faced the decision you are facing now, and what it cost or saved them. Different scale, same mechanics.' }));
@@ -3298,7 +3718,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       asks.push('Draft the statement I would put out if this spreads, so it is ready and I am not writing it under pressure.');
       asks.push('Tell me what specifically would signal that it is time to publish.');
     } else {
-      asks.push('Draft a short statement using the structure above. Under 120 words, in plain speech, no jargon and no press-release voice.');
+      asks.push('I have a rough draft below in a flat neutral voice. Rewrite it so it sounds like a real person speaking, keep it under 120 words, and cut anything that reads as press-release language.');
       asks.push('Draft a longer version for my website or a letter, under 350 words.');
       asks.push(T('Write the two sentences I want {supportersShort} repeating on my behalf.'));
       asks.push('Give me the five hardest follow-up questions I will get, and a straight answer to each.');
@@ -3331,10 +3751,17 @@ main[data-view="wizard"] .site-foot { display: none; }
             'Call: ' + r.call.verdict
           ]
         },
-        { title: 'Statement structure to follow: ' + r.skeleton.title, items: r.skeleton.steps }
+        { title: 'Statement structure to follow: ' + r.skeleton.title, items: r.skeleton.steps },
+        { title: 'My draft so far', items: draftText(r) }
       ],
       asks: asks
     });
+  }
+
+  // Only pass the draft along when there is something in it beyond scaffolding.
+  function draftText(r) {
+    if (window.CrisisStatements.missing(r.quadrantKey, draftValues).length) return [];
+    return [window.CrisisStatements.build(r, draftValues, 'short')];
   }
 
   function renderHandoff() {

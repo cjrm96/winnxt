@@ -253,6 +253,31 @@
   max-width: var(--measure);
 }
 
+/* Alternating panels, so a long report reads as a sequence of blocks rather
+   than one column of text. Squared off: the brand has no rounded corners
+   anywhere, and softening them here would make this the one screen that does
+   not belong to it. */
+.report-block.panel {
+  background: var(--bg-soft);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-l) var(--space-m);
+  margin: var(--space-l) 0;
+}
+
+@media (min-width: 40rem) {
+  .report-block.panel {
+    /* Slightly wider than the reading column, so the panel reads as ground the
+       text sits on rather than as a box around it. */
+    margin-left: calc(var(--space-m) * -1);
+    margin-right: calc(var(--space-m) * -1);
+    padding-left: var(--space-l);
+    padding-right: var(--space-l);
+  }
+}
+
+.panel + .panel { margin-top: calc(var(--space-l) * -1 + 1px); }
+
 /* the hero: the one thing that must land instantly */
 
 .hero {
@@ -545,6 +570,66 @@ main[data-view="wizard"] .site-foot { display: none; }
   letter-spacing: 0.16em;
   color: var(--accent-text);
   margin: -0.2em 0 var(--space);
+}
+
+/* ---- the draft ---------------------------------------------------------- */
+
+.draft-warning { margin: var(--space) 0 var(--space-l); }
+
+.draft-fields { margin-bottom: var(--space-l); }
+.draft-fields label { margin-top: var(--space-m); }
+.draft-fields label:first-child { margin-top: 0; }
+.draft-help { margin: 0 0 0.5em; font-size: 0.85rem; color: var(--ink-faint); }
+.draft-fields textarea { min-height: 3.4em; }
+
+.draft-missing {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--warn);
+  margin-bottom: var(--space-l);
+}
+.draft-missing[hidden] { display: none; }
+
+.draft-out {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space);
+  margin-bottom: var(--space-l);
+}
+
+.draft-out[data-solo] { border-top: 0; padding-top: 0; }
+
+.draft-out-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space);
+  margin-bottom: var(--space-s);
+}
+
+.draft-out-head h3 { margin: 0; }
+
+.draft-count {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-ghost);
+  white-space: nowrap;
+}
+
+.draft-text {
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  color: var(--ink);
+  background: var(--bg-soft);
+  border-left: 2px solid var(--accent);
+  padding: var(--space) var(--space-m);
+  margin: 0 0 var(--space-s);
+  max-width: var(--measure);
 }
 
 /* ---- evidence ----------------------------------------------------------- */
@@ -872,6 +957,10 @@ main[data-view="wizard"] .site-foot { display: none; }
   .logo-lockup { height: 60pt; }
   .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
   /* A printed report is for reading later, so expand every case. */
+  .report-block.panel { background: none; margin: 0; padding: var(--space-l) 0; }
+  .draft-fields, .draft-warning { display: none; }
+  .draft-out { break-inside: avoid; }
+  .draft-text { background: none; border-left: 2px solid var(--line); }
   .case-more:not([open]) > *:not(summary) { display: block; }
   .case-more summary { display: none; }
   .case-body { animation: none; }

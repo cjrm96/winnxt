@@ -9,6 +9,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 
 const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'crisis-triage.html');
+const window_words = (t) => (t || '').trim().split(/\s+/).filter(Boolean).length;
 let fails = 0;
 function check(name, cond, extra) {
   console.log((cond ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));
@@ -674,6 +675,103 @@ const base = {
   await page.waitForTimeout(300);
   await runWizard(page, {});
 
+  // --- the draft -----------------------------------------------------------
+  //
+  // The tool assembles a statement from the user's own words in the structure
+  // the read prescribed. Two things must hold: it never invents substance, and
+  // when the read says stay quiet it produces nothing publishable.
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});   // false + serious + spread => respond today
+
+  check('the draft section renders', await page.locator('.draft-block').count() === 1);
+  check('it asks for the truth and the claim on a false story',
+    await page.locator('#draft-truth').count() === 1 &&
+    await page.locator('#draft-claim').count() === 1);
+  check('it says the voice is neutral and must be replaced',
+    /neutral voice on purpose/.test(await page.locator('.draft-warning').textContent()) &&
+    /sound like you/.test(await page.locator('.draft-warning').textContent()));
+  check('it points at a lawyer for legal questions',
+    /lawyer/.test(await page.locator('.draft-warning').textContent()));
+
+  check('three lengths are offered', await page.locator('.draft-out').count() === 3);
+  check('required gaps are called out before they are filled',
+    await page.locator('#draft-missing').isVisible());
+
+  await page.fill('#draft-truth', 'I voted for the after-school programme in full');
+  await page.fill('#draft-claim', 'that I voted to cut after-school funding');
+  await page.waitForTimeout(300);
+
+  const shortDraft = await page.locator('#draft-text-short').textContent();
+  check('the draft uses the words the user typed',
+    /after-school programme in full/.test(shortDraft), shortDraft.slice(0, 80));
+  check('the false claim is stated once and then contradicted',
+    (shortDraft.match(/voted to cut after-school funding/g) || []).length === 1 &&
+    /That is not true/.test(shortDraft));
+  check('the fact leads, not the denial',
+    shortDraft.indexOf('I voted for') < shortDraft.indexOf('A claim is circulating'));
+  check('a word count is shown',
+    /\d+ words/.test(await page.locator('#count-short').textContent()),
+    await page.locator('#count-short').textContent());
+  check('the gap warning clears once the required parts are in',
+    await page.locator('#draft-missing').isHidden());
+
+  const holdingDraft = await page.locator('#draft-text-holding').textContent();
+  check('the holding line is shorter than the statement',
+    window_words(holdingDraft) < window_words(shortDraft),
+    window_words(holdingDraft) + ' vs ' + window_words(shortDraft));
+
+  // Nothing invented: an empty optional slot must leave no filler behind.
+  check('empty optional slots produce no filler',
+    !/\[|\{|TBD|xxx/i.test(shortDraft), shortDraft);
+
+  const handoffWithDraft = await page.locator('#handoff-text').textContent();
+  check('the handoff carries the draft once it is usable',
+    /My draft so far/.test(handoffWithDraft));
+
+  // The blame type changes the responsibility clause rather than the order.
+  const clauses = await page.evaluate(() => {
+    const mk = (fault) => {
+      const a = { context: 'political', where: 'facebook-group', spread: 'many-groups',
+        truth: 'true', harm: 'serious', fault: fault, proof: 'yes', safety: 'no', daysOut: '30' };
+      const r = window.CrisisLogic.assess(a);
+      return window.CrisisStatements.build(r, { happened: 'I missed the vote', fix: 'I will be there next time' }, 'short');
+    };
+    return { preventable: mk('preventable'), victim: mk('victim'), accidental: mk('accidental') };
+  });
+  check('a preventable failure apologises', /I am sorry/.test(clauses.preventable));
+  check('being the victim of something does not apologise',
+    !/I am sorry/.test(clauses.victim), clauses.victim);
+  check('an accident explains without pretending it did not happen',
+    /not what I intended/.test(clauses.accidental));
+
+  // Stay quiet must yield nothing postable.
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, { truth: 'false', harm: 'none' });
+  check('a stay-quiet read offers no statement to publish',
+    await page.locator('#draft-text-short').count() === 0 &&
+    await page.locator('#draft-text-long').count() === 0);
+  check('it offers only the line for when someone asks',
+    await page.locator('#draft-text-holding').count() === 1);
+  check('and says so plainly',
+    /Do not publish anything/.test(await page.locator('.draft-block').textContent()));
+  check('a stay-quiet read does not ask for statement material',
+    await page.locator('.draft-fields').count() === 0);
+
+  // Hold: write it, do not publish it.
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, { spread: 'few', harm: 'some' });
+  check('a hold read frames the draft as prepared, not published',
+    /publish it later/i.test(await page.locator('.draft-block h2').textContent()),
+    await page.locator('.draft-block h2').textContent());
+
+  await page.reload();
+  await page.waitForTimeout(300);
+  await runWizard(page, {});
+
   // --- the safety interstitial --------------------------------------------
 
   await page.reload();
@@ -1020,7 +1118,11 @@ const base = {
   const handoff = await page.locator('#handoff-text').textContent();
   check('handoff carries the description', /doctored screenshot/.test(handoff));
   check('handoff carries the read', /Quadrant: False, and it hurts/.test(handoff));
-  check('handoff asks for a draft', /Draft a short statement/.test(handoff));
+  // The ask changed when the tool started producing a draft of its own: the
+  // model is now rewriting rather than starting from nothing.
+  check('handoff asks the model to rewrite the draft, not invent one',
+    /rough draft/.test(handoff) && /sounds like a real person/.test(handoff),
+    handoff.slice(handoff.indexOf('What I need from you'), handoff.indexOf('What I need from you') + 160));
   check('handoff branded', /winnxt\.com/.test(handoff));
 
   // --- stores nothing -----------------------------------------------------
