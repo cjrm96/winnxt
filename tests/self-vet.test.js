@@ -86,12 +86,38 @@ async function start(page) {
     sections: window.SelfVetItems.SECTIONS.length,
     items: window.SelfVetItems.allItems().length,
     names: window.SelfVetItems.SECTIONS.map(s => s.full),
-    ids: window.SelfVetItems.allItems().map(i => i.id)
+    ids: window.SelfVetItems.allItems().map(i => i.id),
+    perSection: window.SelfVetItems.SECTIONS.map(s => s.items.length)
   }));
   check('seven sections, as specified', content.sections === 7, String(content.sections));
-  check('about fifty prompts', content.items >= 45 && content.items <= 60, String(content.items));
+  check('a prompt list long enough to jog a memory',
+    content.items >= 130 && content.items <= 160, String(content.items));
+  check('every section is equally thorough',
+    content.perSection.every(n => n === content.perSection[0]), content.perSection.join(','));
   check('no duplicate prompt ids',
     new Set(content.ids).size === content.ids.length);
+  // Drawn from what has actually ended careers recently, not just the classic
+  // categories. These are the ones a first-timer never thinks to write down.
+  const labels = await page.evaluate(() =>
+    window.SelfVetItems.allItems().map(i => i.label).join(' | ').toLowerCase());
+  [
+    ['affairs', /affair/],
+    ['intimate images and messages', /intimate messages, photos/],
+    ['photographs you would not want published', /photographs of you that you would not want/],
+    ['costume and party photos', /costume, a party/],
+    ['relationships with subordinates', /supervised, taught, or had authority over/],
+    ['harassment allegations', /allegation of harassment/],
+    ['settlements paid on your behalf', /settlement paid by an employer/],
+    ['campaign money spent personally', /personal spending from a campaign/],
+    ['resume fabrication', /claims about your family history/],
+    ['a claimed charity', /charity or nonprofit you claim/],
+    ['an event that became notorious later', /later became notorious/],
+    ['pandemic positions', /during the pandemic/],
+    ['plagiarism', /without credit/],
+    ['burner accounts', /burner/]
+  ].forEach(([name, re]) =>
+    check('the list asks about ' + name, re.test(labels)));
+
   check('the standard vetting scope is covered',
     /Finances/.test(content.names.join()) && /Legal/.test(content.names.join()) &&
     /Past statements/.test(content.names.join()) && /Employment/.test(content.names.join()) &&
@@ -119,6 +145,24 @@ async function start(page) {
     /Do not answer from memory/.test(intro));
   check('it explains that severity outranks likelihood',
     /Severity is weighted ahead of likelihood/.test(intro));
+
+  // The intro sets the stakes by describing what real vetting looks like, then
+  // says plainly that this is not that. Overclaiming here is how a $34 download
+  // earns a one-star review.
+  check('it describes how vetting works at the top',
+    /presidential campaign vets a running mate/.test(intro) &&
+    /go through it line by line/.test(intro));
+  check('the vetting claims are attributed so they can be checked',
+    /New York Times published it in full/.test(intro), 'the 2008 transition questionnaire');
+  check('it names the question underneath all of it',
+    /source of embarrassment/.test(intro));
+  check('it says plainly that this is the basic version',
+    /basic version of that room/.test(intro));
+  check('it discloses all four limits rather than overclaiming',
+    /cannot pull your records/.test(intro) &&
+    /cannot interview anyone/.test(intro) &&
+    /does not know your disclosure law/.test(intro) &&
+    /cannot make you honest/.test(intro));
 
   // --- a full run ---------------------------------------------------------
 
