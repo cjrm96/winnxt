@@ -108,9 +108,9 @@
         what: 'After cyanide-laced Tylenol capsules killed seven people in the Chicago area, the company pulled roughly 31 million bottles nationwide and went public immediately, before regulators compelled it and while the tampering was still unexplained.',
         lesson: 'Acting faster than you are required to is what buys the benefit of the doubt later.',
         background: 'In autumn 1982 seven people died after taking Extra-Strength Tylenol capsules that had been laced with potassium cyanide. The tampering happened after the product left the company\'s control, on store shelves. By the standards of legal exposure, the company was a victim rather than a cause.',
-        reaction: 'Public alarm was immediate and national. Tylenol\'s share of the pain-reliever market fell from roughly 37% to about 7%. Commentators at the time widely assumed the brand could not survive under that name.',
+        reaction: 'Public alarm was immediate and national. Tylenol\'s share of the pain-reliever market collapsed within weeks. Commentators at the time widely assumed the brand could not survive under that name.',
         handling: 'The company warned the public before it was required to, halted advertising, recalled roughly 31 million bottles at a cost of around $100 million, cooperated openly with investigators, and offered exchanges to anyone holding capsules. It then reintroduced the product in triple-sealed tamper-evident packaging: a visible, checkable change rather than a promise.',
-        outcome: 'Market share recovered to around 30% within about a year. The response drove federal anti-tampering law and FDA packaging rules, and it remains the case taught first in nearly every crisis communications course.'
+        outcome: 'Most of the lost market share was back within about a year. The response drove federal anti-tampering law and FDA packaging rules, and it remains the case taught first in nearly every crisis communications course.'
       }
     ],
     trueDoes: [
@@ -120,9 +120,9 @@
         what: 'Full disclosure, a national recall, and a redesigned tamper-evident package. The brand recovered its market position within about a year.',
         lesson: 'Say all of it at once, and pair the admission with a fix people can see.',
         background: 'Seven deaths in the Chicago area from cyanide placed in Tylenol capsules after they had left the factory. The company had not caused the tampering.',
-        reaction: 'Market share collapsed from roughly 37% to about 7%. The brand was widely written off.',
+        reaction: 'Market share collapsed within weeks. The brand was widely written off.',
         handling: 'Warned the public early, pulled roughly 31 million bottles at around $100 million, cooperated with investigators, and returned with tamper-evident packaging that customers could verify themselves.',
-        outcome: 'Recovered to roughly 30% share within a year, and changed federal packaging law in the process.'
+        outcome: 'Most of it was back within about a year, and it changed federal packaging law in the process.'
       },
       {
         who: 'Richard Nixon',

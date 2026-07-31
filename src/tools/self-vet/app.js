@@ -693,6 +693,29 @@
     });
     src.appendChild(list);
     box.appendChild(src);
+    renderLimits(box);
+  }
+
+  // What the research does not settle, stated by us rather than discovered by a
+  // buyer. The listing tells them to look it all up; anybody who does will find
+  // the contradiction below, and being the one to point it out is the whole
+  // difference between trusted and caught.
+  function renderLimits(box) {
+    var wrap = el('section', { class: 'report-block limits-block' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Where this is thin' }));
+    wrap.appendChild(el('h2', { text: 'What the research does not settle' }));
+    wrap.appendChild(el('p', { class: 'note', text: 'Every rule on this page traces back to published work. Not all of that work agrees, and none of it was done on a race the size of yours. Here is what we would want to know if we were buying this.' }));
+
+    var list = el('div', { class: 'cols2 limits' });
+    Evidence.LIMITS.forEach(function (l) {
+      var item = el('div', { class: 'limit' });
+      item.appendChild(el('h3', { class: 'limit-title', text: l.title }));
+      item.appendChild(el('p', { class: 'limit-body', text: l.body }));
+      if (l.source) item.appendChild(el('p', { class: 'limit-source', text: l.source }));
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+    box.appendChild(wrap);
   }
 
   var verdictObserver = null;

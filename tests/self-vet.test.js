@@ -331,7 +331,8 @@ async function start(page) {
     await page.locator('.verdict-line').textContent());
   check('an empty run shows no register', await page.locator('.tier-block').count() === 0);
   check('an empty run still shows the precedent',
-    await page.locator('.why-block .case').count() === 2);
+    await page.locator('.why-block .case').count() === 4,
+    (await page.locator('.why-block .case').count()) + ' cases');
 
   // --- flagged but not rated ----------------------------------------------
   //
@@ -533,6 +534,63 @@ async function start(page) {
     return bad;
   });
   check('every field has a label', unlabeled.length === 0, unlabeled.join(', '));
+
+  // --- the evidence base --------------------------------------------------
+  //
+  // The listing tells buyers to look all of this up, so a fabricated or
+  // overclaimed source is the single worst defect this product could ship.
+
+  const ev = await page.evaluate(() => ({
+    cites: Object.values(window.SelfVetEvidence.CITES).map(c => c.source),
+    claims: Object.values(window.SelfVetEvidence.CITES).map(c => c.claim),
+    limits: window.SelfVetEvidence.LIMITS.length,
+    cases: [].concat(
+      window.SelfVetEvidence.WHY,
+      window.SelfVetEvidence.casesFor('ahead'),
+      window.SelfVetEvidence.casesFor('draft'),
+      window.SelfVetEvidence.casesFor('prepare')
+    )
+  }));
+
+  check('the citation list is substantial', ev.cites.length >= 14, String(ev.cites.length));
+  check('the case library is substantial', ev.cases.length >= 14, String(ev.cases.length));
+  check('every citation carries a year or a named publisher',
+    ev.cites.every(c => /\(\d{4}\)/.test(c) || /Governing|CampaignNow/.test(c)),
+    ev.cites.filter(c => !/\(\d{4}\)/.test(c) && !/Governing|CampaignNow/.test(c)).join(' | '));
+  check('every citation names a journal or a publisher',
+    ev.cites.every(c => /Review|Journal|Quarterly|Science|Bulletin|Research|Proceedings|Management|Communications|Politics|Behavior|Governing|CampaignNow/.test(c)));
+  check('no citation hedges with "studies show"',
+    !ev.claims.some(c => /studies show|research suggests|experts say/i.test(c)));
+  check('every case names a subject and a year',
+    ev.cases.every(c => c.who && c.year && String(c.year).length === 4));
+  check('every case carries the full arc',
+    ev.cases.every(c => c.background && c.reaction && c.handling && c.outcome));
+
+  // Nonpartisan is a shipping guarantee, not a preference. A buyer should be
+  // able to read the case list and not be able to tell who built it.
+  const who = ev.cases.map(c => c.who).join(' | ');
+  check('cases include Democrats',
+    /Clinton|Buttigieg|Blumenthal|Eagleton|Barry/.test(who), who);
+  check('cases include Republicans',
+    /Santos|Vitter|Howard|Puzder|Nixon|Romney/.test(who), who);
+  check('cases include business and institutions',
+    /Johnson & Johnson|Wells Fargo/.test(who));
+  check('cases include local and state level races',
+    /South Bend|Florida House|St. Petersburg|Washington/.test(who), who);
+
+  // The honest part. This is what separates a cited tool from a trusted one.
+  check('the report says where the evidence is thin', ev.limits >= 4, String(ev.limits));
+  const limitsText = await page.locator('.limits-block').textContent();
+  check('it admits the pre-emption evidence is mostly corporate',
+    /largely from crisis communications and marketing/.test(limitsText));
+  check('it surfaces the political science that cuts against it',
+    /did not gain support and sometimes lost it/.test(limitsText));
+  check('it admits nobody has studied races this size',
+    /no peer-reviewed research on how scandal behaves in a school board/.test(limitsText));
+  check('it admits self-vetting itself is practice rather than evidence',
+    /practice, not evidence|weaker claim than a study/.test(limitsText));
+  check('the contrary finding is cited, not just described',
+    /British Journal of Political Science/.test(limitsText));
 
   // --- two columns --------------------------------------------------------
   //

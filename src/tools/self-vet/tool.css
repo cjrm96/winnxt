@@ -1263,3 +1263,44 @@ main[data-view="wizard"] .site-foot { display: none; }
   .why-cases .case { margin-top: 0; }
   .cite-list .cite { margin-top: 0; }
 }
+
+/* ---- what the research does not settle ---------------------------------- */
+
+.limits { margin-top: var(--space); }
+
+.limit {
+  border-left: 2px solid var(--line-strong);
+  padding-left: var(--space);
+  margin-bottom: var(--space-m);
+}
+
+.limit-title {
+  margin: 0 0 0.3em;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.limit-body {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.limit-source {
+  margin: 0.5em 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+@media (min-width: 76rem) {
+  .report-block.limits-block {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+  }
+}
