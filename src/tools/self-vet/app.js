@@ -91,10 +91,12 @@
     document.getElementById('btn-next').textContent =
       step === list.length - 1 ? 'See my register' : 'Continue';
 
+    // The intro warns you will want to stop around here. Saying it at the
+    // moment it happens is worth more than the warning was.
     var hint = document.getElementById('step-hint');
-    hint.textContent = s.race
-      ? 'Both optional. They only sharpen the timing advice.'
-      : 'Flag what applies. Most people flag two or three per section.';
+    if (s.race) hint.textContent = '';
+    else if (step === 4) hint.textContent = 'Most people want to stop about here.';
+    else hint.textContent = 'Flag what applies. Most people flag two or three per section.';
   }
 
   function raceCard() {
@@ -140,19 +142,31 @@
   function sectionCard(s) {
     var card = el('div', { class: 'question', 'data-q': s.id });
     card.appendChild(el('h2', { class: 'q-label', text: s.full }));
+    // The voice sits above the explanation rather than replacing it, so it
+    // never costs the reader anything they needed.
+    if (s.opener) card.appendChild(el('p', { class: 'opener', text: s.opener }));
     card.appendChild(el('p', { class: 'help', text: s.lede }));
 
+    // Two independent columns rather than one two-column grid. In a grid, a row
+    // that expands sets the height of its whole row and leaves a hole beside
+    // it; here each column flows on its own, so opening an item on the left
+    // does not move or pad anything on the right.
     var list = el('div', { class: 'flags' });
-    s.items.forEach(function (pair) {
-      list.appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
+    var colA = el('div', { class: 'flag-col' });
+    var colB = el('div', { class: 'flag-col' });
+    var half = Math.ceil(s.items.length / 2);
+    s.items.forEach(function (pair, i) {
+      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
     });
 
     // Anything already added by hand in this section, so it survives going back.
     Object.keys(state.flagged).forEach(function (id) {
       var f = state.flagged[id];
-      if (f.section === s.id && f.custom) list.appendChild(flagRow(s, id, f.label, true));
+      if (f.section === s.id && f.custom) colB.appendChild(flagRow(s, id, f.label, true));
     });
 
+    list.appendChild(colA);
+    list.appendChild(colB);
     card.appendChild(list);
 
     var add = el('button', { type: 'button', class: 'secondary add-own no-print' });
@@ -165,7 +179,7 @@
         desc: '', likelihood: '', severity: '', custom: true
       };
       var row = flagRow(s, id, '', true);
-      list.appendChild(row);
+      colB.appendChild(row);
       var input = row.querySelector('.own-label');
       if (input) input.focus();
     });
@@ -175,7 +189,7 @@
   }
 
   function flagRow(section, id, label, custom) {
-    var row = el('div', { class: 'flag' + (custom ? ' flag-own' : '') });
+    var row = el('div', { class: 'flag' + (custom ? ' flag-own' : ''), 'data-flag': id });
     var boxId = 'chk-' + id.replace(/\./g, '-');
 
     var head = el('label', { class: 'flag-head', for: boxId });
@@ -188,6 +202,7 @@
       own.value = label || '';
       own.addEventListener('input', function () {
         if (state.flagged[id]) state.flagged[id].label = own.value;
+        clearIncomplete(id);
       });
       // Clicking into the text field must not toggle the checkbox around it.
       own.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
@@ -226,6 +241,8 @@
         delete state.flagged[id];
       }
       sync();
+      row.removeAttribute('data-incomplete');
+      if (!document.querySelector('#step [data-incomplete]')) show('step-error', false);
       detail.textContent = '';
       detail.appendChild(detailFields(id));
     });
@@ -245,16 +262,36 @@
     wrap.appendChild(el('label', { class: 'flag-label', for: descId, text: 'In one line, what is it?' }));
     var desc = el('input', { type: 'text', id: descId, placeholder: 'Only you will ever read this' });
     desc.value = f.desc || '';
-    desc.addEventListener('input', function () { f.desc = desc.value; });
+    desc.addEventListener('input', function () {
+      f.desc = desc.value;
+      clearIncomplete(id);
+    });
     wrap.appendChild(desc);
 
-    wrap.appendChild(seg(id, 'likelihood', 'How likely is it to surface?', Items.LIKELIHOOD));
-    wrap.appendChild(seg(id, 'severity', 'How bad is it if it does?', Items.SEVERITY));
+    var press = el('p', { class: 'press' });
+    wrap.appendChild(seg(id, 'likelihood', 'How likely is it to surface?', Items.LIKELIHOOD, press));
+    wrap.appendChild(seg(id, 'severity', 'How bad is it if it does?', Items.SEVERITY, press));
+    wrap.appendChild(press);
+    updatePress(id, press);
 
     return wrap;
   }
 
-  function seg(id, field, question, options) {
+  // The one thing the tool can do that a form does not: hear the first answer
+  // and ask again. Only on the double wave-away, only once, and never blocking.
+  // Any more than that is nagging, and a nagged user starts lying.
+  function updatePress(id, node) {
+    var f = state.flagged[id];
+    if (!f) return;
+    var minimised = f.likelihood === 'low' && f.severity === 'survivable';
+    node.textContent = minimised
+      ? 'Unlikely and survivable is the most common rating in this tool, and the most common one people turn out to be wrong about. Leave it if you still mean it.'
+      : '';
+    if (minimised) node.removeAttribute('hidden');
+    else node.setAttribute('hidden', '');
+  }
+
+  function seg(id, field, question, options, press) {
     var f = state.flagged[id];
     var wrap = el('fieldset', { class: 'seg' });
     wrap.appendChild(el('legend', { class: 'flag-label', text: question }));
@@ -276,6 +313,8 @@
           l.removeAttribute('data-selected');
         });
         lab.setAttribute('data-selected', '');
+        if (press) updatePress(id, press);
+        clearIncomplete(id);
       });
       lab.appendChild(input);
       lab.appendChild(el('span', { class: 'seg-name', text: o[1] }));
@@ -320,8 +359,50 @@
     }, 170));
   }
 
+  // Flagging something and then leaving it unrated is the one way to end up
+  // with a register that is quietly wrong, so once a box is ticked all three
+  // fields are required before the section will let you past.
+  function incompleteIn(section) {
+    if (!section || section.race) return [];
+    return Object.keys(state.flagged).filter(function (id) {
+      var f = state.flagged[id];
+      if (f.section !== section.id) return false;
+      if (f.custom && !String(f.label || '').trim()) return true;
+      return !String(f.desc || '').trim() || !f.likelihood || !f.severity;
+    });
+  }
+
+  function clearIncomplete(id) {
+    var f = state.flagged[id];
+    if (!f) return;
+    if (!String(f.desc || '').trim() || !f.likelihood || !f.severity) return;
+    var row = document.querySelector('[data-flag="' + id + '"]');
+    if (row) row.removeAttribute('data-incomplete');
+    if (!document.querySelector('#step [data-incomplete]')) show('step-error', false);
+  }
+
   function next() {
     var list = steps();
+    var missing = incompleteIn(list[step]);
+    if (missing.length) {
+      Array.prototype.forEach.call(document.querySelectorAll('#step [data-flag]'), function (row) {
+        row.removeAttribute('data-incomplete');
+      });
+      missing.forEach(function (id) {
+        var row = document.querySelector('[data-flag="' + id + '"]');
+        if (row) row.setAttribute('data-incomplete', '');
+      });
+      var err = document.getElementById('step-error');
+      err.textContent = missing.length === 1
+        ? 'One item is flagged but not finished. Describe it and set both ratings, or untick it.'
+        : missing.length + ' items are flagged but not finished. Describe each one and set both ratings, or untick them.';
+      show('step-error', true);
+      var first = document.querySelector('#step [data-incomplete]');
+      if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    show('step-error', false);
+
     if (step >= list.length - 1) {
       cancelPending();
       goto('report');
@@ -531,9 +612,11 @@
       var group = el('div', { class: 'search-group' });
       group.appendChild(el('h3', { class: 'search-title', text: g.title }));
       group.appendChild(el('p', { class: 'search-why', text: g.why }));
+      var rows = el('div', { class: 'cols2 search-rows' });
       g.queries.forEach(function (item) {
-        group.appendChild(searchRow(item));
+        rows.appendChild(searchRow(item));
       });
+      group.appendChild(rows);
       panel.appendChild(group);
     });
 
@@ -583,7 +666,9 @@
     panel.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
     panel.appendChild(el('h2', { text: 'How this goes wrong' }));
     panel.appendChild(el('p', { class: 'note', text: 'Two cases at opposite ends of the scale, with the same mechanism underneath: the thing itself was survivable, and not saying it first was not.' }));
-    Evidence.WHY.forEach(function (c) { panel.appendChild(caseCard(c)); });
+    var pair = el('div', { class: 'cols2 why-cases' });
+    Evidence.WHY.forEach(function (c) { pair.appendChild(caseCard(c)); });
+    panel.appendChild(pair);
     box.appendChild(panel);
   }
 
@@ -599,12 +684,14 @@
     src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
     src.appendChild(el('h2', { text: 'Why this is the advice' }));
     src.appendChild(el('p', { class: 'note', text: 'Every rule above traces back to these. Look any of it up. None of it is ours.' }));
+    var list = el('div', { class: 'cols2 cite-list' });
     cites.forEach(function (c) {
       var box2 = el('div', { class: 'cite' });
       box2.appendChild(el('p', { class: 'cite-claim', text: c.claim }));
       box2.appendChild(el('p', { class: 'cite-source', text: c.source }));
-      src.appendChild(box2);
+      list.appendChild(box2);
     });
+    src.appendChild(list);
     box.appendChild(src);
   }
 

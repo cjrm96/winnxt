@@ -334,16 +334,79 @@ async function start(page) {
     await page.locator('.why-block .case').count() === 2);
 
   // --- flagged but not rated ----------------------------------------------
+  //
+  // Ticking a box and then leaving it unrated used to produce a register that
+  // was quietly missing things. Now the section will not let you past.
 
   await start(page);
   await page.click('#btn-next');
   await page.waitForTimeout(300);
-  await flag(page, 'finances', 'lien', 'Unpaid state taxes', null, null);
-  await toReport(page);
-  check('an unrated item is called out rather than silently dropped',
-    /flagged but not rated/.test(await page.locator('#read').textContent()));
-  check('an unrated item does not appear in the register',
-    await page.locator('.reg-item').count() === 0);
+  await page.check('#chk-finances-lien');
+  await page.waitForTimeout(250);
+  await page.click('#btn-next');
+  await page.waitForTimeout(350);
+  check('an unfinished item blocks the section',
+    await page.locator('.question[data-q="finances"]').count() === 1);
+  check('the error says what is wrong',
+    /flagged but not finished/.test(await page.locator('#step-error').textContent()),
+    await page.locator('#step-error').textContent());
+  check('the offending row is marked',
+    await page.locator('.flag[data-incomplete]').count() === 1);
+
+  await page.fill('#desc-finances-lien', 'Unpaid state taxes');
+  await page.check('#likelihood-finances-lien-high');
+  await page.check('#severity-finances-lien-serious');
+  await page.waitForTimeout(250);
+  check('finishing it clears the error',
+    await page.locator('#step-error').isHidden() &&
+    await page.locator('.flag[data-incomplete]').count() === 0);
+  await page.click('#btn-next');
+  await page.waitForTimeout(350);
+  check('and then the section lets you past',
+    await page.locator('.question[data-q="legal"]').count() === 1);
+
+  // Unticking is always a way out, so nobody is trapped by a box they hit by
+  // accident.
+  await page.click('#btn-back');
+  await page.waitForTimeout(350);
+  await page.uncheck('#chk-finances-lien');
+  await page.waitForTimeout(200);
+  await page.check('#chk-finances-judgment');
+  await page.waitForTimeout(200);
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await page.uncheck('#chk-finances-judgment');
+  await page.waitForTimeout(200);
+  check('unticking an unfinished item releases the gate',
+    await page.locator('#step-error').isHidden());
+
+  // --- the voice ----------------------------------------------------------
+
+  await start(page);
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  check('each section opens in the voice of the room',
+    /Start with money/.test(await page.locator('.opener').textContent()),
+    await page.locator('.opener').textContent());
+  check('the opener sits above the explanation, not instead of it',
+    (await page.locator('.help').first().textContent()).length > 80);
+
+  // The re-ask: the one thing the tool can do that a plain form cannot.
+  await flag(page, 'finances', 'bankruptcy', 'Chapter 7 in 2011', 'low', 'survivable');
+  await page.waitForTimeout(250);
+  check('waving something away twice gets asked about once',
+    await page.locator('.press:not([hidden])').count() === 1);
+  check('the re-ask does not scold, it offers the way out',
+    /Leave it if you still mean it/.test(await page.locator('.press').first().textContent()));
+  await page.check('#severity-finances-bankruptcy-severe');
+  await page.waitForTimeout(200);
+  check('changing the rating retires the re-ask',
+    await page.locator('.press:not([hidden])').count() === 0);
+
+  for (let i = 0; i < 3; i++) { await page.click('#btn-next'); await page.waitForTimeout(320); }
+  check('the break line lands where the intro said it would',
+    /want to stop about here/.test(await page.locator('#step-hint').textContent()),
+    await page.locator('#step-hint').textContent());
 
   // --- adding your own ----------------------------------------------------
 
@@ -355,6 +418,7 @@ async function start(page) {
   check('you can add something the list did not think of',
     await page.locator('.flag-own').count() === 1);
   await page.fill('.flag-own .own-label', 'A dispute with the HOA');
+  await page.fill('#desc-finances-own-1', 'HOA took me to a hearing in 2019');
   await page.check('#likelihood-finances-own-1-high');
   await page.check('#severity-finances-own-1-severe');
   await toReport(page);
@@ -469,6 +533,67 @@ async function start(page) {
     return bad;
   });
   check('every field has a label', unlabeled.length === 0, unlabeled.join(', '));
+
+  // --- two columns --------------------------------------------------------
+  //
+  // Asked for to cut the scroll. The prompt list is two independent columns
+  // rather than one grid, so opening an item on the left does not pad out the
+  // right to match.
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await start(page);
+  await page.click('#btn-next');
+  await page.waitForTimeout(400);
+  const cols = await page.evaluate(() => {
+    const c = document.querySelectorAll('.flags .flag-col');
+    if (c.length !== 2) return null;
+    return { n: c.length, sameTop: Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 2 };
+  });
+  check('the prompt list runs in two columns on a wide screen',
+    cols && cols.n === 2 && cols.sameTop, JSON.stringify(cols));
+
+  // offsetTop, not getBoundingClientRect: ticking a box scrolls the page, and
+  // a viewport-relative measurement would report that as a layout shift.
+  const before = await page.evaluate(() =>
+    document.querySelectorAll('.flag-col')[1].offsetTop);
+  await page.check('#chk-finances-bankruptcy');
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() =>
+    document.querySelectorAll('.flag-col')[1].offsetTop);
+  check('opening an item on one side does not move the other',
+    before === after, before + ' -> ' + after);
+
+  await page.setViewportSize({ width: 375, height: 720 });
+  await page.waitForTimeout(200);
+  const stacked = await page.evaluate(() => {
+    const c = document.querySelectorAll('.flags .flag-col');
+    return c[1].getBoundingClientRect().top > c[0].getBoundingClientRect().top;
+  });
+  check('and it stacks back to one column on a narrow screen', stacked);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  for (const w of [1280, 1440, 1920]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.waitForTimeout(150);
+    check('the wizard does not overflow at ' + w + 'px', !(await page.evaluate(() =>
+      document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)));
+  }
+
+  // The start button now sits below the explanation, deliberately, so nobody
+  // begins without reading what the exercise is.
+  await page.goto(FILE);
+  await page.waitForTimeout(400);
+  const order = await page.evaluate(() => {
+    const btn = document.getElementById('btn-start');
+    const blocks = document.querySelectorAll('#intro .intro-block');
+    const last = blocks[blocks.length - 1];
+    return !!(last.compareDocumentPosition(btn) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  check('start sits after the instructions, not before them', order);
+  check('the session header is stripped back',
+    (await page.locator('.session-head').textContent()).trim() === 'Session',
+    await page.locator('.session-head').textContent());
+  await page.setViewportSize({ width: 1100, height: 900 });
 
   check('still zero network requests at end', requests.length === 0, requests.join(', '));
   check('still no errors at end', errors.length === 0, errors.join(' | '));

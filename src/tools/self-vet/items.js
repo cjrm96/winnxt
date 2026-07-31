@@ -25,6 +25,12 @@
 //      financial problems" is not a prompt, it is a shrug.
 //   3. Nothing is asked that the tool does not use. Every flagged item ends up
 //      in the register with an action attached.
+//
+// Each section also carries an opener: one clipped line in the voice of
+// somebody running the session, sitting above the explanatory lede rather than
+// replacing it. The voice belongs to the room. It never costs the reader
+// information, and it goes plainer in Personal, where being pleased with
+// itself would be genuinely unpleasant.
 (function () {
 
   var SECTIONS = [
@@ -32,6 +38,7 @@
       id: 'finances',
       name: 'Money',
       full: 'Finances',
+      opener: 'Start with money. It is the cheapest thing to check, so it is the first thing checked.',
       lede: 'Financial records are public, cheap to pull, and the first place anyone looks. None of this ends a campaign on its own. Being caught not mentioning it can.',
       items: [
         ['bankruptcy', 'A bankruptcy, personal or business'],
@@ -60,6 +67,7 @@
       id: 'legal',
       name: 'Legal',
       full: 'Legal',
+      opener: 'Now the record. Every one of these is public somewhere, and age helps less than people think.',
       lede: 'Age does not help as much as people assume. A twenty year old charge still surfaces; what changes is how much it matters, and that depends almost entirely on whether you said it first.',
       items: [
         ['arrest', 'An arrest, a charge, or a conviction, however old and however it resolved'],
@@ -88,6 +96,7 @@
       id: 'statements',
       name: 'What you said',
       full: 'Past statements',
+      opener: 'Everything you have ever typed. This is the section people get wrong, because they answer from memory.',
       lede: 'This is the section that catches first-time candidates, because the material is theirs, it is already public, and they have forgotten most of it. Go and look. Do not answer from memory.',
       items: [
         ['old-accounts', 'Posts on an account you no longer use, or thought you deleted'],
@@ -116,6 +125,7 @@
       id: 'work',
       name: 'Work',
       full: 'Employment and business',
+      opener: 'Your working life. This is the one with other people in it, and they remember it differently than you do.',
       lede: 'Your working life is the part of your record most likely to involve other people who remember it differently than you do.',
       items: [
         ['fired', 'Fired, asked to resign, or left under a cloud'],
@@ -144,6 +154,7 @@
       id: 'personal',
       name: 'Personal',
       full: 'Personal and family',
+      opener: 'Family and private life. None of this is asked to be intrusive. It is asked because it is discoverable.',
       lede: 'The test here is not whether something is private. It is whether it is discoverable, and whether it contradicts something you have said publicly.',
       items: [
         ['divorce', 'A divorce or custody matter with a public court record'],
@@ -172,6 +183,7 @@
       id: 'affiliations',
       name: 'Affiliations',
       full: 'Affiliations',
+      opener: 'Everything you joined, funded, or signed. All of it is filed somewhere.',
       lede: 'Everything you joined, funded, or signed is a matter of record, and the organisation you joined may have said things since that you did not.',
       items: [
         ['org', 'Membership in an organisation that has taken controversial positions'],
@@ -200,6 +212,7 @@
       id: 'record',
       name: 'Your record',
       full: 'Credentials and record',
+      opener: 'Last, the bio. Every line on it is a claim, and a claim is something somebody can check.',
       lede: 'Nobody loses over a real credential. People lose over the gap between the credential and the way it is written on their own bio.',
       items: [
         ['degree', 'A degree in progress, unfinished, or from a school with a reputation problem'],

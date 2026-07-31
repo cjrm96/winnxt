@@ -750,10 +750,7 @@ main[data-view="wizard"] .site-foot { display: none; }
    the two questions that actually decide what happens to it. Keeping the
    rating attached to the prompt means nobody has to hold fifty items in their
    head and rate them later. */
-.flags {
-  border-top: 1px solid var(--line);
-  margin-bottom: var(--space-l);
-}
+.flags { margin-bottom: var(--space-l); }
 
 .flag { border-bottom: 1px solid var(--line); }
 
@@ -1164,4 +1161,105 @@ main[data-view="wizard"] .site-foot { display: none; }
   #intro::before { display: none; }
   .session { border: 1px solid var(--line); background: none; }
   .ql, .al, .session-out { animation: none; }
+}
+
+/* ---- the voice ---------------------------------------------------------- */
+
+/* One line in the register of somebody running the session, sitting above the
+   explanation rather than instead of it. */
+.opener {
+  margin: 0 0 var(--space-s);
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+  font-size: 1.08rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* The re-ask. Quiet, once, never blocking. Anything louder is nagging, and a
+   nagged user starts lying to the tool. */
+.press {
+  margin: var(--space-s) 0 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--warn);
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--warn);
+  max-width: var(--measure);
+  animation: q-in 0.35s var(--ease-out) both;
+}
+.press[hidden] { display: none; }
+
+/* An item ticked and then left unfinished. */
+.flag[data-incomplete] { box-shadow: inset 3px 0 0 var(--danger); }
+.flag[data-incomplete] .flag-text { color: var(--danger); }
+.step-error { color: var(--danger); font-weight: 600; margin-top: var(--space-s); }
+.step-error[hidden] { display: none; }
+
+.intro-go {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-l);
+  margin-top: var(--space-l);
+}
+.intro-go .start-note { max-width: var(--measure); }
+
+/* ---- two columns -------------------------------------------------------- */
+
+/* A general pair-up, used on the intro lists, the case histories, and the
+   citation list. Single column until there is genuinely room for two readable
+   measures, which on this page is wider than it looks because the prose is
+   long. */
+.cols2 { display: grid; gap: 0 var(--space-xl); }
+
+@media (min-width: 62rem) {
+  .cols2 { grid-template-columns: 1fr 1fr; }
+  .cols2 > * { break-inside: avoid; }
+}
+
+/* The prompt list. Two columns roughly halves a 20-item section. They are two
+   independent columns rather than one grid, so opening an item on the left
+   leaves the right alone instead of padding it out to match. */
+.flags { display: grid; gap: 0 var(--space-l); }
+.flag-col { border-top: 1px solid var(--line); }
+
+@media (min-width: 76rem) {
+  .flags {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  /* The heading and its prose stay in the reading column even though the list
+     beside them does not. */
+  .question > .q-label, .question > .opener, .question > .help { max-width: var(--measure); }
+}
+
+@media print {
+  .cols2 { grid-template-columns: 1fr 1fr; }
+  .flags { width: auto; margin: 0; grid-template-columns: 1fr 1fr; }
+  .press { border-left: 2px solid var(--line); color: var(--ink-faint); }
+}
+
+/* Panels that pair up on a wide screen break out of the reading column the
+   same way the prompt list does, so two columns are two readable measures
+   rather than two cramped ones. */
+@media (min-width: 76rem) {
+  .report-block.panel.search-block,
+  .report-block.why-block,
+  .report-block.sources-block {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+  }
+  .search-rows .search-row:first-child,
+  .search-rows .search-row:nth-child(2) { border-top: 0; }
+  .why-cases .case { margin-top: 0; }
+  .cite-list .cite { margin-top: 0; }
 }

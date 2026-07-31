@@ -1377,10 +1377,7 @@ main[data-view="wizard"] .site-foot { display: none; }
    the two questions that actually decide what happens to it. Keeping the
    rating attached to the prompt means nobody has to hold fifty items in their
    head and rate them later. */
-.flags {
-  border-top: 1px solid var(--line);
-  margin-bottom: var(--space-l);
-}
+.flags { margin-bottom: var(--space-l); }
 
 .flag { border-bottom: 1px solid var(--line); }
 
@@ -1793,6 +1790,107 @@ main[data-view="wizard"] .site-foot { display: none; }
   .ql, .al, .session-out { animation: none; }
 }
 
+/* ---- the voice ---------------------------------------------------------- */
+
+/* One line in the register of somebody running the session, sitting above the
+   explanation rather than instead of it. */
+.opener {
+  margin: 0 0 var(--space-s);
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+  font-size: 1.08rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* The re-ask. Quiet, once, never blocking. Anything louder is nagging, and a
+   nagged user starts lying to the tool. */
+.press {
+  margin: var(--space-s) 0 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--warn);
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--warn);
+  max-width: var(--measure);
+  animation: q-in 0.35s var(--ease-out) both;
+}
+.press[hidden] { display: none; }
+
+/* An item ticked and then left unfinished. */
+.flag[data-incomplete] { box-shadow: inset 3px 0 0 var(--danger); }
+.flag[data-incomplete] .flag-text { color: var(--danger); }
+.step-error { color: var(--danger); font-weight: 600; margin-top: var(--space-s); }
+.step-error[hidden] { display: none; }
+
+.intro-go {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-l);
+  margin-top: var(--space-l);
+}
+.intro-go .start-note { max-width: var(--measure); }
+
+/* ---- two columns -------------------------------------------------------- */
+
+/* A general pair-up, used on the intro lists, the case histories, and the
+   citation list. Single column until there is genuinely room for two readable
+   measures, which on this page is wider than it looks because the prose is
+   long. */
+.cols2 { display: grid; gap: 0 var(--space-xl); }
+
+@media (min-width: 62rem) {
+  .cols2 { grid-template-columns: 1fr 1fr; }
+  .cols2 > * { break-inside: avoid; }
+}
+
+/* The prompt list. Two columns roughly halves a 20-item section. They are two
+   independent columns rather than one grid, so opening an item on the left
+   leaves the right alone instead of padding it out to match. */
+.flags { display: grid; gap: 0 var(--space-l); }
+.flag-col { border-top: 1px solid var(--line); }
+
+@media (min-width: 76rem) {
+  .flags {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  /* The heading and its prose stay in the reading column even though the list
+     beside them does not. */
+  .question > .q-label, .question > .opener, .question > .help { max-width: var(--measure); }
+}
+
+@media print {
+  .cols2 { grid-template-columns: 1fr 1fr; }
+  .flags { width: auto; margin: 0; grid-template-columns: 1fr 1fr; }
+  .press { border-left: 2px solid var(--line); color: var(--ink-faint); }
+}
+
+/* Panels that pair up on a wide screen break out of the reading column the
+   same way the prompt list does, so two columns are two readable measures
+   rather than two cramped ones. */
+@media (min-width: 76rem) {
+  .report-block.panel.search-block,
+  .report-block.why-block,
+  .report-block.sources-block {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+  }
+  .search-rows .search-row:first-child,
+  .search-rows .search-row:nth-child(2) { border-top: 0; }
+  .why-cases .case { margin-top: 0; }
+  .cite-list .cite { margin-top: 0; }
+}
+
 </style>
 
 <main>
@@ -1820,7 +1918,7 @@ main[data-view="wizard"] .site-foot { display: none; }
 <section id="intro" class="stage-panel">
 
   <div class="session" aria-label="A transcript of a candidate vetting session">
-    <p class="session-head mono"><span class="blink"></span>Session, recorded <span class="session-tape">Reel 1 of 3</span></p>
+    <p class="session-head mono"><span class="blink"></span>Session</p>
 
     <div class="session-lines">
       <p class="ql" style="--i:0"><b>Q</b><span>Any bankruptcies. Yours, or a business you ran.</span></p>
@@ -1852,8 +1950,6 @@ main[data-view="wizard"] .site-foot { display: none; }
     <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. This tool makes no network requests at all, and it works with your internet switched off. Close the tab and it is gone, so print the register before you leave.</p>
   </div>
 
-  <button type="button" id="btn-start" class="btn-lg has-arrow">Start</button>
-
   <section class="intro-block">
     <h2>At the top, they put you in a room</h2>
     <p>When a presidential campaign vets a running mate, or a transition vets someone for a cabinet job, it is not a form you fill in at your kitchen table. A team of lawyers takes years of your tax returns and your medical records. You complete a questionnaire. Then you sit down with them and they go through it line by line, and they keep going until the answers stop changing.</p>
@@ -1866,7 +1962,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   <section class="intro-block">
     <h2>This is the basic version of that room</h2>
     <p>What follows is a stripped-down, self-administered version of the same process: the same categories the professionals work through, in the same order, with a fixed rule at the end for deciding what to do about each thing you find. It is not the real thing, and it is worth being clear about what it cannot do.</p>
-    <ul class="intro-list">
+    <ul class="intro-list cols2">
       <li><strong>It cannot pull your records.</strong> It does not see your court file, your credit report, or your property history. You have to go and get those.</li>
       <li><strong>It cannot interview anyone.</strong> Real vetting talks to your former business partner, your ex-spouse, and your neighbours. This only ever hears from you.</li>
       <li><strong>It does not know your disclosure law.</strong> What you are legally required to file, and when, is a question for your state and for a lawyer.</li>
@@ -1881,7 +1977,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   <section class="intro-block">
     <h2>Go and look. Do not answer from memory</h2>
     <p>The failure mode here is not lying. It is forgetting. The account you stopped using in 2014, the business that closed owing somebody money, the petition you signed outside a supermarket. Before you start, open the old accounts, search your own name, and read your own bio the way a hostile stranger would.</p>
-    <ul class="intro-list">
+    <ul class="intro-list cols2">
       <li><strong>Search your own name</strong> in a private window, with your city, and with the words that would embarrass you.</li>
       <li><strong>Open every social account you have ever had</strong>, including ones you thought were deleted, and read the oldest posts first.</li>
       <li><strong>Pull your own records.</strong> County court records, property records, and your own voter history are public and mostly free.</li>
@@ -1895,6 +1991,11 @@ main[data-view="wizard"] .site-foot { display: none; }
     <p>For everything you flag, you set two things: how likely it is to surface, and how bad it is if it does. Those two answers decide which of three actions applies, using a fixed rule rather than a judgement call, so the same inputs always produce the same register.</p>
     <p>Severity is weighted ahead of likelihood on purpose. A severe item is worth pre-empting even when you are fairly sure nobody will find it, because the cost of being wrong about that is the campaign. Every rule traces back to published research, cited in the register.</p>
   </section>
+
+  <div class="intro-go">
+    <button type="button" id="btn-start" class="btn-lg has-arrow">Start the session</button>
+    <p class="start-note">Seven sections. Nothing is saved. You can stop and start over at any point, though the tool would rather you did not stop.</p>
+  </div>
 
   <div class="band-scroll no-print" aria-hidden="true">
     <div class="band-scroll-inner">
@@ -1923,6 +2024,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     <p class="step-hint" id="step-hint">Flag what applies. Nothing here is required.</p>
     <button type="button" id="btn-next" class="has-arrow">Continue</button>
   </nav>
+  <p class="note step-error" id="step-error" hidden></p>
 </section>
 
 <!-- The register. -->
@@ -2115,6 +2217,12 @@ main[data-view="wizard"] .site-foot { display: none; }
 //      financial problems" is not a prompt, it is a shrug.
 //   3. Nothing is asked that the tool does not use. Every flagged item ends up
 //      in the register with an action attached.
+//
+// Each section also carries an opener: one clipped line in the voice of
+// somebody running the session, sitting above the explanatory lede rather than
+// replacing it. The voice belongs to the room. It never costs the reader
+// information, and it goes plainer in Personal, where being pleased with
+// itself would be genuinely unpleasant.
 (function () {
 
   var SECTIONS = [
@@ -2122,6 +2230,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'finances',
       name: 'Money',
       full: 'Finances',
+      opener: 'Start with money. It is the cheapest thing to check, so it is the first thing checked.',
       lede: 'Financial records are public, cheap to pull, and the first place anyone looks. None of this ends a campaign on its own. Being caught not mentioning it can.',
       items: [
         ['bankruptcy', 'A bankruptcy, personal or business'],
@@ -2150,6 +2259,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'legal',
       name: 'Legal',
       full: 'Legal',
+      opener: 'Now the record. Every one of these is public somewhere, and age helps less than people think.',
       lede: 'Age does not help as much as people assume. A twenty year old charge still surfaces; what changes is how much it matters, and that depends almost entirely on whether you said it first.',
       items: [
         ['arrest', 'An arrest, a charge, or a conviction, however old and however it resolved'],
@@ -2178,6 +2288,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'statements',
       name: 'What you said',
       full: 'Past statements',
+      opener: 'Everything you have ever typed. This is the section people get wrong, because they answer from memory.',
       lede: 'This is the section that catches first-time candidates, because the material is theirs, it is already public, and they have forgotten most of it. Go and look. Do not answer from memory.',
       items: [
         ['old-accounts', 'Posts on an account you no longer use, or thought you deleted'],
@@ -2206,6 +2317,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'work',
       name: 'Work',
       full: 'Employment and business',
+      opener: 'Your working life. This is the one with other people in it, and they remember it differently than you do.',
       lede: 'Your working life is the part of your record most likely to involve other people who remember it differently than you do.',
       items: [
         ['fired', 'Fired, asked to resign, or left under a cloud'],
@@ -2234,6 +2346,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'personal',
       name: 'Personal',
       full: 'Personal and family',
+      opener: 'Family and private life. None of this is asked to be intrusive. It is asked because it is discoverable.',
       lede: 'The test here is not whether something is private. It is whether it is discoverable, and whether it contradicts something you have said publicly.',
       items: [
         ['divorce', 'A divorce or custody matter with a public court record'],
@@ -2262,6 +2375,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'affiliations',
       name: 'Affiliations',
       full: 'Affiliations',
+      opener: 'Everything you joined, funded, or signed. All of it is filed somewhere.',
       lede: 'Everything you joined, funded, or signed is a matter of record, and the organisation you joined may have said things since that you did not.',
       items: [
         ['org', 'Membership in an organisation that has taken controversial positions'],
@@ -2290,6 +2404,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       id: 'record',
       name: 'Your record',
       full: 'Credentials and record',
+      opener: 'Last, the bio. Every line on it is a claim, and a claim is something somebody can check.',
       lede: 'Nobody loses over a real credential. People lose over the gap between the credential and the way it is written on their own bio.',
       items: [
         ['degree', 'A degree in progress, unfinished, or from a school with a reputation problem'],
@@ -2941,10 +3056,12 @@ main[data-view="wizard"] .site-foot { display: none; }
     document.getElementById('btn-next').textContent =
       step === list.length - 1 ? 'See my register' : 'Continue';
 
+    // The intro warns you will want to stop around here. Saying it at the
+    // moment it happens is worth more than the warning was.
     var hint = document.getElementById('step-hint');
-    hint.textContent = s.race
-      ? 'Both optional. They only sharpen the timing advice.'
-      : 'Flag what applies. Most people flag two or three per section.';
+    if (s.race) hint.textContent = '';
+    else if (step === 4) hint.textContent = 'Most people want to stop about here.';
+    else hint.textContent = 'Flag what applies. Most people flag two or three per section.';
   }
 
   function raceCard() {
@@ -2990,19 +3107,31 @@ main[data-view="wizard"] .site-foot { display: none; }
   function sectionCard(s) {
     var card = el('div', { class: 'question', 'data-q': s.id });
     card.appendChild(el('h2', { class: 'q-label', text: s.full }));
+    // The voice sits above the explanation rather than replacing it, so it
+    // never costs the reader anything they needed.
+    if (s.opener) card.appendChild(el('p', { class: 'opener', text: s.opener }));
     card.appendChild(el('p', { class: 'help', text: s.lede }));
 
+    // Two independent columns rather than one two-column grid. In a grid, a row
+    // that expands sets the height of its whole row and leaves a hole beside
+    // it; here each column flows on its own, so opening an item on the left
+    // does not move or pad anything on the right.
     var list = el('div', { class: 'flags' });
-    s.items.forEach(function (pair) {
-      list.appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
+    var colA = el('div', { class: 'flag-col' });
+    var colB = el('div', { class: 'flag-col' });
+    var half = Math.ceil(s.items.length / 2);
+    s.items.forEach(function (pair, i) {
+      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
     });
 
     // Anything already added by hand in this section, so it survives going back.
     Object.keys(state.flagged).forEach(function (id) {
       var f = state.flagged[id];
-      if (f.section === s.id && f.custom) list.appendChild(flagRow(s, id, f.label, true));
+      if (f.section === s.id && f.custom) colB.appendChild(flagRow(s, id, f.label, true));
     });
 
+    list.appendChild(colA);
+    list.appendChild(colB);
     card.appendChild(list);
 
     var add = el('button', { type: 'button', class: 'secondary add-own no-print' });
@@ -3015,7 +3144,7 @@ main[data-view="wizard"] .site-foot { display: none; }
         desc: '', likelihood: '', severity: '', custom: true
       };
       var row = flagRow(s, id, '', true);
-      list.appendChild(row);
+      colB.appendChild(row);
       var input = row.querySelector('.own-label');
       if (input) input.focus();
     });
@@ -3025,7 +3154,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   }
 
   function flagRow(section, id, label, custom) {
-    var row = el('div', { class: 'flag' + (custom ? ' flag-own' : '') });
+    var row = el('div', { class: 'flag' + (custom ? ' flag-own' : ''), 'data-flag': id });
     var boxId = 'chk-' + id.replace(/\./g, '-');
 
     var head = el('label', { class: 'flag-head', for: boxId });
@@ -3038,6 +3167,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       own.value = label || '';
       own.addEventListener('input', function () {
         if (state.flagged[id]) state.flagged[id].label = own.value;
+        clearIncomplete(id);
       });
       // Clicking into the text field must not toggle the checkbox around it.
       own.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
@@ -3076,6 +3206,8 @@ main[data-view="wizard"] .site-foot { display: none; }
         delete state.flagged[id];
       }
       sync();
+      row.removeAttribute('data-incomplete');
+      if (!document.querySelector('#step [data-incomplete]')) show('step-error', false);
       detail.textContent = '';
       detail.appendChild(detailFields(id));
     });
@@ -3095,16 +3227,36 @@ main[data-view="wizard"] .site-foot { display: none; }
     wrap.appendChild(el('label', { class: 'flag-label', for: descId, text: 'In one line, what is it?' }));
     var desc = el('input', { type: 'text', id: descId, placeholder: 'Only you will ever read this' });
     desc.value = f.desc || '';
-    desc.addEventListener('input', function () { f.desc = desc.value; });
+    desc.addEventListener('input', function () {
+      f.desc = desc.value;
+      clearIncomplete(id);
+    });
     wrap.appendChild(desc);
 
-    wrap.appendChild(seg(id, 'likelihood', 'How likely is it to surface?', Items.LIKELIHOOD));
-    wrap.appendChild(seg(id, 'severity', 'How bad is it if it does?', Items.SEVERITY));
+    var press = el('p', { class: 'press' });
+    wrap.appendChild(seg(id, 'likelihood', 'How likely is it to surface?', Items.LIKELIHOOD, press));
+    wrap.appendChild(seg(id, 'severity', 'How bad is it if it does?', Items.SEVERITY, press));
+    wrap.appendChild(press);
+    updatePress(id, press);
 
     return wrap;
   }
 
-  function seg(id, field, question, options) {
+  // The one thing the tool can do that a form does not: hear the first answer
+  // and ask again. Only on the double wave-away, only once, and never blocking.
+  // Any more than that is nagging, and a nagged user starts lying.
+  function updatePress(id, node) {
+    var f = state.flagged[id];
+    if (!f) return;
+    var minimised = f.likelihood === 'low' && f.severity === 'survivable';
+    node.textContent = minimised
+      ? 'Unlikely and survivable is the most common rating in this tool, and the most common one people turn out to be wrong about. Leave it if you still mean it.'
+      : '';
+    if (minimised) node.removeAttribute('hidden');
+    else node.setAttribute('hidden', '');
+  }
+
+  function seg(id, field, question, options, press) {
     var f = state.flagged[id];
     var wrap = el('fieldset', { class: 'seg' });
     wrap.appendChild(el('legend', { class: 'flag-label', text: question }));
@@ -3126,6 +3278,8 @@ main[data-view="wizard"] .site-foot { display: none; }
           l.removeAttribute('data-selected');
         });
         lab.setAttribute('data-selected', '');
+        if (press) updatePress(id, press);
+        clearIncomplete(id);
       });
       lab.appendChild(input);
       lab.appendChild(el('span', { class: 'seg-name', text: o[1] }));
@@ -3170,8 +3324,50 @@ main[data-view="wizard"] .site-foot { display: none; }
     }, 170));
   }
 
+  // Flagging something and then leaving it unrated is the one way to end up
+  // with a register that is quietly wrong, so once a box is ticked all three
+  // fields are required before the section will let you past.
+  function incompleteIn(section) {
+    if (!section || section.race) return [];
+    return Object.keys(state.flagged).filter(function (id) {
+      var f = state.flagged[id];
+      if (f.section !== section.id) return false;
+      if (f.custom && !String(f.label || '').trim()) return true;
+      return !String(f.desc || '').trim() || !f.likelihood || !f.severity;
+    });
+  }
+
+  function clearIncomplete(id) {
+    var f = state.flagged[id];
+    if (!f) return;
+    if (!String(f.desc || '').trim() || !f.likelihood || !f.severity) return;
+    var row = document.querySelector('[data-flag="' + id + '"]');
+    if (row) row.removeAttribute('data-incomplete');
+    if (!document.querySelector('#step [data-incomplete]')) show('step-error', false);
+  }
+
   function next() {
     var list = steps();
+    var missing = incompleteIn(list[step]);
+    if (missing.length) {
+      Array.prototype.forEach.call(document.querySelectorAll('#step [data-flag]'), function (row) {
+        row.removeAttribute('data-incomplete');
+      });
+      missing.forEach(function (id) {
+        var row = document.querySelector('[data-flag="' + id + '"]');
+        if (row) row.setAttribute('data-incomplete', '');
+      });
+      var err = document.getElementById('step-error');
+      err.textContent = missing.length === 1
+        ? 'One item is flagged but not finished. Describe it and set both ratings, or untick it.'
+        : missing.length + ' items are flagged but not finished. Describe each one and set both ratings, or untick them.';
+      show('step-error', true);
+      var first = document.querySelector('#step [data-incomplete]');
+      if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    show('step-error', false);
+
     if (step >= list.length - 1) {
       cancelPending();
       goto('report');
@@ -3381,9 +3577,11 @@ main[data-view="wizard"] .site-foot { display: none; }
       var group = el('div', { class: 'search-group' });
       group.appendChild(el('h3', { class: 'search-title', text: g.title }));
       group.appendChild(el('p', { class: 'search-why', text: g.why }));
+      var rows = el('div', { class: 'cols2 search-rows' });
       g.queries.forEach(function (item) {
-        group.appendChild(searchRow(item));
+        rows.appendChild(searchRow(item));
       });
+      group.appendChild(rows);
       panel.appendChild(group);
     });
 
@@ -3433,7 +3631,9 @@ main[data-view="wizard"] .site-foot { display: none; }
     panel.appendChild(el('p', { class: 'eyebrow', text: 'Precedent' }));
     panel.appendChild(el('h2', { text: 'How this goes wrong' }));
     panel.appendChild(el('p', { class: 'note', text: 'Two cases at opposite ends of the scale, with the same mechanism underneath: the thing itself was survivable, and not saying it first was not.' }));
-    Evidence.WHY.forEach(function (c) { panel.appendChild(caseCard(c)); });
+    var pair = el('div', { class: 'cols2 why-cases' });
+    Evidence.WHY.forEach(function (c) { pair.appendChild(caseCard(c)); });
+    panel.appendChild(pair);
     box.appendChild(panel);
   }
 
@@ -3449,12 +3649,14 @@ main[data-view="wizard"] .site-foot { display: none; }
     src.appendChild(el('p', { class: 'eyebrow', text: 'Evidence' }));
     src.appendChild(el('h2', { text: 'Why this is the advice' }));
     src.appendChild(el('p', { class: 'note', text: 'Every rule above traces back to these. Look any of it up. None of it is ours.' }));
+    var list = el('div', { class: 'cols2 cite-list' });
     cites.forEach(function (c) {
       var box2 = el('div', { class: 'cite' });
       box2.appendChild(el('p', { class: 'cite-claim', text: c.claim }));
       box2.appendChild(el('p', { class: 'cite-source', text: c.source }));
-      src.appendChild(box2);
+      list.appendChild(box2);
     });
+    src.appendChild(list);
     box.appendChild(src);
   }
 
