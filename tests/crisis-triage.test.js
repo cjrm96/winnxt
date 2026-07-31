@@ -668,15 +668,22 @@ const base = {
     Math.round(document.getElementById('btn-start').getBoundingClientRect().top + window.scrollY));
   check('start is reachable without reading the brochure', startTop < 900, startTop + 'px down');
   check('there is one start, not two', await page.locator('#btn-start-2').count() === 0);
-  check('the scrolling band is not sitting at the bottom pretending to be a footer',
+  // The band closes the intro rather than interrupting it: everything a
+  // first-timer has to read comes first, and the real footer still follows, so
+  // the band never becomes the last thing on the page.
+  check('the explanation comes before the scrolling band',
+    await page.evaluate(() => {
+      var band = document.querySelector('.band-scroll');
+      var blocks = document.querySelectorAll('#intro .intro-block');
+      var last = blocks[blocks.length - 1];
+      return blocks.length === 3 &&
+        !!(last.compareDocumentPosition(band) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }));
+  check('the band is not the last thing on the page',
     await page.evaluate(() => {
       var band = document.querySelector('.band-scroll');
       var foot = document.querySelector('.site-foot');
-      return band.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false;
-    }) && await page.evaluate(() => {
-      var band = document.querySelector('.band-scroll');
-      var blocks = document.querySelectorAll('#intro .intro-block');
-      return band.compareDocumentPosition(blocks[0]) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false;
+      return !!(band.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING);
     }));
   await page.reload();
   await page.waitForTimeout(300);
