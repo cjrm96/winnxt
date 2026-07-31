@@ -100,9 +100,25 @@
   function raceCard() {
     var card = el('div', { class: 'question', 'data-q': 'race' });
     card.appendChild(el('h2', { class: 'q-label', text: 'First, your race' }));
-    card.appendChild(el('p', { class: 'help', text: 'Both of these are optional and neither changes what gets flagged. The deadline sharpens the timing advice at the end, because disclosing something early and disclosing it late are different acts.' }));
+    card.appendChild(el('p', { class: 'help', text: 'All of these are optional and none of them change what gets flagged. They sharpen two things at the end: the timing advice, because disclosing something early and disclosing it late are different acts, and the list of searches you get for finding out what is already public about you.' }));
 
     var wrap = el('div', { class: 'race-fields' });
+
+    // Name and town exist for one reason: to build the search strings at the
+    // end. They are never stored and never sent, and the copy says so, because
+    // a tool that asks a nervous person for their name owes them that sentence.
+    wrap.appendChild(el('label', { for: 'race-name', text: 'Your full name' }));
+    var nm = el('input', { type: 'text', id: 'race-name', placeholder: 'The name a stranger would search' });
+    nm.value = state.race.name || '';
+    nm.addEventListener('input', function () { state.race.name = nm.value; });
+    wrap.appendChild(nm);
+
+    wrap.appendChild(el('label', { for: 'race-city', text: 'Your city or district' }));
+    var ct = el('input', { type: 'text', id: 'race-city', placeholder: 'e.g. Norman, Oklahoma' });
+    ct.value = state.race.city || '';
+    ct.addEventListener('input', function () { state.race.city = ct.value; });
+    wrap.appendChild(ct);
+    wrap.appendChild(el('p', { class: 'optional', text: 'Used only to write the searches you get at the end. Like everything else here, it is never saved and never sent anywhere. Leave both blank and the searches come back with placeholders you fill in yourself.' }));
 
     wrap.appendChild(el('label', { for: 'race-office', text: 'What are you running for?' }));
     var office = el('input', { type: 'text', id: 'race-office', placeholder: 'e.g. Board of Education, District 3' });
@@ -395,6 +411,7 @@
     }
 
     renderRegister(r);
+    renderSearches(r);
     renderWhy();
     renderSources(r);
     renderHandoff();
@@ -485,6 +502,79 @@
       card.appendChild(det);
     }
     return card;
+  }
+
+  // The register records what somebody remembered. This is the part that finds
+  // what they did not, which is the material that was going to surprise them.
+  function renderSearches(r) {
+    var box = document.getElementById('plan');
+    var flaggedSections = [];
+    r.items.forEach(function (i) {
+      if (flaggedSections.indexOf(i.section) === -1) flaggedSections.push(i.section);
+    });
+    var out = window.SelfVetSearches.build(state.race, flaggedSections);
+
+    var panel = el('section', { class: 'report-block panel search-block' });
+    panel.appendChild(el('p', { class: 'eyebrow', text: 'Now go and look' }));
+    panel.appendChild(el('h2', { text: 'Find out what is already public' }));
+    panel.appendChild(el('p', {
+      text: r.counts.total
+        ? 'Everything above is what you remembered. These are the searches that find what you did not, tailored to the sections you flagged. Run them, then come back and run this tool again, because the second pass is always the useful one.'
+        : 'You flagged nothing, which makes this the most important part of the page. Run these before you conclude your record is clean.'
+    }));
+
+    var note = el('div', { class: 'callout callout-ok' });
+    note.appendChild(el('p', { text: 'Nothing here is run for you. These are strings to copy into a search engine yourself, so this page still makes no network requests of any kind. Do it in a private window while signed out: signed in, results are personalised around what you already click, and a stranger sees something different.' }));
+    panel.appendChild(note);
+
+    out.groups.forEach(function (g) {
+      var group = el('div', { class: 'search-group' });
+      group.appendChild(el('h3', { class: 'search-title', text: g.title }));
+      group.appendChild(el('p', { class: 'search-why', text: g.why }));
+      g.queries.forEach(function (item) {
+        group.appendChild(searchRow(item));
+      });
+      panel.appendChild(group);
+    });
+
+    var ai = el('div', { class: 'search-group no-print' });
+    ai.appendChild(el('h3', { class: 'search-title', text: 'Or hand it to an assistant' }));
+    var warn = el('div', { class: 'callout callout-warn' });
+    warn.appendChild(el('p', { text: 'Two warnings before you use these. Only an assistant that can actually search the web can do the first one, and one that cannot will invent plausible results and links rather than admit it, so check every source it gives you. And pasting your own name into an assistant sends it to somebody else\'s system, which is the one thing this tool otherwise never does.' }));
+    ai.appendChild(warn);
+
+    out.ai.forEach(function (p) {
+      var block = el('div', { class: 'ai-prompt' });
+      block.appendChild(el('h4', { class: 'ai-title', text: p.title }));
+      var pre = el('pre', { class: 'ai-body', text: p.body });
+      block.appendChild(pre);
+      block.appendChild(copyButton(p.body));
+      ai.appendChild(block);
+    });
+    panel.appendChild(ai);
+
+    box.appendChild(panel);
+  }
+
+  function searchRow(item) {
+    var row = el('div', { class: 'search-row' });
+    var line = el('p', { class: 'search-q', text: item.s });
+    row.appendChild(line);
+    row.appendChild(el('p', { class: 'search-note', text: item.why }));
+    row.appendChild(copyButton(item.s));
+    return row;
+  }
+
+  function copyButton(text) {
+    var btn = el('button', { type: 'button', class: 'secondary copy-mini no-print' });
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      window.WinnxtExport.copyText(text, function (ok) {
+        btn.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+      });
+    });
+    return btn;
   }
 
   function renderWhy() {

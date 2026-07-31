@@ -167,6 +167,8 @@ async function start(page) {
   // --- a full run ---------------------------------------------------------
 
   await start(page);
+  await page.fill('#race-name', 'Board Candidate');
+  await page.fill('#race-city', 'Springfield, Illinois');
   await page.fill('#race-office', 'Board of Education, District 3');
   await page.fill('#race-days', '60');
   await page.click('#btn-next');
@@ -221,6 +223,51 @@ async function start(page) {
     /opposition researcher/.test(handoff));
   check('the handoff warns that pasting it sends it somewhere',
     /leaves your browser/.test(await page.locator('.handoff-warn').textContent()));
+
+  // --- the searches -------------------------------------------------------
+  //
+  // The register records what somebody remembered. This block is what finds
+  // the rest, so it has to be specific, tailored, and run by the user rather
+  // than by the page.
+
+  const searchTitles = await page.locator('.search-group .search-title').allTextContents();
+  check('the searches are tailored to the sections flagged',
+    searchTitles.includes('Money') && searchTitles.includes('Legal') &&
+    !searchTitles.includes('Affiliations'),
+    searchTitles.join(' | '));
+  check('the baseline searches always appear',
+    searchTitles.some(t => /Start here/.test(t)));
+
+  const queries = await page.locator('.search-q').allTextContents();
+  check('the name is written into the queries',
+    queries.some(q => /"Board Candidate"/.test(q)), queries[0]);
+  check('the town is written into the queries',
+    queries.some(q => /Springfield/.test(q)), queries[0]);
+  check('real operators are used, not invented ones',
+    queries.some(q => /filetype:pdf/.test(q)) && queries.some(q => /-site:/.test(q)));
+  check('public registers are named, not just web searches',
+    /pacer\.uscourts\.gov/.test(await page.locator('.search-block').textContent()));
+  check('every search can be copied',
+    await page.locator('.search-row .copy-mini').count() === queries.length);
+
+  const searchText = await page.locator('.search-block').textContent();
+  check('it says plainly that nothing is run for you',
+    /Nothing here is run for you/.test(searchText));
+  check('it tells you to search signed out',
+    /private window while signed out/.test(searchText));
+  check('the AI prompts warn that an assistant without search will invent results',
+    /invent plausible results/.test(searchText));
+  check('the AI prompts warn that pasting your name sends it somewhere',
+    /sends it to somebody else's system/.test(searchText));
+
+  // A blank name still has to produce a usable list, since both fields are
+  // optional and a nervous first-timer may well skip them.
+  await start(page);
+  await toReport(page);
+  const blank = await page.locator('.search-q').allTextContents();
+  check('with no name given the searches fall back to placeholders',
+    blank.some(q => /YOUR FULL NAME/.test(q)) && blank.some(q => /YOUR CITY/.test(q)),
+    blank[0]);
 
   // --- flagging nothing ---------------------------------------------------
   //

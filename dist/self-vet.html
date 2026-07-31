@@ -1577,6 +1577,98 @@ main[data-view="wizard"] .site-foot { display: none; }
   .chip { border: 1px solid var(--line); }
 }
 
+/* ---- go and look -------------------------------------------------------- */
+
+.search-group {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space);
+  margin-top: var(--space-l);
+}
+
+.search-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.search-why {
+  margin: 0.3em 0 var(--space);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  max-width: var(--measure);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.4em var(--space);
+  padding: var(--space-s) 0;
+  border-top: 1px solid var(--line);
+}
+
+/* The query itself is the product of this block, so it is set in mono at a
+   size somebody can read off a second screen while typing. */
+.search-q {
+  grid-column: 1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.search-note {
+  grid-column: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  max-width: var(--measure);
+}
+
+.copy-mini {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  padding: 0.45em 1em;
+  font-size: 0.7rem;
+  min-width: 5.5rem;
+}
+
+.ai-prompt { margin-top: var(--space); }
+
+.ai-title {
+  margin: 0 0 0.4em;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ai-body {
+  margin: 0 0 0.5em;
+  padding: var(--space-s) var(--space);
+  background: var(--bg);
+  border-left: 2px solid var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+@media print {
+  .search-row { grid-template-columns: 1fr; break-inside: avoid; }
+  .search-q { border-left: 2px solid var(--line); padding-left: 8pt; }
+}
+
 </style>
 
 <main>
@@ -1637,6 +1729,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       <li><strong>Pull your own records.</strong> County court records, property records, and your own voter history are public and mostly free.</li>
       <li><strong>Ask one person who will be blunt with you.</strong> You are the worst available judge of your own record.</li>
     </ul>
+    <p>You do not have to work out how to do any of that. The register at the end comes with the actual searches to run, written around your own name and town and tailored to whatever you flagged.</p>
   </section>
 
   <section class="intro-block">
@@ -2107,6 +2200,199 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 </script>
 <script>
+// Search recipes: what to actually type, and where, to find out what is public.
+//
+// The register is only ever as good as the recall behind it, and recall is the
+// weak link. This turns "go and look" from advice into a list of specific
+// strings somebody can paste, tailored to the sections they flagged.
+//
+// Everything here is built as text in the page. Nothing is run, nothing is
+// fetched, and no query leaves the browser unless the user copies it and goes
+// somewhere else. That is the same promise the rest of the tool makes and it
+// would be trivially easy to break here, so it is worth stating twice.
+//
+// Rules for anything added:
+//   1. It must work for a private citizen with no subscriptions. No paid
+//      background-check services, no data brokers.
+//   2. It must be a real operator or a real public register. No invented
+//      Google syntax, and no site that does not exist.
+(function () {
+
+  function q(name) {
+    var n = String(name || '').trim();
+    return n ? '"' + n + '"' : '"YOUR FULL NAME"';
+  }
+
+  function place(city) {
+    var c = String(city || '').trim();
+    return c || 'YOUR CITY';
+  }
+
+  // Universal. Everybody runs these, whatever they flagged.
+  function baseline(name, city) {
+    var n = q(name);
+    var c = place(city);
+    return {
+      id: 'baseline',
+      title: 'Start here, whatever you flagged',
+      why: 'Run these in a private window while signed out. Signed in, Google personalises results and quietly hides the things you never click, which are exactly the things a stranger would see first.',
+      queries: [
+        { s: n + ' ' + c, why: 'The search an opponent, a reporter, or a curious voter types first.' },
+        { s: n + ' -site:YOURCAMPAIGNSITE.com -site:linkedin.com', why: 'Everything about you that you did not publish yourself. Put your own site in once you have one, and keep adding exclusions until only other people\'s pages are left.' },
+        { s: n + ' (arrested OR charged OR lawsuit OR sued OR settlement OR complaint)', why: 'The words a researcher pairs with a name on the first pass.' },
+        { s: n + ' filetype:pdf', why: 'Meeting minutes, agendas, donor lists, rosters, and programmes. This is where a name turns up in a document nobody indexed properly.' },
+        { s: n + ' site:' + slug(city) + '.gov', why: 'Your own local government: minutes, agendas, permits, public comment. Check the real domain first, because this is a guess and plenty of towns use something else.' },
+        { s: 'Every other version of your name', why: 'Maiden name, married name, a middle initial, a nickname, and the misspelling people actually use. Run the baseline search again for each one.' }
+      ]
+    };
+  }
+
+  var BY_SECTION = {
+    finances: {
+      title: 'Money',
+      why: 'Almost all of this is a public register somewhere, and most of it is free.',
+      queries: function (n, c) {
+        return [
+          { s: n + ' (lien OR judgment OR bankruptcy OR foreclosure)', why: 'The plain search. Do it before the paid services do.' },
+          { s: 'PACER, at pacer.uscourts.gov', why: 'Federal court records, including every bankruptcy. Searching costs cents per page and the fee is waived below a quarterly threshold.' },
+          { s: 'Your county recorder or clerk, property and lien search', why: 'Liens, deeds, and mortgages are filed at county level and are usually searchable online for nothing.' },
+          { s: 'Your county assessor, property search', why: 'What you own, what it is assessed at, and which exemptions are claimed on it.' }
+        ];
+      }
+    },
+    legal: {
+      title: 'Legal',
+      why: 'Court records are public by default. The question is only which court.',
+      queries: function (n, c) {
+        return [
+          { s: 'Your county clerk of court, case search', why: 'Most civil and criminal matters live here, not in a national database. Search every county you have lived in.' },
+          { s: 'Your state trial court portal, party name search', why: 'Many states run one statewide search that covers every county at once.' },
+          { s: n + ' (docket OR "case no" OR plaintiff OR defendant)', why: 'Catches filings that have been indexed by aggregators even when the court site has not been.' },
+          { s: 'Your state licensing board, disciplinary lookup', why: 'Licence status and any public discipline, for every licence you have ever held.' }
+        ];
+      }
+    },
+    statements: {
+      title: 'What you said',
+      why: 'This is the section where searching properly finds material you had genuinely forgotten.',
+      queries: function (n, c) {
+        return [
+          { s: 'from:YOURHANDLE until:2017-01-01', why: 'On X, this returns your own oldest posts first. Change the date and repeat. Do it for every handle you have ever had.' },
+          { s: 'web.archive.org/web/*/YOUROLDSITE.com', why: 'The Wayback Machine keeps pages after you delete them. Try old blogs, an old business site, and an old employer bio page.' },
+          { s: n + ' site:reddit.com', why: 'Then repeat with the other places you posted: forums, review sites, comment sections, local groups.' },
+          { s: n + ' site:facebook.com', why: 'Public posts and, more usefully, posts other people made about you and tagged.' },
+          { s: 'Google Images, then reverse image search', why: 'Search your name in Images, then take any photograph of yourself and reverse search it to find everywhere else it appears.' }
+        ];
+      }
+    },
+    work: {
+      title: 'Work',
+      why: 'Businesses and licences leave filings. Employment leaves people.',
+      queries: function (n, c) {
+        return [
+          { s: 'Your Secretary of State, business entity search', why: 'Every company you have registered, its officers, its status, and whether it was dissolved or forfeited.' },
+          { s: n + ' (fired OR resigned OR terminated OR "stepped down")', why: 'Blunt, and it is what somebody else will type.' },
+          { s: 'Your state licensing board, licence lookup', why: 'Status, expiry, and any public action, for each licence.' },
+          { s: 'Your own resume, line by line', why: 'Not a search. Read it as a hostile stranger and check every date, title, and claim against a document you can produce.' }
+        ];
+      }
+    },
+    personal: {
+      title: 'Personal',
+      why: 'Residency and family records are the two that decide local races.',
+      queries: function (n, c) {
+        return [
+          { s: 'Your state voter registration lookup', why: 'Confirm the address on file is the address you actually live at, and check when it last changed.' },
+          { s: 'Your county recorder, marriage and divorce index', why: 'Usually indexed publicly by name, and divorce filings can contain allegations you have forgotten are on the record.' },
+          { s: 'Your county assessor, by name rather than address', why: 'Finds property you may have stopped thinking about, including anything held jointly.' },
+          { s: n + ' obituary', why: 'Family obituaries name relatives, employers, and towns, and they are how a researcher maps your family in ten minutes.' }
+        ];
+      }
+    },
+    affiliations: {
+      title: 'Affiliations',
+      why: 'Money and membership are both filed somewhere.',
+      queries: function (n, c) {
+        return [
+          { s: 'FEC individual contributor search, at fec.gov', why: 'Every federal political donation you have made, by name and employer, going back decades.' },
+          { s: 'Your state campaign finance portal, contributor search', why: 'State and local donations, which is where the awkward ones usually are.' },
+          { s: 'ProPublica Nonprofit Explorer', why: 'Form 990s for any nonprofit you served, founded, or gave to. Officers are listed by name.' },
+          { s: n + ' (donated OR contribution OR endorsed OR "signed the petition")', why: 'Catches the local coverage that never made it into a register.' }
+        ];
+      }
+    },
+    record: {
+      title: 'Your record',
+      why: 'Every claim on your bio is a claim somebody can check.',
+      queries: function (n, c) {
+        return [
+          { s: n + ' (alumni OR graduated OR degree OR "class of")', why: 'What the internet already believes about your education.' },
+          { s: n + ' site:' + slug(c) + '.gov minutes', why: 'Attendance, votes, and what you actually said, at every meeting that was minuted. Correct the domain if this is not the right one.' },
+          { s: 'Your prior campaign finance filings', why: 'Late filings, amendments, and anything flagged, from any race you have run before.' },
+          { s: 'Your own bio, claim by claim', why: 'Not a search. For each line, name the document that proves it. Anything you cannot prove comes off the bio today.' }
+        ];
+      }
+    }
+  };
+
+  // The AI pass. Useful and worth two explicit warnings, both of which go on
+  // screen next to it rather than being buried here.
+  function aiPrompts(name, city, office) {
+    var n = String(name || '').trim() || 'YOUR NAME';
+    var c = place(city);
+    var o = String(office || '').trim() || 'local office';
+    return [
+      {
+        title: 'Ask an assistant that can search the web',
+        body: 'Act as an opposition researcher hired to beat me. My name is ' + n +
+          ', I live in ' + c + ', and I am running for ' + o +
+          '. Search the web and tell me everything publicly available about me that could be used against me. List each item with the source link, and rank them by how much damage they would do. Do not be polite about it, and tell me plainly if you cannot find much.'
+      },
+      {
+        title: 'Ask it to read your own old posts back to you',
+        body: 'Below are posts I wrote years ago. For each one, tell me how it would read if it were screenshotted with no context and posted by somebody who wants me to lose. Pick the five worst and explain what makes them usable.\n\n[paste your old posts here]'
+      },
+      {
+        title: 'Ask what records exist where you live',
+        body: 'I am running for ' + o + ' in ' + c + '. List the public records that exist about a candidate in this state and where each one is held: court records, property, liens, campaign finance, business filings, voter registration, and professional licences. Give me the actual website for each one.'
+      }
+    ];
+  }
+
+  // "St. Petersburg, Florida" -> "stpetersburg". Good enough for a site: hint
+  // that the user is expected to correct, and honest about being a guess.
+  function slug(city) {
+    var c = String(city || '').trim().split(',')[0];
+    if (!c) return 'yourcity';
+    return c.toLowerCase().replace(/[^a-z0-9]/g, '') || 'yourcity';
+  }
+
+  function build(race, flaggedSections) {
+    var name = race.name;
+    var city = race.city;
+    var groups = [baseline(name, city)];
+    var n = q(name);
+    var c = place(city);
+
+    Object.keys(BY_SECTION).forEach(function (key) {
+      if (flaggedSections.indexOf(key) === -1) return;
+      var s = BY_SECTION[key];
+      groups.push({
+        id: key,
+        title: s.title,
+        why: s.why,
+        queries: s.queries(n, c)
+      });
+    });
+
+    return { groups: groups, ai: aiPrompts(name, city, race.office) };
+  }
+
+  window.SelfVetSearches = { build: build, slug: slug };
+})();
+
+</script>
+<script>
 // Scoring. Pure functions, no DOM, so the rules can be tested directly and so
 // the same answers always produce the same register.
 //
@@ -2506,9 +2792,25 @@ main[data-view="wizard"] .site-foot { display: none; }
   function raceCard() {
     var card = el('div', { class: 'question', 'data-q': 'race' });
     card.appendChild(el('h2', { class: 'q-label', text: 'First, your race' }));
-    card.appendChild(el('p', { class: 'help', text: 'Both of these are optional and neither changes what gets flagged. The deadline sharpens the timing advice at the end, because disclosing something early and disclosing it late are different acts.' }));
+    card.appendChild(el('p', { class: 'help', text: 'All of these are optional and none of them change what gets flagged. They sharpen two things at the end: the timing advice, because disclosing something early and disclosing it late are different acts, and the list of searches you get for finding out what is already public about you.' }));
 
     var wrap = el('div', { class: 'race-fields' });
+
+    // Name and town exist for one reason: to build the search strings at the
+    // end. They are never stored and never sent, and the copy says so, because
+    // a tool that asks a nervous person for their name owes them that sentence.
+    wrap.appendChild(el('label', { for: 'race-name', text: 'Your full name' }));
+    var nm = el('input', { type: 'text', id: 'race-name', placeholder: 'The name a stranger would search' });
+    nm.value = state.race.name || '';
+    nm.addEventListener('input', function () { state.race.name = nm.value; });
+    wrap.appendChild(nm);
+
+    wrap.appendChild(el('label', { for: 'race-city', text: 'Your city or district' }));
+    var ct = el('input', { type: 'text', id: 'race-city', placeholder: 'e.g. Norman, Oklahoma' });
+    ct.value = state.race.city || '';
+    ct.addEventListener('input', function () { state.race.city = ct.value; });
+    wrap.appendChild(ct);
+    wrap.appendChild(el('p', { class: 'optional', text: 'Used only to write the searches you get at the end. Like everything else here, it is never saved and never sent anywhere. Leave both blank and the searches come back with placeholders you fill in yourself.' }));
 
     wrap.appendChild(el('label', { for: 'race-office', text: 'What are you running for?' }));
     var office = el('input', { type: 'text', id: 'race-office', placeholder: 'e.g. Board of Education, District 3' });
@@ -2801,6 +3103,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     }
 
     renderRegister(r);
+    renderSearches(r);
     renderWhy();
     renderSources(r);
     renderHandoff();
@@ -2891,6 +3194,79 @@ main[data-view="wizard"] .site-foot { display: none; }
       card.appendChild(det);
     }
     return card;
+  }
+
+  // The register records what somebody remembered. This is the part that finds
+  // what they did not, which is the material that was going to surprise them.
+  function renderSearches(r) {
+    var box = document.getElementById('plan');
+    var flaggedSections = [];
+    r.items.forEach(function (i) {
+      if (flaggedSections.indexOf(i.section) === -1) flaggedSections.push(i.section);
+    });
+    var out = window.SelfVetSearches.build(state.race, flaggedSections);
+
+    var panel = el('section', { class: 'report-block panel search-block' });
+    panel.appendChild(el('p', { class: 'eyebrow', text: 'Now go and look' }));
+    panel.appendChild(el('h2', { text: 'Find out what is already public' }));
+    panel.appendChild(el('p', {
+      text: r.counts.total
+        ? 'Everything above is what you remembered. These are the searches that find what you did not, tailored to the sections you flagged. Run them, then come back and run this tool again, because the second pass is always the useful one.'
+        : 'You flagged nothing, which makes this the most important part of the page. Run these before you conclude your record is clean.'
+    }));
+
+    var note = el('div', { class: 'callout callout-ok' });
+    note.appendChild(el('p', { text: 'Nothing here is run for you. These are strings to copy into a search engine yourself, so this page still makes no network requests of any kind. Do it in a private window while signed out: signed in, results are personalised around what you already click, and a stranger sees something different.' }));
+    panel.appendChild(note);
+
+    out.groups.forEach(function (g) {
+      var group = el('div', { class: 'search-group' });
+      group.appendChild(el('h3', { class: 'search-title', text: g.title }));
+      group.appendChild(el('p', { class: 'search-why', text: g.why }));
+      g.queries.forEach(function (item) {
+        group.appendChild(searchRow(item));
+      });
+      panel.appendChild(group);
+    });
+
+    var ai = el('div', { class: 'search-group no-print' });
+    ai.appendChild(el('h3', { class: 'search-title', text: 'Or hand it to an assistant' }));
+    var warn = el('div', { class: 'callout callout-warn' });
+    warn.appendChild(el('p', { text: 'Two warnings before you use these. Only an assistant that can actually search the web can do the first one, and one that cannot will invent plausible results and links rather than admit it, so check every source it gives you. And pasting your own name into an assistant sends it to somebody else\'s system, which is the one thing this tool otherwise never does.' }));
+    ai.appendChild(warn);
+
+    out.ai.forEach(function (p) {
+      var block = el('div', { class: 'ai-prompt' });
+      block.appendChild(el('h4', { class: 'ai-title', text: p.title }));
+      var pre = el('pre', { class: 'ai-body', text: p.body });
+      block.appendChild(pre);
+      block.appendChild(copyButton(p.body));
+      ai.appendChild(block);
+    });
+    panel.appendChild(ai);
+
+    box.appendChild(panel);
+  }
+
+  function searchRow(item) {
+    var row = el('div', { class: 'search-row' });
+    var line = el('p', { class: 'search-q', text: item.s });
+    row.appendChild(line);
+    row.appendChild(el('p', { class: 'search-note', text: item.why }));
+    row.appendChild(copyButton(item.s));
+    return row;
+  }
+
+  function copyButton(text) {
+    var btn = el('button', { type: 'button', class: 'secondary copy-mini no-print' });
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      window.WinnxtExport.copyText(text, function (ok) {
+        btn.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+      });
+    });
+    return btn;
   }
 
   function renderWhy() {
