@@ -141,7 +141,7 @@
     var o = String(office || '').trim() || 'local office';
     return [
       {
-        title: 'Ask an assistant that can search the web',
+        title: 'Ask an AI that can search the web',
         body: 'Act as an opposition researcher hired to beat me. My name is ' + n +
           ', I live in ' + c + ', and I am running for ' + o +
           '. Search the web and tell me everything publicly available about me that could be used against me. List each item with the source link, and rank them by how much damage they would do. Do not be polite about it, and tell me plainly if you cannot find much.'

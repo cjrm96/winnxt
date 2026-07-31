@@ -1,97 +1,98 @@
-# WINNXT Campaign Tools
+# WINNXT Studios tools
 
-Interactive, single-file HTML tools for DIY local political campaigns. Sold standalone on [WINNXTetsy](https://www.etsy.com/shop/WINNXTetsy).
+Single-file HTML tools for local campaigns and small organisations, sold on
+[WINNXTetsy](https://www.etsy.com/shop/WINNXTetsy).
 
-See `HANDOFF.md` for full product spec, market research, and guardrails.
+## Where the files are
 
-## Delivery format
-
-Every shipped product is a **single, self-contained `.html` file** — no zip, no dependencies, works from `file://` with zero network requests. That guarantee (see `HANDOFF.md` §6) is the product's privacy promise and its Etsy delivery mechanic. Optionally paired with a one-page PDF quickstart.
-
-## Repo structure
+**Everything a buyer gets is in `dist/`, one folder per Etsy listing.** Upload
+the folder and the listing is complete.
 
 ```
-winnxt-campaign-tools/
-├── README.md                     # this file
-├── HANDOFF.md                    # full project handoff/spec
-├── docs/
-│   ├── market-research.md
-│   ├── brand-voice.md            # WINNXT tone rules for all copy
-│   ├── crisis-framework.md       # defense-only crisis comms IP
-│   └── etsy-listings/            # title, description, tags, images per SKU
-├── src/
-│   ├── shared/
-│   │   ├── styles.css            # design tokens, print styles
-│   │   ├── storage.js            # opt-in localStorage wrapper + erase
-│   │   ├── export.js             # print + blob download
-│   │   └── handoff.js            # Claude prompt block generator
-│   └── tools/
-│       ├── self-vet-audit/       # build first
-│       ├── crisis-triage/
-│       ├── endorsement-engine/
-│       └── pre-filing-check/     # free lead magnet
-├── skills/
-│   ├── message-foundation/SKILL.md
-│   └── call-time-ask/SKILL.md
-├── build/
-│   └── inline.js                 # bundles src → single-file dist
-└── dist/                         # shippable artifacts, one .html each
+dist/
+├── crisis-triage/                LIVE ON ETSY
+│   ├── crisis-triage.html        the tool, the digital file the buyer downloads
+│   ├── quickstart.pdf            one page, the other digital file
+│   └── listing/                  the five 2000x2000 listing images
+│       ├── 1-cover.png … 5-format.png
+├── vet-yourself/                 built, not listed yet
+│   ├── vet-yourself.html
+│   ├── quickstart.pdf
+│   └── listing/1-cover.png … 5-format.png
+└── pre-filing-check/             free lead magnet, still on the old design
+    └── pre-filing-check.html
 ```
+
+**`dist/` is generated. Never edit anything in it.** Run `npm run build` and it
+is rebuilt from `src/`.
+
+## Where the source is
+
+```
+src/
+├── tools/                        the products themselves
+│   ├── crisis-triage/            index.html, app.js, logic.js, evidence.js,
+│   ├── self-vet/                 statements.js / items.js / searches.js, tool.css
+│   └── pre-filing-check/
+├── quickstart/                   the one-page PDFs
+│   ├── quickstart.css            shared by both
+│   ├── crisis-triage/index.html
+│   └── self-vet/index.html
+├── marketing/listing/            the Etsy images, laid out as web pages
+│   ├── listing.css               shared by both
+│   ├── crisis-triage/ad-1-cover.html … ad-5-format.html
+│   └── self-vet/ad-1-cover.html … ad-5-format.html
+└── shared/                       used by every tool
+    ├── styles.css                design tokens, base, print
+    ├── fonts.css                 Barlow Condensed + JetBrains Mono, base64
+    ├── brand/                    logo SVGs
+    ├── export.js                 print, download, clipboard
+    └── handoff.js                the "continue with AI" prompt builder
+```
+
+Listing copy, including titles, descriptions and tags, is in
+`docs/etsy-listings/`.
 
 ## Build
 
-Develop each tool in `src/tools/<name>/` as separate HTML/CSS/JS files (normal dev workflow). `build/inline.js` inlines everything into one `dist/<name>.html` file — no CDN links, no ES modules, no fetch, vanilla JS only, so it runs standalone from `file://`.
-
-**Before shipping any `dist/` file:** open it via `file://`, open devtools network tab, confirm **zero requests**. That's a checklist item, not a hope.
-
-## Guardrails (see `HANDOFF.md` §8 for full list)
-
-- Offense-oriented crisis tactics never ship to customers — defense only.
-- No state-specific compliance dollar figures.
-- Zero network requests, zero telemetry, no exceptions — the privacy claim must be literally true.
-- Any Claude-subscription dependency (skills products) disclosed in listing title, first line, first image.
-
-## What ships to a buyer
-
-| File | Built from | Notes |
-|---|---|---|
-| `dist/crisis-triage.html` | `src/tools/crisis-triage/` | The product. One file, zero requests. |
-| `dist/quickstart.pdf` | `src/quickstart/` | One page. How to open it, what the five verdicts mean, when to stop and call someone. |
-
-The quickstart is generated, not hand-maintained, so it cannot drift from the
-tool: `npm run quickstart` inlines it and renders the PDF through headless
-Chromium. The renderer fails the build if the page makes a network request,
-which is the same guarantee the tools carry, and the reason the brand fonts are
-embedded rather than linked.
-
-## Listing images
-
-`npm run etsy` renders `src/marketing/etsy/ad-*.html` to `dist/etsy/*.png`. They
-are laid out at 500x500 and screenshotted at a device scale of 4, so what Etsy
-receives is 2000x2000, which is what it actually wants.
-
-| Image | Job |
-|---|---|
-| `1-cover.png` | What it is, who it is for. Has to work as a 230px thumbnail. |
-| `2-calls.png` | The five verdicts, led on the one nothing else offers: say nothing. |
-| `3-report.png` | The actual output. Verdict, risk level, plan in order. |
-| `4-precedent.png` | The case library. Credibility. |
-| `5-format.png` | One file, nothing saved, **not a Canva template**. |
-
-That last one is not optional. The rest of the shop is Canva templates, so a
-buyer arrives expecting a share link and a printable. The listing has to say
-plainly that this is an interactive file, or the refunds and one-star reviews
-write themselves.
-
-The renderer fails on a network request and on any layout that overflows its
-square, because the frame crops rather than breaks and a clipped last line is
-easy to miss.
-
-## Test
-
 ```
 npm install          # playwright, dev only
-npm test             # builds dist/, then drives it from file:// in a real browser
+npm run build        # everything
+node build/build.js vet-yourself   # one product
+npm test             # build, then drive every tool from file:// in a real browser
 ```
 
-`tests/pre-filing-check.test.js` opens the shipped file the way a buyer does — off the filesystem, no server — and asserts zero network requests, no console errors, correct blocker logic, timeline math, storage opt-in and erase, mobile layout, print styles, and labeled fields. If Playwright can't find a browser, set `PW_CHROMIUM` to a Chromium binary path.
+`build/products.js` is the manifest. One entry per product, and the whole build
+is driven from it. Adding a product means adding an entry there, not editing
+three scripts.
+
+The build fails, rather than shipping something wrong, if a tool references
+anything remote, if a quickstart or listing image makes a network request, or
+if a listing image overflows its square frame.
+
+## The rules every tool ships under
+
+- **Zero network requests. No exceptions.** It is the privacy promise, and it is
+  the thing that has to be literally true. Open any `dist/` file from `file://`
+  with the network tab open and confirm it yourself before listing.
+- **No storage.** No localStorage, no sessionStorage, no cookies. Somebody
+  typing their worst moment into a shared family computer leaves nothing behind.
+- **Only real, findable citations.** No paraphrased "studies show". If it cannot
+  be looked up it does not ship.
+- **Cases are public record**, described so their own subject would recognise
+  them as accurate, and drawn from both parties deliberately.
+- **Nonpartisan.** The brand is partisan. The tools are not.
+- **Nothing that reads as legal advice**, and offence-oriented tactics never
+  ship to a customer. Defence only.
+- **No em dashes** in anything a buyer reads.
+
+See `HANDOFF.md` for the full product spec and `docs/brand-voice.md` for tone.
+
+## Tests
+
+`tests/*.test.js` open each shipped file the way a buyer does, off the
+filesystem with no server, and assert zero network requests, no console errors,
+the decision logic, the copy that carries the promises, layout at several widths,
+print styles, and labelled fields. Roughly 460 checks across the three tools.
+
+If Playwright cannot find a browser, set `PW_CHROMIUM` to a Chromium binary.

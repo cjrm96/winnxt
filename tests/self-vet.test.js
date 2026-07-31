@@ -8,7 +8,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'self-vet.html');
+const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'vet-yourself', 'vet-yourself.html');
 let fails = 0;
 function check(name, cond, extra) {
   console.log((cond ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));
@@ -305,7 +305,7 @@ async function start(page) {
     /Nothing here is run for you/.test(searchText));
   check('it tells you to search signed out',
     /private window while signed out/.test(searchText));
-  check('the AI prompts warn that an assistant without search will invent results',
+  check('the AI prompts warn that an AI without search will invent results',
     /invent plausible results/.test(searchText));
   check('the AI prompts warn that pasting your name sends it somewhere',
     /sends it to somebody else's system/.test(searchText));
@@ -591,6 +591,21 @@ async function start(page) {
     /practice, not evidence|weaker claim than a study/.test(limitsText));
   check('the contrary finding is cited, not just described',
     /British Journal of Political Science/.test(limitsText));
+
+  // The room section is the thing that sets the stakes, so its facts are held
+  // to the same standard as the citations: verified, or not printed.
+  check('the room section names what investigators actually do',
+    /interview your employers, your colleagues, your neighbours/.test(intro));
+  check('it uses the household employment nominations',
+    /two candidates for Attorney General/.test(intro) &&
+    /lasted eight days/.test(intro));
+  check('it makes the point that the second lost over an appearance',
+    /lost the job over an appearance/.test(intro));
+  check('it uses the unasked question as the cost',
+    /The ticket lasted eighteen days/.test(intro) &&
+    /what your not knowing says about you/.test(intro));
+  check('the questionnaire length is stated',
+    /about 127 pages/.test(intro));
 
   // --- two columns --------------------------------------------------------
   //

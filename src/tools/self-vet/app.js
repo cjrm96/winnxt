@@ -621,9 +621,9 @@
     });
 
     var ai = el('div', { class: 'search-group no-print' });
-    ai.appendChild(el('h3', { class: 'search-title', text: 'Or hand it to an assistant' }));
+    ai.appendChild(el('h3', { class: 'search-title', text: 'Or hand it to an AI' }));
     var warn = el('div', { class: 'callout callout-warn' });
-    warn.appendChild(el('p', { text: 'Two warnings before you use these. Only an assistant that can actually search the web can do the first one, and one that cannot will invent plausible results and links rather than admit it, so check every source it gives you. And pasting your own name into an assistant sends it to somebody else\'s system, which is the one thing this tool otherwise never does.' }));
+    warn.appendChild(el('p', { text: 'Two warnings before you use these. Only an AI that can actually search the web can do the first one, and one that cannot will invent plausible results and links rather than admit it, so check every source it gives you. And pasting your own name into an AI sends it to somebody else\'s system, which is the one thing this tool otherwise never does.' }));
     ai.appendChild(warn);
 
     out.ai.forEach(function (p) {

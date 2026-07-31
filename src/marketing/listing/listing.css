@@ -351,3 +351,11 @@ h1 {
 
 .mark { height: 34px; width: auto; color: var(--ink); }
 .lockup { height: 40px; width: auto; color: var(--ink); }
+
+/* "Yourself" is three characters longer than "Triage", so the cover for the
+   self-vet listing sets a size smaller to keep the same frame. */
+.mega.sv { font-size: 142px; }
+
+/* A four line headline on the precedent card, which needs a size down from the
+   two and three line ones. */
+.cases h1.tight { font-size: 40px; }

@@ -8,7 +8,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'crisis-triage.html');
+const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'crisis-triage', 'crisis-triage.html');
 const window_words = (t) => (t || '').trim().split(/\s+/).filter(Boolean).length;
 let fails = 0;
 function check(name, cond, extra) {
