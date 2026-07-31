@@ -164,6 +164,56 @@ async function start(page) {
     /does not know your disclosure law/.test(intro) &&
     /cannot make you honest/.test(intro));
 
+  // --- the cold open ------------------------------------------------------
+  //
+  // The page opens on a transcript with the answer lines blank, because the
+  // answers are the reader's. It is the mood-setting part and it is also the
+  // part most likely to break a screen reader or somebody who asked for less
+  // motion, so both are checked.
+
+  check('the page opens on a vetting transcript',
+    await page.locator('.session .ql').count() >= 5,
+    (await page.locator('.session .ql').count()) + ' questions');
+  check('the answer lines are left blank',
+    (await page.locator('.session .al span').allTextContents()).every(t => t.trim() === ''));
+  check('the questions come from the tool\'s own prompt list',
+    /bankruptcies/i.test(await page.locator('.session').textContent()) &&
+    /arrested/i.test(await page.locator('.session').textContent()));
+  check('it explains what the transcript was',
+    /keep going after you have answered/.test(await page.locator('.session').textContent()));
+  check('it says the point is being pressed in private first',
+    /while it is still a private room/.test(await page.locator('.session').textContent()));
+
+  // Animation delays rather than JS timers, so the text is in the DOM at first
+  // paint whatever happens to the animation.
+  check('the transcript is real text, not built by a timer',
+    await page.evaluate(() => document.querySelectorAll('.session .ql').length > 0));
+
+  const reduced = await browser.newPage({ reducedMotion: 'reduce' });
+  const reducedReqs = [];
+  reduced.on('request', r => { if (!r.url().startsWith('file://')) reducedReqs.push(r.url()); });
+  await reduced.goto(FILE);
+  await reduced.waitForTimeout(300);
+  const anim = await reduced.evaluate(() => {
+    const q = document.querySelector('.session .ql');
+    return { name: getComputedStyle(q).animationName, opacity: getComputedStyle(q).opacity };
+  });
+  check('reduced motion gets the transcript instantly',
+    anim.name === 'none' && anim.opacity === '1', JSON.stringify(anim));
+  check('reduced motion drops the vignette too',
+    await reduced.evaluate(() =>
+      getComputedStyle(document.getElementById('intro'), '::before').display === 'none'));
+  check('the cold open costs no network requests', reducedReqs.length === 0);
+  await reduced.close();
+
+  // The vetter's register, applied to the copy rather than only the visuals.
+  check('it warns you will want to stop, and that this is the point',
+    /Wanting to stop is not a sign that you should/.test(intro));
+  check('it explains why the questions are blunt',
+    /a euphemism is somewhere for an answer to hide/.test(intro));
+  check('it admits the tool cannot press you the way a person would',
+    /It cannot press you/.test(intro));
+
   // --- a full run ---------------------------------------------------------
 
   await start(page);

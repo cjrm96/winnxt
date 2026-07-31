@@ -1669,6 +1669,130 @@ main[data-view="wizard"] .site-foot { display: none; }
   .search-q { border-left: 2px solid var(--line); padding-left: 8pt; }
 }
 
+/* ---- the cold open ------------------------------------------------------ */
+
+/* One lit table in a dark room. The page is already near-black, so the work
+   here is dropping the edges further and pooling what light there is around
+   the transcript, which is the only thing on screen for the first few
+   seconds. */
+#intro { position: relative; }
+
+#intro::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(120% 80% at 50% 22%, transparent 0%, rgba(0, 0, 0, 0.55) 70%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+#intro > * { position: relative; z-index: 1; }
+
+.session {
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--accent);
+  background: var(--bg-soft);
+  padding: var(--space-m) var(--space-m) var(--space-l);
+  margin-bottom: var(--space-xl);
+}
+
+.session-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 0 var(--space-m);
+  padding-bottom: var(--space-s);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-faint);
+}
+
+.session-tape { margin-left: auto; }
+
+/* Q and A hang in a fixed gutter so the column of answers reads as a column of
+   answers, including the empty ones. The empty ones are the point. */
+.ql, .al {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr;
+  gap: 0 0.6em;
+  margin: 0;
+  padding: 0.25em 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  animation: q-in 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i) * 0.3s);
+}
+
+.ql b, .al b {
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  padding-top: 0.28em;
+}
+
+.ql { color: var(--ink); }
+.ql b { color: var(--accent-text); }
+
+/* An answer line with nothing on it, ruled, waiting. */
+.al { color: var(--ink-soft); }
+.al b { color: var(--ink-ghost); }
+.al span {
+  display: block;
+  min-height: 1.65em;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.al-last span { border-bottom-color: var(--accent); }
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  vertical-align: -0.18em;
+  background: var(--accent);
+  animation: caret 1.1s steps(1) infinite;
+  animation-delay: 3.9s;
+  opacity: 0;
+}
+
+@keyframes caret {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes q-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.session-out {
+  max-width: var(--measure);
+  margin: var(--space-m) 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  animation: q-in 0.6s var(--ease-out) both;
+  animation-delay: 4.1s;
+}
+
+.session-out + .session-out { animation-delay: 4.5s; }
+
+/* The whole conceit is timing, and timing is exactly what somebody who has
+   asked for less motion does not want. They get the transcript intact and
+   instant. */
+@media (prefers-reduced-motion: reduce) {
+  .ql, .al, .session-out { animation: none; }
+  .caret::after { animation: none; opacity: 1; }
+  #intro::before { display: none; }
+}
+
+@media print {
+  #intro::before { display: none; }
+  .session { border: 1px solid var(--line); background: none; }
+  .ql, .al, .session-out { animation: none; }
+}
+
 </style>
 
 <main>
@@ -1683,13 +1807,45 @@ main[data-view="wizard"] .site-foot { display: none; }
   </a>
 </header>
 
-<!-- Step 0: the door. -->
+<!-- Step 0: the door.
+
+     The cold open is a transcript of a session that is not happening to
+     anybody in particular, which is the point: the answer lines are blank
+     because they are the reader's. Questions are drawn from this tool's own
+     prompt list, so it previews the product rather than decorating it.
+
+     Revealed with CSS animation delays rather than JS timers, so the whole
+     thing is in the DOM from the first paint. A screen reader gets it in one
+     piece and reduced motion gets it instantly. -->
 <section id="intro" class="stage-panel">
+
+  <div class="session" aria-label="A transcript of a candidate vetting session">
+    <p class="session-head mono"><span class="blink"></span>Session, recorded <span class="session-tape">Reel 1 of 3</span></p>
+
+    <div class="session-lines">
+      <p class="ql" style="--i:0"><b>Q</b><span>Any bankruptcies. Yours, or a business you ran.</span></p>
+      <p class="al" style="--i:1"><b>A</b><span></span></p>
+      <p class="ql" style="--i:2"><b>Q</b><span>Anything you have been arrested for. However old, however it ended.</span></p>
+      <p class="al" style="--i:3"><b>A</b><span></span></p>
+      <p class="ql" style="--i:4"><b>Q</b><span>Every account you have ever posted from. Including the deleted ones.</span></p>
+      <p class="al" style="--i:5"><b>A</b><span></span></p>
+      <p class="ql" style="--i:6"><b>Q</b><span>Anyone you had authority over that you were involved with.</span></p>
+      <p class="al" style="--i:7"><b>A</b><span></span></p>
+      <p class="ql" style="--i:8"><b>Q</b><span>Photographs. Anything you would not want printed at full page.</span></p>
+      <p class="al" style="--i:9"><b>A</b><span></span></p>
+      <p class="ql ql-last" style="--i:10"><b>Q</b><span>Who else knows.</span></p>
+      <p class="al al-last" style="--i:11"><b>A</b><span class="caret"></span></p>
+    </div>
+
+    <p class="session-out">Somebody sits across a table and works through a list like that. They keep going after you have answered, because the first answer is almost never the whole one, and they do not stop when it gets uncomfortable. That is not cruelty. It is the job.</p>
+    <p class="session-out">They are not trying to embarrass you. They are finding out what you do when somebody presses, while it is still a private room. The press will press too, and that room has cameras in it.</p>
+  </div>
+
   <h1><span class="reveal delay-1">Vet yourself</span><br><span class="outline reveal delay-2">Before they do</span></h1>
   <p class="lede">Seven sections, a hundred and forty prompts, and an honest inventory of everything in your past that could surface. You finish with a register: what to get ahead of, what to have written down, and what to simply know your answer to.</p>
 
   <div class="callout callout-warn">
-    <p><strong>Your supporters can forgive almost anything except being surprised.</strong> That is the entire reason to do this, and it is why the exercise only works if you are harder on yourself here than anyone else will be later.</p>
+    <p><strong>Your supporters can forgive almost anything except being surprised.</strong> That is the entire reason to do this. It only works if you are harder on yourself here than anybody else will be later, and you will want to stop somewhere around section four. Wanting to stop is not a sign that you should. It is the part of the exercise that tells you where the problem is.</p>
   </div>
 
   <div class="callout callout-ok">
@@ -1704,6 +1860,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     <p>The questionnaire the Obama transition used in 2008 ran to more than sixty questions, and the New York Times published it in full. It asked for every email that might prove embarrassing. Every gun in the house. Every diary. Every alias you had ever posted under, and anything you had ever written, published or not. The federal security questionnaire behind a clearance is longer still and reaches back seven to ten years through your finances, your foreign contacts, your treatment history, and the people you live with.</p>
     <p>Underneath all of it is one question, asked in various polite ways: <em>is there anything about you, or anyone close to you, that could become a source of embarrassment.</em> They are not asking to be cruel. They are asking because the alternative is finding out from a reporter.</p>
     <p>Nobody does that for a school board race. That is exactly the problem. The scrutiny is smaller, but it is not zero, and it does not arrive with a team of lawyers and a schedule. It arrives on a Tuesday, from one person with a grudge and a search engine, six days before the election.</p>
+    <p>The people who do this work are not squeamish and they are not judging you. They ask in plain words because a euphemism is somewhere for an answer to hide, and a vetter who gets embarrassed is a vetter who misses things. A doctor does not apologise before an examination either.</p>
   </section>
 
   <section class="intro-block">
@@ -1714,6 +1871,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       <li><strong>It cannot interview anyone.</strong> Real vetting talks to your former business partner, your ex-spouse, and your neighbours. This only ever hears from you.</li>
       <li><strong>It does not know your disclosure law.</strong> What you are legally required to file, and when, is a question for your state and for a lawyer.</li>
       <li><strong>It cannot make you honest.</strong> It is a memory aid and a scoring rule. Everything it is worth depends on what you are willing to type into it.</li>
+      <li><strong>It cannot press you.</strong> A real vetter hears your first answer, waits, and asks again. Nothing here will do that. When an answer comes out of you too quickly, that is the moment to stop and ask it yourself.</li>
     </ul>
     <p>The prompts are the standard vetting scope plus a pass over what has actually ended careers in the last decade: fabricated resumes, intimate messages, old party photographs, relationships with people you had authority over, allegations and the settlements that quietly paid them, campaign money spent personally, and an afternoon at an event that was unremarkable on the day and notorious a year later.</p>
     <p>That is still far more than most first-time candidates ever do, which is the entire point. Running opposition research on your own candidate is standard practice at every level of professional campaigning, and it is the first thing cut when there is no staff and no budget.</p>

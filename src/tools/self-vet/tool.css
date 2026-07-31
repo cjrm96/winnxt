@@ -1041,3 +1041,127 @@ main[data-view="wizard"] .site-foot { display: none; }
   .search-row { grid-template-columns: 1fr; break-inside: avoid; }
   .search-q { border-left: 2px solid var(--line); padding-left: 8pt; }
 }
+
+/* ---- the cold open ------------------------------------------------------ */
+
+/* One lit table in a dark room. The page is already near-black, so the work
+   here is dropping the edges further and pooling what light there is around
+   the transcript, which is the only thing on screen for the first few
+   seconds. */
+#intro { position: relative; }
+
+#intro::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(120% 80% at 50% 22%, transparent 0%, rgba(0, 0, 0, 0.55) 70%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+#intro > * { position: relative; z-index: 1; }
+
+.session {
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--accent);
+  background: var(--bg-soft);
+  padding: var(--space-m) var(--space-m) var(--space-l);
+  margin-bottom: var(--space-xl);
+}
+
+.session-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 0 var(--space-m);
+  padding-bottom: var(--space-s);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-faint);
+}
+
+.session-tape { margin-left: auto; }
+
+/* Q and A hang in a fixed gutter so the column of answers reads as a column of
+   answers, including the empty ones. The empty ones are the point. */
+.ql, .al {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr;
+  gap: 0 0.6em;
+  margin: 0;
+  padding: 0.25em 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  animation: q-in 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i) * 0.3s);
+}
+
+.ql b, .al b {
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  padding-top: 0.28em;
+}
+
+.ql { color: var(--ink); }
+.ql b { color: var(--accent-text); }
+
+/* An answer line with nothing on it, ruled, waiting. */
+.al { color: var(--ink-soft); }
+.al b { color: var(--ink-ghost); }
+.al span {
+  display: block;
+  min-height: 1.65em;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.al-last span { border-bottom-color: var(--accent); }
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  vertical-align: -0.18em;
+  background: var(--accent);
+  animation: caret 1.1s steps(1) infinite;
+  animation-delay: 3.9s;
+  opacity: 0;
+}
+
+@keyframes caret {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes q-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.session-out {
+  max-width: var(--measure);
+  margin: var(--space-m) 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  animation: q-in 0.6s var(--ease-out) both;
+  animation-delay: 4.1s;
+}
+
+.session-out + .session-out { animation-delay: 4.5s; }
+
+/* The whole conceit is timing, and timing is exactly what somebody who has
+   asked for less motion does not want. They get the transcript intact and
+   instant. */
+@media (prefers-reduced-motion: reduce) {
+  .ql, .al, .session-out { animation: none; }
+  .caret::after { animation: none; opacity: 1; }
+  #intro::before { display: none; }
+}
+
+@media print {
+  #intro::before { display: none; }
+  .session { border: 1px solid var(--line); background: none; }
+  .ql, .al, .session-out { animation: none; }
+}
