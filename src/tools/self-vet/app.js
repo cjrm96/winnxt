@@ -8,6 +8,7 @@
   var Items = window.SelfVetItems;
   var Logic = window.SelfVetLogic;
   var Evidence = window.SelfVetEvidence;
+  var Questions = window.SelfVetQuestions;
 
   // flagged: { itemId: { label, section, sectionName, desc, likelihood, severity, custom } }
   var state = { flagged: {}, race: {} };
@@ -500,6 +501,7 @@
     }
 
     renderRegister(r);
+    renderQuestions(r);
     renderSearches(r);
     renderWhy();
     renderSources(r);
@@ -591,6 +593,53 @@
       card.appendChild(det);
     }
     return card;
+  }
+
+  // Knowing what to do about an item is not the same as being ready for the
+  // ninety seconds where somebody is asking about it. Only the top tiers get
+  // questions: sixty of them would be read by nobody.
+  function renderQuestions(r) {
+    var box = document.getElementById('plan');
+    var items = r.items.filter(function (i) {
+      return i.tier === 'ahead' || i.tier === 'contain' || i.tier === 'draft';
+    });
+    if (!items.length) return;
+
+    var panel = el('section', { class: 'report-block panel questions-block' });
+    panel.appendChild(el('p', { class: 'eyebrow', text: 'The murder board' }));
+    panel.appendChild(el('h2', { text: 'What you will actually be asked' }));
+    panel.appendChild(el('p', {
+      text: 'Campaigns call this a murder board: somebody sits opposite you and asks the hardest version of every question until the answers stop wobbling. Below is that, for the items that matter. Each question comes with what it is really testing, which is almost never the thing it appears to ask about.'
+    }));
+    panel.appendChild(el('p', { class: 'note', text: 'Say the answers out loud. Reading them silently and thinking "I would handle that" is exactly the preparation that fails in the room.' }));
+
+    items.forEach(function (item) {
+      var block = el('div', { class: 'qa' });
+      block.appendChild(el('h3', { class: 'qa-item', text: item.desc || item.label }));
+      var list = el('ol', { class: 'qa-list' });
+      Questions.forItem(item).forEach(function (entry) {
+        var li = el('li');
+        li.appendChild(el('p', { class: 'qa-q', text: entry.q }));
+        li.appendChild(el('p', { class: 'qa-trap', text: entry.trap }));
+        list.appendChild(li);
+      });
+      block.appendChild(list);
+      panel.appendChild(block);
+    });
+
+    var uni = el('div', { class: 'qa qa-universal' });
+    uni.appendChild(el('h3', { class: 'qa-item', text: 'And these three, every time' }));
+    var ul = el('ol', { class: 'qa-list' });
+    Questions.UNIVERSAL.forEach(function (entry) {
+      var li = el('li');
+      li.appendChild(el('p', { class: 'qa-q', text: entry.q }));
+      li.appendChild(el('p', { class: 'qa-trap', text: entry.trap }));
+      ul.appendChild(li);
+    });
+    uni.appendChild(ul);
+    panel.appendChild(uni);
+
+    box.appendChild(panel);
   }
 
   // The register records what somebody remembered. This is the part that finds
@@ -787,7 +836,7 @@
     if (r.counts.prepare) {
       asks.push('For the "Prepare an answer" items, give me one sentence each. I am not raising these, I just want to not hesitate.');
     }
-    asks.push('Give me the five hardest follow-up questions this list invites, and a straight answer to each.');
+    asks.push('For each item, write the answer I would give out loud to a reporter. Two sentences, plain words, no press-release language, and a way back to what I am running on.');
     asks.push('Tell me what is missing. Based on what I have flagged, what would a professional opposition researcher go looking for next?');
 
     return window.WinnxtHandoff.buildPrompt({

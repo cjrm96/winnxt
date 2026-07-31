@@ -685,6 +685,67 @@ async function start(page) {
   check('a former name is written into the searches',
     (await page.locator('.search-q').allTextContents()).some(q => /Jane Kowalski/.test(q)));
 
+  // --- the murder board ---------------------------------------------------
+  //
+  // Knowing what to do about an item is not the same as being ready for the
+  // ninety seconds where somebody is asking. Every question carries the trap,
+  // which is the part a first-timer cannot work out alone.
+
+  await start(page);
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await flag(page, 'finances', 'bankruptcy', 'Chapter 7 in 2011', 'high', 'severe');
+  await toReport(page);
+
+  check('the report prepares you for the questions',
+    await page.locator('.questions-block').count() === 1);
+  check('questions are specific to the section flagged',
+    /Who was left out of pocket/.test(await page.locator('.questions-block').textContent()));
+  check('every question carries what it is really testing',
+    await page.locator('.qa-q').count() === await page.locator('.qa-trap').count(),
+    (await page.locator('.qa-q').count()) + ' questions, ' +
+    (await page.locator('.qa-trap').count()) + ' traps');
+  check('the three that always come are shown once',
+    await page.locator('.qa-universal .qa-q').count() === 3);
+  check('the closing question is the escalation',
+    /anything else like this/.test(await page.locator('.qa-universal').textContent()));
+  check('it tells you to rehearse out loud',
+    /Say the answers out loud/.test(await page.locator('.questions-block').textContent()));
+
+  // The tool asks the question and names the trap. It does not write the
+  // answer, because an answer it wrote would be its words about facts it
+  // cannot see.
+  const qBank = await page.evaluate(() => ({
+    sections: Object.keys(window.SelfVetQuestions.BY_SECTION),
+    tiers: Object.keys(window.SelfVetQuestions.BY_TIER),
+    all: [].concat(
+      window.SelfVetQuestions.UNIVERSAL,
+      ...Object.values(window.SelfVetQuestions.BY_SECTION),
+      ...Object.values(window.SelfVetQuestions.BY_TIER))
+  }));
+  check('every section has its own questions', qBank.sections.length === 7, qBank.sections.join(','));
+  check('every tier has a question, including contain',
+    qBank.tiers.length === 4 && qBank.tiers.indexOf('contain') !== -1, qBank.tiers.join(','));
+  check('every question in the bank names its trap',
+    qBank.all.every(x => x.q && x.trap && x.trap.length > 40));
+  check('the contain question does not tell you to confirm it',
+    /confirming publishes it|Confirming publishes it/.test(
+      qBank.tiers.length ? JSON.stringify(qBank.all) : ''),
+    'a contain item must never be confirmed on the record');
+
+  // Low stakes items do not get a murder board. Sixty questions get read by
+  // nobody.
+  await start(page);
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await flag(page, 'finances', 'student', 'Deferred for a year', 'low', 'survivable');
+  await toReport(page);
+  check('prepare-tier items do not clutter the murder board',
+    await page.locator('.questions-block').count() === 0);
+
+  check('the printed output is framed as the file a campaign builds',
+    /Your vulnerability file/.test(await page.locator('.actions').textContent()));
+
   // --- two columns --------------------------------------------------------
   //
   // Asked for to cut the scroll. The prompt list is two independent columns

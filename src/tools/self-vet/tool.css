@@ -1329,3 +1329,59 @@ main[data-view="wizard"] .site-foot { display: none; }
 @media print {
   .tier-contain { box-shadow: none; border-left: 3px solid var(--line); padding-left: 10pt; }
 }
+
+/* ---- the murder board --------------------------------------------------- */
+
+.qa {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space);
+  margin-top: var(--space-l);
+}
+
+.qa-item {
+  margin: 0 0 var(--space-s);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.qa-list { margin: 0; padding-left: 1.4em; }
+.qa-list li { margin-bottom: var(--space); }
+
+/* The question is the thing somebody rehearses, so it is set as speech. */
+.qa-q {
+  margin: 0 0 0.3em;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: var(--measure);
+}
+
+/* The trap is the part they are paying for. */
+.qa-trap {
+  margin: 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--accent);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: var(--measure);
+}
+
+.qa-universal { border-top: 2px solid var(--accent); }
+
+@media (min-width: 76rem) {
+  .report-block.panel.questions-block {
+    --wide: min(68rem, calc(100vw - 3rem));
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    margin-right: calc((100% - var(--wide)) / 2);
+  }
+}
+
+@media print {
+  .qa, .qa-list li { break-inside: avoid; }
+  .qa-trap { border-left: 2px solid var(--line); }
+}
