@@ -1,6 +1,11 @@
-/* Crisis triage: step-by-step wizard, then the report.
+/* Self-vet audit: section-by-section inventory, then the register.
    All colour comes from the tokens in shared/styles.css. Nothing here
-   hardcodes a colour. */
+   hardcodes a colour.
+
+   The chrome here deliberately matches the crisis tool line for line: the two
+   are sold as one product line and a buyer who owns both should not be able to
+   tell they were built months apart. When a third tool arrives, this shared
+   half is worth extracting rather than copying a second time. */
 
 /* ---- masthead ----------------------------------------------------------- */
 
@@ -297,355 +302,6 @@
 
 .panel + .panel { margin-top: calc(var(--space-l) * -1 + 1px); }
 
-/* Two columns, but only once there is genuinely room for two readable measures
-   side by side. Below that they stack, in source order, which is the order they
-   would have been read in anyway. The report is long because a crisis has a lot
-   of parts; pairing the halves that answer the same question cuts the scroll
-   roughly in half without hiding anything. */
-.duo { display: grid; gap: var(--space-l); }
-.duo-col { min-width: 0; }
-.duo-col h2 { margin-top: 0; }
-.duo-col > p:not(.eyebrow):not(.note):not(.posture) {
-  color: var(--ink-soft);
-  max-width: var(--measure);
-}
-
-/* Two columns need more room than the reading column has, so the paired panels
-   break out of it. They are the only thing on the page that does, which is
-   what makes them read as one unit rather than as more of the same column. */
-@media (min-width: 76rem) {
-  /* Written as .report-block.duo-panel because .report-block.panel above sets
-     its own negative margins, and a single class would lose to it. */
-  .report-block.duo-panel {
-    /* Negative margins rather than a transform: a transformed box still
-       contributes its untransformed width to the scrollable area, which is a
-       horizontal scrollbar on a page that should never have one. */
-    --duo-w: min(68rem, calc(100vw - 3rem));
-    width: var(--duo-w);
-    margin-left: calc((100% - var(--duo-w)) / 2);
-    margin-right: calc((100% - var(--duo-w)) / 2);
-    padding-left: var(--space-xl);
-    padding-right: var(--space-xl);
-  }
-  .report-block.duo-panel + .duo-panel { margin-top: calc(var(--space-l) * -1 + 1px); }
-
-  .duo {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-xl);
-  }
-  /* A hairline between the halves so they read as a pair rather than as two
-     unrelated things that happen to be level. */
-  .duo > .duo-col + .duo-col {
-    border-left: 1px solid var(--line);
-    padding-left: var(--space-xl);
-  }
-  .duo .summary-list { grid-template-columns: 7.5rem 1fr; }
-}
-
-/* An empty column (no citations for this read) must not leave a stranded rule
-   down the middle. */
-.duo-col:empty { display: none; }
-.duo:has(> .duo-col:empty) { grid-template-columns: 1fr; }
-
-/* ---- the situation, quoted back ---------------------------------------- */
-
-.situation { border-top: 0; padding-top: 0; }
-
-.situation-quote {
-  margin: var(--space-s) 0 0;
-  padding-left: var(--space);
-  border-left: 2px solid var(--line);
-  color: var(--ink);
-  font-size: 1.02rem;
-  line-height: 1.6;
-  white-space: pre-wrap;      /* they typed paragraphs; keep them */
-  max-width: var(--measure);
-}
-
-.situation-label {
-  margin: var(--space) 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
-}
-
-.situation-facts {
-  list-style: none;
-  padding: 0;
-  margin: var(--space) 0 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 0 var(--space-l);
-  border-top: 1px solid var(--line);
-  padding-top: var(--space-s);
-}
-.situation-facts li {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15em;
-  padding: var(--space-s) 0;
-}
-.situation-key {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
-}
-.situation-val { color: var(--ink-soft); font-size: 0.9rem; }
-
-/* the hero: the one thing that must land instantly */
-
-.hero {
-  border: 0;
-  border-top: 2px solid var(--accent);
-  background: linear-gradient(180deg, rgba(201, 48, 44, 0.09) 0%, transparent 80%);
-  padding: var(--space-xl) 0 var(--space-l);
-  margin-bottom: var(--space-l);
-  text-align: left;
-}
-
-.verdict {
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 1.6rem + 7vw, 6.5rem);
-  line-height: 0.88;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  color: var(--accent-text);
-  margin: 0 0 var(--space-s);
-  text-wrap: balance;
-}
-
-.hero .verdict-line {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
-  max-width: var(--measure);
-  margin: 0;
-  padding-left: 1.5rem;
-  border-left: 3px solid var(--accent);
-  text-wrap: pretty;
-}
-
-.hero.risk-extreme, .hero.risk-high { box-shadow: inset 0 3px 0 var(--danger); }
-
-/* at-a-glance tiles */
-
-.tiles {
-  display: grid;
-  gap: 1px;
-  grid-template-columns: 1fr;
-  background: var(--line);
-  border-block: 1px solid var(--line);
-  margin-bottom: var(--space-l);
-}
-
-@media (min-width: 34rem) {
-  .tiles { grid-template-columns: repeat(3, 1fr); }
-}
-
-/* Centred, and vertically centred, so a tile that wraps to two lines still
-   sits level with the ones that don't, and so the row agrees with the
-   centred verdict directly above it. */
-.tile {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.4em;
-  background: var(--bg);
-  padding: var(--space-m);
-  min-height: 5.6rem;
-}
-
-.tile-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-faint);
-  margin: 0;
-}
-
-.tile-value {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-  margin: 0;
-  color: var(--ink);
-  text-wrap: balance;
-}
-
-/* risk meter */
-
-.meter {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  margin: var(--space) 0 var(--space-l);
-}
-
-.meter-seg {
-  padding: 0.8em 0.3em;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-ghost);
-  background: var(--bg);
-}
-
-.meter-seg.is-on { background: var(--accent); color: var(--accent-ink); }
-
-.grid-row { margin: 0; }
-.grid-row dt {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
-  margin-top: 0.85em;
-}
-.grid-row dd { margin: 0.05em 0 0; color: var(--ink-soft); }
-
-@media (min-width: 34rem) {
-  .grid-row {
-    display: grid;
-    grid-template-columns: 7rem 1fr;
-    column-gap: var(--space);
-    row-gap: 0.5em;
-  }
-  .grid-row dt { margin-top: 0.18em; }
-  .grid-row dd { margin: 0; }
-}
-
-/* The instruction, not a decoration: weight carries it, colour doesn't. */
-.posture {
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  margin-bottom: 0.4em;
-}
-.posture-second {
-  margin-top: var(--space-m);
-  padding-top: var(--space-m);
-  border-top: 1px solid var(--line);
-}
-
-.skeleton { margin: 0.4em 0 0.8em; padding-left: 1.3em; }
-.skeleton li { margin-bottom: 0.4em; }
-
-/* safety */
-
-.safety {
-  border: 0;
-  border-left: 3px solid var(--danger);
-  border-radius: 0 var(--radius-s) var(--radius-s) 0;
-  background: var(--danger-soft);
-  padding: var(--space) var(--space-m);
-  margin-bottom: var(--space-m);
-}
-
-.safety .eyebrow, .safety h2 { color: var(--danger); }
-.safety h2 { font-size: 1.1rem; }
-.safety p { max-width: 33rem; }
-
-/* the plan: one heading per time band */
-
-.band {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  color: var(--ink-faint);
-  margin: var(--space-m) 0 var(--space-xs);
-}
-
-.band:first-of-type { margin-top: var(--space-s); }
-
-/* the plan */
-
-/* The counter lives on the block, not the list, so numbering runs straight
-   through the time bands instead of restarting at each one. */
-.plan-block { counter-reset: step; }
-
-.sequence {
-  list-style: none;
-  padding-left: 0;
-  margin-bottom: 0;
-}
-
-.sequence li {
-  counter-increment: step;
-  position: relative;
-  padding-left: 2.5rem;
-  margin-bottom: var(--space);
-}
-
-.sequence li::before {
-  content: counter(step);
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 0.78rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-
-
-.donts { padding-left: 1.15em; }
-.donts li { margin-bottom: 0.6em; }
-.donts li::marker { color: var(--danger); }
-
-/* what you told it */
-
-.summary-list { margin: 0; }
-.summary-list dt {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-faint);
-  margin-top: 0.8em;
-}
-/* The value and its Change button run as one line of text. As a flex row they
-   wrapped the button onto a line of its own, where it read as belonging to the
-   next answer down. */
-.summary-list dd { margin: 0.1em 0 0; }
-.summary-value { color: var(--ink); }
-.summary-list dd .link { margin-left: 0.7em; }
-
-@media (min-width: 34rem) {
-  .summary-list {
-    display: grid;
-    grid-template-columns: 10rem 1fr;
-    column-gap: var(--space);
-    row-gap: 0.45em;
-  }
-  .summary-list dt { margin-top: 0.15em; }
-  .summary-list dd { margin: 0; }
-}
 
 /* ---- footer chrome ------------------------------------------------------ */
 
@@ -688,107 +344,6 @@ main[data-view="wizard"] .site-foot { display: none; }
   letter-spacing: 0.16em;
   color: var(--accent-text);
   margin: -0.2em 0 var(--space);
-}
-
-/* ---- the draft ---------------------------------------------------------- */
-
-.draft-warning { margin: var(--space) 0 var(--space-l); }
-
-/* The structure the read prescribed, sitting directly above the fields that
-   fill it in. */
-.skeleton-block {
-  border-left: 2px solid var(--accent);
-  padding: var(--space-s) 0 var(--space-s) var(--space);
-  margin: 0 0 var(--space-l);
-}
-.skeleton-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-.skeleton-block .skeleton { color: var(--ink-soft); margin-bottom: 0; }
-
-.draft-fields { margin-bottom: var(--space-l); }
-.draft-field { margin-top: var(--space-m); }
-.draft-field:first-child { margin-top: 0; }
-.draft-field label { margin-top: 0; }
-.draft-help { margin: 0 0 0.5em; font-size: 0.85rem; color: var(--ink-faint); }
-.draft-fields textarea { min-height: 3.4em; }
-
-/* A field prefilled from the wizard. Marked, because it is raw and it needs
-   editing, and unmarked the instant it is touched. */
-.draft-field[data-seeded] textarea { border-color: var(--accent); }
-.draft-carried {
-  margin: 0 0 0.4em;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--accent-text);
-}
-
-.draft-missing {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--warn);
-  margin-bottom: var(--space-l);
-}
-.draft-missing[hidden] { display: none; }
-
-/* The output column tracks the fields as they are filled in, so it stays put
-   while the left side is being typed into. */
-@media (min-width: 76rem) {
-  .draft-right {
-    position: sticky;
-    top: var(--space);
-    align-self: start;
-  }
-  .draft-right .draft-out:first-child { border-top: 0; padding-top: 0; }
-}
-
-.draft-out {
-  border-top: 1px solid var(--line);
-  padding-top: var(--space);
-  margin-bottom: var(--space-l);
-}
-
-.draft-out[data-solo] { border-top: 0; padding-top: 0; }
-
-.draft-out-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space);
-  margin-bottom: var(--space-s);
-}
-
-.draft-out-head h3 { margin: 0; }
-
-.draft-count {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-ghost);
-  white-space: nowrap;
-}
-
-.draft-text {
-  font-family: var(--font);
-  font-size: 1rem;
-  line-height: 1.65;
-  white-space: pre-wrap;
-  color: var(--ink);
-  background: var(--bg-soft);
-  border-left: 2px solid var(--accent);
-  padding: var(--space) var(--space-m);
-  margin: 0 0 var(--space-s);
-  max-width: var(--measure);
 }
 
 /* ---- evidence ----------------------------------------------------------- */
@@ -938,28 +493,6 @@ main[data-view="wizard"] .site-foot { display: none; }
 .sources { padding-left: 1.3em; margin-top: var(--space-s); }
 .sources li { margin-bottom: 0.5em; }
 .source-ref { display: block; font-size: 0.82rem; line-height: 1.5; color: var(--ink-soft); }
-
-/* ---- safety interstitial ------------------------------------------------ */
-
-.safety-modal {
-  width: min(34rem, calc(100vw - 2rem));
-  padding: var(--space-l);
-  border: 1px solid var(--line-strong);
-  border-top: 3px solid var(--danger);
-  background: var(--bg);
-  color: var(--ink-soft);
-}
-
-.safety-modal::backdrop {
-  background: rgba(0, 0, 0, 0.82);
-}
-
-.safety-modal .eyebrow { color: var(--danger); }
-.safety-modal .eyebrow::before { background: var(--danger); }
-.safety-modal h2 { color: var(--ink); margin-bottom: var(--space); }
-.safety-modal ul { padding-left: 1.2em; margin-bottom: var(--space); }
-.safety-modal li { color: var(--ink); margin-bottom: 0.5em; }
-.safety-modal .note { margin-bottom: var(--space-l); }
 
 /* ---- sticky verdict ----------------------------------------------------- */
 
@@ -1112,52 +645,307 @@ main[data-view="wizard"] .site-foot { display: none; }
   .cta-link:hover { transform: none; }
 }
 
+/* the hero: the one thing that must land instantly */
+
+.hero {
+  border: 0;
+  border-top: 2px solid var(--accent);
+  background: linear-gradient(180deg, rgba(201, 48, 44, 0.09) 0%, transparent 80%);
+  padding: var(--space-xl) 0 var(--space-l);
+  margin-bottom: var(--space-l);
+  text-align: left;
+}
+
+.verdict {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 1.6rem + 7vw, 6.5rem);
+  line-height: 0.88;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  margin: 0 0 var(--space-s);
+  text-wrap: balance;
+}
+
+.hero .verdict-line {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: var(--measure);
+  margin: 0;
+  padding-left: 1.5rem;
+  border-left: 3px solid var(--accent);
+  text-wrap: pretty;
+}
+
+/* ---- at a glance -------------------------------------------------------- */
+
+.tiles {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: 1fr;
+  background: var(--line);
+  border-block: 1px solid var(--line);
+  margin-bottom: var(--space-l);
+}
+
+@media (min-width: 34rem) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Centred, and vertically centred, so a tile that wraps to two lines still
+   sits level with the ones that don't, and so the row agrees with the
+   centred verdict directly above it. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4em;
+  background: var(--bg);
+  padding: var(--space-m);
+  min-height: 5.6rem;
+}
+
+.tile-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.tile-value {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Here the tile value is a count, so it wants to be a number you can read
+   across the room rather than a phrase. */
+.tiles .tile-value { font-size: 2.4rem; line-height: 1; }
+
+/* ---- your race ---------------------------------------------------------- */
+
+.race-fields label {
+  display: block;
+  margin-top: var(--space-m);
+  font-weight: 600;
+  color: var(--ink);
+}
+.race-fields label:first-child { margin-top: 0; }
+.race-fields input { margin-top: 0.4em; }
+
+/* ---- the flag list ------------------------------------------------------ */
+
+/* One row per prompt. Unchecked it is a line of text; checked it opens into
+   the two questions that actually decide what happens to it. Keeping the
+   rating attached to the prompt means nobody has to hold fifty items in their
+   head and rate them later. */
+.flags {
+  border-top: 1px solid var(--line);
+  margin-bottom: var(--space-l);
+}
+
+.flag { border-bottom: 1px solid var(--line); }
+
+.flag-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  margin: 0;
+  padding: 0.85em 1em 0.85em 0.9em;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.flag-head:hover { background: var(--surface); }
+.flag-head input { margin-top: 0.25em; flex: none; }
+.flag-text { color: var(--ink-soft); }
+
+.flag[data-on] { background: var(--bg-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.flag[data-on] .flag-text { color: var(--ink); font-weight: 600; }
+
+.flag-detail { display: none; }
+.flag[data-on] .flag-detail { display: block; }
+
+.flag-fields {
+  padding: 0 1em 1.2em 2.4em;
+  animation: flag-open 0.28s var(--ease-out) both;
+}
+
+@keyframes flag-open {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.flag-label {
+  display: block;
+  margin: var(--space-s) 0 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  padding: 0;
+}
+
+.own-label {
+  flex: 1;
+  min-width: 0;
+  padding: 0.15em 0.5em;
+  font-weight: 600;
+}
+
+.add-own { margin-bottom: var(--space-l); font-size: 0.85rem; padding: 0.7em 1.4em; }
+
+/* ---- the two ratings ---------------------------------------------------- */
+
+.seg { border: 0; padding: 0; margin: 0; }
+
+.seg-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-block: 1px solid var(--line);
+}
+
+.seg-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  margin: 0;
+  padding: 0.6em 0.4em;
+  background: var(--surface);
+  font-size: 0.85rem;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.seg-opt input { margin: 0; }
+.seg-opt:hover { color: var(--ink); }
+.seg-opt[data-selected] { background: var(--accent-soft); color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--accent); }
+.seg-opt:has(input:focus-visible) { box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.seg { margin-top: var(--space-m); }
+
+.seg-help { margin: 0.6em 0 0; max-width: var(--measure); }
+
+.seg-def {
+  margin: 0 0 0.2em;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.seg-def b {
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin-right: 0.5em;
+}
+
+/* ---- the register ------------------------------------------------------- */
+
+.tier-block .posture { margin-bottom: var(--space-s); }
+
+.register {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-l) 0 0;
+  border-top: 1px solid var(--line-strong);
+}
+
+.reg-item {
+  padding: var(--space) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.reg-what {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+  max-width: var(--measure);
+}
+
+.reg-meta {
+  margin: 0.25em 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+}
+
+.reg-section { color: var(--accent-text); }
+.reg-prompt::before { content: " / "; color: var(--line-strong); }
+
+.chips { margin: 0.6em 0 0; display: flex; gap: 0.4em; flex-wrap: wrap; }
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.35em 0.6em;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-faint);
+}
+
+.chip-high, .chip-severe { border-color: var(--accent); color: var(--accent-text); }
+.chip-serious { border-color: var(--warn); color: var(--warn); }
+
+/* The three tiers are ranked, and the ranking should be visible before the
+   words are read. */
+.tier-ahead { box-shadow: inset 4px 0 0 var(--accent); }
+.tier-draft { box-shadow: inset 4px 0 0 var(--warn); }
+.tier-prepare { box-shadow: inset 4px 0 0 var(--line-strong); }
+
+.tier-block .case { margin-top: var(--space-l); }
+
+.hero-hot { box-shadow: inset 0 3px 0 var(--danger); }
+
+.why-block .case { margin-top: var(--space); }
+
+.handoff-warn { color: var(--warn); }
+
 /* ---- print -------------------------------------------------------------- */
 
 @media print {
   .hero {
     background: none;
     border: 1px solid var(--line);
-    text-align: left;
     padding: 10pt;
   }
   .verdict { font-size: 24pt; }
-  .report-block, .safety, .tiles, .sequence li { break-inside: avoid; }
-  .safety { border-left: 3px solid var(--line); background: none; }
-  .sequence li::before { border: 1px solid var(--line); background: none; color: var(--ink); }
-  .meter-seg { border: 1px solid var(--line); background: none; }
-  .meter-seg.is-on { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; }
+  .report-block, .tiles, .reg-item, .case { break-inside: avoid; }
+  .report-block.panel { background: none; margin: 0; padding: var(--space-l) 0; }
   .tile { border: 1px solid var(--line); }
   .masthead { display: block; }
   .logo-lockup { height: 60pt; }
   .case { border: 1px solid var(--line); border-left: 3px solid var(--line); }
-  /* A printed report is for reading later, so expand every case. */
-  .report-block.panel { background: none; margin: 0; padding: var(--space-l) 0; }
-  .draft-fields, .draft-warning { display: none; }
-  .draft-out { break-inside: avoid; }
-  .draft-text { background: none; border-left: 2px solid var(--line); }
+  /* A printed register is the deliverable, so nothing stays folded away. */
   .case-more:not([open]) > *:not(summary) { display: block; }
   .case-more summary { display: none; }
   .case-body { animation: none; }
-  .case, .sources li { break-inside: avoid; }
   .cite { border-left: 2px solid var(--line); }
-  /* Paper is one column. Side by side on a page break is how a plan ends up
-     printed away from the half of the plan it belongs to. */
-  .duo { display: block; }
-  .duo > .duo-col + .duo-col {
-    border-left: 0;
-    padding-left: 0;
-    margin-top: var(--space-l);
-  }
-  .duo-panel {
-    width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-  }
-  .duo-col { break-inside: avoid; }
-  .situation-quote { border-left: 2px solid var(--line); }
-  .skeleton-block { border-left: 2px solid var(--line); }
-  .draft-carried { display: none; }
+  .tier-ahead, .tier-draft, .tier-prepare { box-shadow: none; border-left: 3px solid var(--line); padding-left: 10pt; }
+  .chip { border: 1px solid var(--line); }
 }

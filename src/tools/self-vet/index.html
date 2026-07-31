@@ -1,0 +1,146 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:">
+<title>Self-Vet &amp; Vulnerability Audit | WINNXT</title>
+<link rel="stylesheet" href="../../shared/fonts.css">
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="tool.css">
+
+<main>
+
+<header class="masthead">
+  <div class="masthead-meta mono no-print">
+    <span><span class="blink"></span>Self-vet</span>
+    <span class="masthead-meta-right">A WINNXT Studios tool</span>
+  </div>
+  <a class="logo-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">
+    <img data-inline-svg class="logo-lockup" src="../../shared/brand/winnxt-lockup.svg" alt="WINNXT, securing your next win">
+  </a>
+</header>
+
+<!-- Step 0: the door. -->
+<section id="intro" class="stage-panel">
+  <h1><span class="reveal delay-1">Vet yourself</span><br><span class="outline reveal delay-2">Before they do</span></h1>
+  <p class="lede">Seven sections, about fifty prompts, and an honest inventory of everything in your past that could surface. You finish with a register: what to get ahead of, what to have written down, and what to simply know your answer to.</p>
+
+  <div class="callout callout-warn">
+    <p><strong>Your supporters can forgive almost anything except being surprised.</strong> That is the entire reason to do this, and it is why the exercise only works if you are harder on yourself here than anyone else will be later.</p>
+  </div>
+
+  <div class="callout callout-ok">
+    <p><strong>Nothing you type here is saved anywhere.</strong> Not to a server, not to this browser, not to a file. This tool makes no network requests at all, and it works with your internet switched off. Close the tab and it is gone, so print the register before you leave.</p>
+  </div>
+
+  <button type="button" id="btn-start" class="btn-lg has-arrow">Start</button>
+
+  <section class="intro-block">
+    <h2>Every consultant tells you to do this</h2>
+    <p>Running opposition research on your own candidate is standard practice at every level of professional campaigning. It is also the first thing cut when there is no staff and no budget, which is why first-timers are the people it happens to.</p>
+    <p>Nobody loses a race over a bankruptcy, an old arrest, or a post they wrote in 2014. They lose over the two weeks of coverage about why they never mentioned it.</p>
+  </section>
+
+  <section class="intro-block">
+    <h2>Go and look. Do not answer from memory</h2>
+    <p>The failure mode here is not lying. It is forgetting. The account you stopped using in 2014, the business that closed owing somebody money, the petition you signed outside a supermarket. Before you start, open the old accounts, search your own name, and read your own bio the way a hostile stranger would.</p>
+    <ul class="intro-list">
+      <li><strong>Search your own name</strong> in a private window, with your city, and with the words that would embarrass you.</li>
+      <li><strong>Open every social account you have ever had</strong>, including ones you thought were deleted, and read the oldest posts first.</li>
+      <li><strong>Pull your own records.</strong> County court records, property records, and your own voter history are public and mostly free.</li>
+      <li><strong>Ask one person who will be blunt with you.</strong> You are the worst available judge of your own record.</li>
+    </ul>
+  </section>
+
+  <section class="intro-block">
+    <h2>What it does with your answers</h2>
+    <p>For everything you flag, you set two things: how likely it is to surface, and how bad it is if it does. Those two answers decide which of three actions applies, using a fixed rule rather than a judgement call, so the same inputs always produce the same register.</p>
+    <p>Severity is weighted ahead of likelihood on purpose. A severe item is worth pre-empting even when you are fairly sure nobody will find it, because the cost of being wrong about that is the campaign. Every rule traces back to published research, cited in the register.</p>
+  </section>
+
+  <div class="band-scroll no-print" aria-hidden="true">
+    <div class="band-scroll-inner">
+      <span>Securing your next win <span class="dot"></span> Protecting your next win <span class="dot"></span> Defending your next win <span class="dot"></span> Winning your next win <span class="dot"></span></span>
+      <span>Securing your next win <span class="dot"></span> Protecting your next win <span class="dot"></span> Defending your next win <span class="dot"></span> Winning your next win <span class="dot"></span></span>
+    </div>
+  </div>
+</section>
+
+<!-- One section at a time. -->
+<section id="wizard" class="stage-panel" hidden>
+  <div class="progress no-print">
+    <div class="progress-meta">
+      <span id="progress-label">Section 1</span>
+      <span id="progress-count"></span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progress through the sections">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <div id="step" aria-live="polite"></div>
+
+  <nav class="stepnav no-print">
+    <button type="button" id="btn-back" class="secondary">Back</button>
+    <p class="step-hint" id="step-hint">Flag what applies. Nothing here is required.</p>
+    <button type="button" id="btn-next" class="has-arrow">Continue</button>
+  </nav>
+</section>
+
+<!-- The register. -->
+<section id="report" class="stage-panel" hidden>
+  <button type="button" class="verdict-bar no-print" id="verdict-bar" hidden>
+    <span class="verdict-bar-text" id="verdict-bar-text"></span>
+    <span class="verdict-bar-risk" id="verdict-bar-risk"></span>
+    <span class="verdict-bar-top">Top</span>
+  </button>
+
+  <h2 class="sr-only" id="report-heading" tabindex="-1">Your register</h2>
+  <div id="read"></div>
+  <div id="plan"></div>
+
+  <section class="report-block handoff no-print">
+    <h2>Continue with AI</h2>
+    <p>Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use. It picks up with your register and drafts the actual statements.</p>
+    <p class="note handoff-warn">Read this before you paste it: it contains everything you just typed. That is the point, and it also means it leaves your browser the moment you send it. Cut anything you are not willing to put into somebody else's system.</p>
+    <pre id="handoff-text"></pre>
+    <button type="button" id="btn-copy">Copy this prompt</button>
+  </section>
+
+  <div id="summary-slot"></div>
+
+  <section class="report-block no-print actions">
+    <p class="eyebrow">Take it with you</p>
+    <h2>Save this</h2>
+    <p>Nothing here is saved when you close the tab. Print it before you go, or save it as a PDF from the print dialog.</p>
+    <div class="action-row">
+      <button type="button" id="btn-print" class="btn-lg">Print / Save as PDF</button>
+      <button type="button" class="secondary" id="btn-review">Change an answer</button>
+    </div>
+    <p class="action-reset"><button type="button" class="link" id="btn-restart">Start over</button></p>
+  </section>
+
+  <section class="report-block cta no-print">
+    <h2>Talk to someone who does this for a living</h2>
+    <p>A register is a good start and a poor substitute for judgment. If something on this list is genuinely serious, the next conversation is worth having with a professional before you say anything publicly.</p>
+    <p><a class="cta-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">Get in touch with WINNXT →</a></p>
+  </section>
+</section>
+
+<footer class="site-foot">
+  <div class="brand">
+    <a class="logo-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">
+      <img data-inline-svg class="logo-mark" src="../../shared/brand/winnxt-mark.svg" alt="WINNXT">
+    </a>
+    <p class="brand-blurb">From message development to digital marketing, WINNXT offers cutting-edge strategies that drive your campaign to victory. Discover our comprehensive range of services designed to make your political communication a decisive asset in the fast-paced political landscape.</p>
+    <p class="brand-line"><a href="https://www.winnxt.com/" target="_blank" rel="noopener">winnxt.com</a></p>
+    <p class="note">This is a communications planning tool, not legal advice. Nothing here tells you what you are legally required to disclose. For anything involving a court record, a settlement, an NDA, or a filing requirement, talk to a lawyer.</p>
+  </div>
+</footer>
+
+</main>
+
+<script src="../../shared/export.js"></script>
+<script src="../../shared/handoff.js"></script>
+<script src="items.js"></script>
+<script src="logic.js"></script>
+<script src="evidence.js"></script>
+<script src="app.js"></script>
