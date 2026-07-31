@@ -13,7 +13,11 @@
     <span><span class="blink"></span>Crisis triage</span>
     <span class="masthead-meta-right">A WINNXT Studios tool</span>
   </div>
-  <img data-inline-svg class="logo-lockup" src="../../shared/brand/winnxt-lockup.svg" alt="WINNXT, securing your next win">
+  <!-- New tab on purpose. Nothing here is saved, so navigating away in the
+       middle of a run loses the whole thing. -->
+  <a class="logo-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">
+    <img data-inline-svg class="logo-lockup" src="../../shared/brand/winnxt-lockup.svg" alt="WINNXT, securing your next win">
+  </a>
 </header>
 
 <!-- Step 0: the door. -->
@@ -114,10 +118,14 @@
 
   <section class="report-block handoff no-print">
     <h2>Continue with AI</h2>
-    <p>This tool tells you what to do. It can't write the words for you. Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use. It picks up with everything you just entered.</p>
+    <p>Paste the text below into ChatGPT, Claude, Gemini, or whatever assistant you already use. It picks up with everything you just entered.</p>
     <pre id="handoff-text"></pre>
     <button type="button" id="btn-copy">Copy this prompt</button>
   </section>
+
+  <!-- The citations and the answer log, paired. They sit above the actions so
+       the last thing before "save this" is the evidence behind the read. -->
+  <div id="summary-slot"></div>
 
   <section class="report-block no-print actions">
     <p class="eyebrow">Take it with you</p>
@@ -133,17 +141,17 @@
   <section class="report-block cta no-print">
     <h2>Talk to someone who does this for a living</h2>
     <p>A decision tree is a good start and a poor substitute for judgment. If this is moving fast, if the press is calling, or if you're staring at a statement you can't bring yourself to send, get a professional on the phone.</p>
-    <p><a class="cta-link" href="https://www.winnxt.com/">Get in touch with WINNXT →</a></p>
+    <p><a class="cta-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">Get in touch with WINNXT →</a></p>
   </section>
-
-  <div id="summary-slot"></div>
 </section>
 
 <footer class="site-foot">
   <div class="brand">
-    <img data-inline-svg class="logo-mark" src="../../shared/brand/winnxt-mark.svg" alt="WINNXT">
+    <a class="logo-link" href="https://www.winnxt.com/" target="_blank" rel="noopener">
+      <img data-inline-svg class="logo-mark" src="../../shared/brand/winnxt-mark.svg" alt="WINNXT">
+    </a>
     <p class="brand-blurb">From message development to digital marketing, WINNXT offers cutting-edge strategies that drive your campaign to victory. Discover our comprehensive range of services designed to make your political communication a decisive asset in the fast-paced political landscape.</p>
-    <p class="brand-line"><a href="https://www.winnxt.com/">winnxt.com</a></p>
+    <p class="brand-line"><a href="https://www.winnxt.com/" target="_blank" rel="noopener">winnxt.com</a></p>
     <p class="note">This is a communications planning tool, not legal advice. If there's any question of defamation, threats, harassment, or your safety, talk to a lawyer and to law enforcement. Don't rely on this file.</p>
   </div>
 </footer>

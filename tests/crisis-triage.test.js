@@ -528,11 +528,15 @@ const base = {
   check('plan renders steps', await page.locator('.sequence li').count() >= 6);
   check('what-not-to-do renders', await page.locator('.donts li').count() >= 4);
   check('summary of answers renders', await page.locator('.summary-list dt').count() >= 8);
-  check('the receipt sits at the end, after the closing call to action',
+  // The evidence and the answer log close out the read itself, so the last
+  // thing before "save this" is what the advice was built on.
+  check('the receipt sits after the advice and before the actions',
     await page.evaluate(() => {
-      var cta = document.querySelector('.cta');
+      var plan = document.querySelector('#plan');
       var sum = document.querySelector('.summary');
-      return !!(cta.compareDocumentPosition(sum) & Node.DOCUMENT_POSITION_FOLLOWING);
+      var actions = document.querySelector('.actions');
+      return !!(plan.compareDocumentPosition(sum) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+        !!(sum.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING);
     }));
 
   // Editing an answer from the report goes back to that question.
@@ -625,9 +629,9 @@ const base = {
   check('precedent comes before the citations', iCases < iSources, order.join(' > '));
   // Be told whether to speak, see that it worked for other people, then write.
   check('drafting comes after the precedent', iDraft > iCases && iDraft !== -1, order.join(' > '));
-  // Receipts last. Nobody arrives at a crisis report wanting to re-read their
-  // own answers first.
-  check('the answer log is at the end', iSummary > iDraft && iSummary > iSources, order.join(' > '));
+  // Receipts after the advice. Nobody arrives at a crisis report wanting to
+  // re-read their own answers first.
+  check('the answer log follows the advice', iSummary > iDraft && iSummary > iSources, order.join(' > '));
 
   check('each case has an expandable history',
     (await page.locator('.case-more').count()) === (await page.locator('.case').count()),
@@ -1261,6 +1265,46 @@ const base = {
     return cols[0].getBoundingClientRect().top === cols[1].getBoundingClientRect().top;
   });
   check('paired sections sit side by side on a wide screen', columns);
+
+  // --- two things that were invisible or transparent ----------------------
+
+  // The closing block inverts to a white panel, and the generic report-block
+  // paragraph rule is heavy enough to win and paint light grey onto it.
+  const ctaContrast = await page.evaluate(() => {
+    const p = document.querySelector('.cta p');
+    const lum = (c) => {
+      const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(Number).map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const a = lum(getComputedStyle(p).color);
+    const b = lum(getComputedStyle(document.querySelector('.cta')).backgroundColor);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  });
+  check('the closing block reads against its own background',
+    ctaContrast >= 4.5, ctaContrast.toFixed(1) + ':1');
+
+  // The bar is a <button>, and the shared button:hover rule blanks the
+  // background. On something fixed over the report, that is text on text.
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  await page.waitForTimeout(300);
+  await page.locator('#verdict-bar').hover();
+  await page.waitForTimeout(200);
+  const barBg = await page.locator('#verdict-bar').evaluate(e => getComputedStyle(e).backgroundColor);
+  check('the sticky verdict bar stays opaque on hover',
+    barBg !== 'transparent' && !/rgba\([^)]*,\s*0\)/.test(barBg), barBg);
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  const logoLinks = await page.evaluate(() =>
+    [...document.querySelectorAll('.logo-link')].map(a => a.getAttribute('href')));
+  check('every logo goes back to winnxt.com',
+    logoLinks.length === 2 && logoLinks.every(h => h === 'https://www.winnxt.com/'),
+    JSON.stringify(logoLinks));
+  check('outbound links open in a new tab so a run is never lost',
+    await page.evaluate(() =>
+      [...document.querySelectorAll('a[href^="http"]')].every(a => a.target === '_blank')));
   await page.setViewportSize({ width: 375, height: 720 });
   await page.waitForTimeout(150);
 

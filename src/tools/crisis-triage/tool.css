@@ -20,6 +20,15 @@
   color: var(--ink);
 }
 
+/* Both logos go back to winnxt.com. Inline-block so the anchor is exactly the
+   size of the mark rather than a full-width strip of clickable nothing. */
+.logo-link {
+  display: inline-block;
+  text-decoration: none;
+  transition: opacity 0.2s var(--ease-out);
+}
+.logo-link:hover { opacity: 0.78; }
+
 .logo-mark {
   display: block;
   width: auto;
@@ -968,7 +977,20 @@ main[data-view="wizard"] .site-foot { display: none; }
 }
 
 .verdict-bar[hidden] { display: none; }
-.verdict-bar:hover { opacity: 1; transform: none; box-shadow: 0 2px 12px var(--shadow-strong); }
+
+/* The bar is a button, and the shared button:hover rule blanks the background
+   to transparent. On a fixed bar that meant the report scrolled visibly
+   underneath it and the two sets of text overlapped. Restated here, which wins
+   on specificity. */
+.verdict-bar:hover {
+  opacity: 1;
+  transform: none;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: 0 2px 12px var(--shadow-strong);
+}
+.verdict-bar:hover .verdict-bar-top { color: var(--accent-text); }
 .verdict-bar:active { transform: none; }
 
 .verdict-bar-text {
@@ -1015,7 +1037,10 @@ main[data-view="wizard"] .site-foot { display: none; }
 
 .cta .eyebrow { color: var(--accent); }
 .cta h2 { color: var(--bg); }
-.cta p { color: var(--line-strong); max-width: 26ch; }
+/* Scoped to #report to outrank .report-block > p, whose long :not() chain makes
+   it far heavier than it looks. That rule was painting light grey body text
+   onto this inverted white panel, which left it almost invisible. */
+#report .cta > p { color: var(--line-strong); max-width: 34ch; }
 
 .cta-link {
   display: inline-block;

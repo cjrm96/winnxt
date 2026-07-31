@@ -47,6 +47,8 @@ body {
 }
 
 .logo { height: 46pt; width: auto; color: var(--ink); }
+/* Clickable in the PDF, invisible as a link on paper. */
+.logo-link { display: inline-block; text-decoration: none; color: inherit; }
 
 .head-right { text-align: right; }
 
