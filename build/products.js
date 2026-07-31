@@ -21,10 +21,10 @@ module.exports = [
     live: true
   },
   {
-    id: 'vet-yourself',
-    name: 'Vet Yourself, Before They Do',
-    out: 'vet-yourself',
-    file: 'vet-yourself.html',
+    id: 'vulnerability-assessment',
+    name: 'Candidate Vulnerability Assessment',
+    out: 'vulnerability-assessment',
+    file: 'candidate-vulnerability-assessment.html',
     tool: 'src/tools/self-vet/index.html',
     quickstart: 'src/quickstart/self-vet/index.html',
     listing: 'src/marketing/listing/self-vet',

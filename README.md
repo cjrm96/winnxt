@@ -15,8 +15,8 @@ dist/
 │   ├── quickstart.pdf            one page, the other digital file
 │   └── listing/                  the five 2000x2000 listing images
 │       ├── 1-cover.png … 5-format.png
-├── vet-yourself/                 built, not listed yet
-│   ├── vet-yourself.html
+├── vulnerability-assessment/                 built, not listed yet
+│   ├── candidate-vulnerability-assessment.html
 │   ├── quickstart.pdf
 │   └── listing/1-cover.png … 5-format.png
 └── pre-filing-check/             free lead magnet, still on the old design
@@ -58,7 +58,7 @@ Listing copy, including titles, descriptions and tags, is in
 ```
 npm install          # playwright, dev only
 npm run build        # everything
-node build/build.js vet-yourself   # one product
+node build/build.js vulnerability-assessment   # one product
 npm test             # build, then drive every tool from file:// in a real browser
 ```
 

@@ -8,7 +8,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'vet-yourself', 'vet-yourself.html');
+const FILE = 'file://' + path.resolve(__dirname, '..', 'dist', 'vulnerability-assessment', 'candidate-vulnerability-assessment.html');
 let fails = 0;
 function check(name, cond, extra) {
   console.log((cond ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));

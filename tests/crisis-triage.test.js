@@ -1353,7 +1353,7 @@ const base = {
 
   const sib = await page.locator('.sibling').textContent();
   check('the report points at the companion tool',
-    /Vet Yourself, Before They Do/.test(sib), sib.slice(0, 80));
+    /Candidate Vulnerability Assessment/.test(sib), sib.slice(0, 80));
   check('the cross-sell links to the shop',
     (await page.locator('.sibling .cta-link').getAttribute('href')) === 'https://www.etsy.com/shop/WINNXTetsy');
   check('the cross-sell sits below the ask for a professional, not above it',
