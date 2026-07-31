@@ -1319,3 +1319,13 @@ main[data-view="wizard"] .site-foot { display: none; }
   color: var(--accent-text);
   font-weight: 700;
 }
+
+/* The contain tier. Amber rather than flame, because the instruction is to go
+   quiet rather than to move. */
+.tier-contain { box-shadow: inset 4px 0 0 var(--warn); }
+.tier-contain .eyebrow { color: var(--warn); }
+.tier-contain .eyebrow::before { background: var(--warn); }
+
+@media print {
+  .tier-contain { box-shadow: none; border-left: 3px solid var(--line); padding-left: 10pt; }
+}

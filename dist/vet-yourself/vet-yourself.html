@@ -1947,6 +1947,16 @@ main[data-view="wizard"] .site-foot { display: none; }
   font-weight: 700;
 }
 
+/* The contain tier. Amber rather than flame, because the instruction is to go
+   quiet rather than to move. */
+.tier-contain { box-shadow: inset 4px 0 0 var(--warn); }
+.tier-contain .eyebrow { color: var(--warn); }
+.tier-contain .eyebrow::before { background: var(--warn); }
+
+@media print {
+  .tier-contain { box-shadow: none; border-left: 3px solid var(--line); padding-left: 10pt; }
+}
+
 </style>
 
 <main>
@@ -2289,6 +2299,12 @@ main[data-view="wizard"] .site-foot { display: none; }
 //   3. Nothing is asked that the tool does not use. Every flagged item ends up
 //      in the register with an action attached.
 //
+// A third element on a prompt marks its kind. 'private' means the material is
+// not a public record but a thing held by a specific person, which changes what
+// you can usefully do about it. See the contain tier in logic.js: announcing a
+// private item is publication, not pre-emption, and the other person still has
+// it afterwards.
+//
 // Each section also carries an opener: one clipped line in the voice of
 // somebody running the session, sitting above the explanatory lede rather than
 // replacing it. The voice belongs to the room. It never costs the reader
@@ -2352,7 +2368,8 @@ main[data-view="wizard"] .site-foot { display: none; }
         ['allegation', 'An allegation of harassment, discrimination, or misconduct, formal or informal'],
         ['paid-out', 'A settlement paid by an employer, insurer, or organisation on your behalf'],
         ['police-call', 'A police call to your home or business, whether or not anyone was charged'],
-        ['alleged', "Anything alleged about you in somebody else's filing, including a divorce"]
+        ['alleged', "Anything alleged about you in somebody else's filing, including a divorce"],
+        ['name-change', 'A legal name change, which is a court record in most states']
       ]
     },
     {
@@ -2378,7 +2395,7 @@ main[data-view="wizard"] .site-foot { display: none; }
         ['tagged', 'Photos other people posted and tagged you in'],
         ['byline', 'Anything published under your name, including a piece somebody else drafted'],
         ['archive', 'A yearbook, alumni magazine, student newspaper, or old employer newsletter'],
-        ['intimate', 'Intimate messages, photos, or video you sent to anyone'],
+        ['intimate', 'Intimate messages, photos, or video you sent to anyone', 'private'],
         ['burner', 'A pseudonymous account, alt, or burner you posted from'],
         ['hot-mic', 'Something you said on a call or a hot mic you did not know was live'],
         ['plagiarism', "A speech, post, or paper that borrowed somebody else's words without credit"]
@@ -2437,7 +2454,7 @@ main[data-view="wizard"] .site-foot { display: none; }
         ['mental', 'Treatment or a diagnosis that appears on a record somewhere'],
         ['complaint', 'A complaint from a neighbour: property, noise, animals, parking'],
         ['affair', 'An affair, or a relationship that overlapped with a marriage'],
-        ['photos', 'Photographs of you that you would not want published'],
+        ['photos', 'Photographs of you that you would not want published', 'private'],
         ['costume', 'A costume, a party, or a night out that would not read now the way it did then'],
         ['rally', 'A rally, protest, or gathering you attended that later became notorious']
       ]
@@ -2522,7 +2539,10 @@ main[data-view="wizard"] .site-foot { display: none; }
     var out = [];
     SECTIONS.forEach(function (s) {
       s.items.forEach(function (i) {
-        out.push({ id: s.id + '.' + i[0], section: s.id, sectionName: s.full, label: i[1] });
+        out.push({
+          id: s.id + '.' + i[0], section: s.id, sectionName: s.full,
+          label: i[1], kind: i[2] || null
+        });
       });
     });
     return out;
@@ -2573,7 +2593,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   }
 
   // Universal. Everybody runs these, whatever they flagged.
-  function baseline(name, city) {
+  function baseline(name, city, former) {
     var n = q(name);
     var c = place(city);
     return {
@@ -2586,7 +2606,10 @@ main[data-view="wizard"] .site-foot { display: none; }
         { s: n + ' (arrested OR charged OR lawsuit OR sued OR settlement OR complaint)', why: 'The words a researcher pairs with a name on the first pass.' },
         { s: n + ' filetype:pdf', why: 'Meeting minutes, agendas, donor lists, rosters, and programmes. This is where a name turns up in a document nobody indexed properly.' },
         { s: n + ' site:' + slug(city) + '.gov', why: 'Your own local government: minutes, agendas, permits, public comment. Check the real domain first, because this is a guess and plenty of towns use something else.' },
-        { s: 'Every other version of your name', why: 'Maiden name, married name, a middle initial, a nickname, and the misspelling people actually use. Run the baseline search again for each one.' }
+        { s: former ? '"' + former.trim() + '" ' + c : 'Every other version of your name',
+          why: former
+            ? 'The name you had at the time is the name the record is filed under. Run every search on this page again with this one, because a researcher will and most candidates never do.'
+            : 'Maiden name, married name, a middle initial, a nickname, and the misspelling people actually use. Run the baseline search again for each one.' }
       ]
     };
   }
@@ -2679,26 +2702,65 @@ main[data-view="wizard"] .site-foot { display: none; }
     }
   };
 
-  // The AI pass. Useful and worth two explicit warnings, both of which go on
-  // screen next to it rather than being buried here.
-  function aiPrompts(name, city, office) {
-    var n = String(name || '').trim() || 'YOUR NAME';
-    var c = place(city);
-    var o = String(office || '').trim() || 'local office';
+  // The AI pass.
+  //
+  // These used to be three polite requests to "find anything about me", which
+  // is the prompt everybody already writes and which produces a paragraph of
+  // hedging. What a competent researcher actually does is run a specific list
+  // and account for every line of it, so that is what these ask for. The first
+  // one hands over the exact queries this page just generated, which closes the
+  // loop: the same searches, run by something that can read a hundred results
+  // faster than you can read ten.
+  function aiPrompts(race, groups) {
+    var n = String(race.name || '').trim() || 'YOUR NAME';
+    var c = place(race.city);
+    var o = String(race.office || '').trim() || 'local office';
+    var former = String(race.former || '').trim();
+
+    var lines = [];
+    groups.forEach(function (g) {
+      g.queries.forEach(function (item) {
+        if (item.s.indexOf('"') === 0 || item.s.indexOf('from:') === 0 ||
+            item.s.indexOf('web.archive') === 0) lines.push(item.s);
+      });
+    });
+    var queryBlock = lines.length ? lines.join('\n') : '"YOUR FULL NAME" YOUR CITY';
+
     return [
       {
-        title: 'Ask an AI that can search the web',
-        body: 'Act as an opposition researcher hired to beat me. My name is ' + n +
-          ', I live in ' + c + ', and I am running for ' + o +
-          '. Search the web and tell me everything publicly available about me that could be used against me. List each item with the source link, and rank them by how much damage they would do. Do not be polite about it, and tell me plainly if you cannot find much.'
+        title: 'Run the list and account for every line',
+        body: 'You are doing opposition research on me. I am ' + n +
+          ', in ' + c + ', running for ' + o + '.' +
+          (former ? ' I have also gone by ' + former + '.' : '') +
+          '\n\nRun each of these searches. Do not summarise them together.\n\n' +
+          queryBlock +
+          '\n\nFor every single line, report back in this format:\n' +
+          '1. The query.\n' +
+          '2. What you found, with the source link, or the words NOTHING FOUND.\n' +
+          '3. How damaging it is, and to whom.\n\n' +
+          'Then tell me the three most useful things across the whole set, and the three queries you would run next that are not on this list. Do not soften anything. If you cannot actually search the web, say so in your first sentence and stop, rather than guessing at what might be there.'
       },
       {
-        title: 'Ask it to read your own old posts back to you',
-        body: 'Below are posts I wrote years ago. For each one, tell me how it would read if it were screenshotted with no context and posted by somebody who wants me to lose. Pick the five worst and explain what makes them usable.\n\n[paste your old posts here]'
+        title: 'Find the records offices for my state',
+        body: 'I am running for ' + o + ' in ' + c +
+          '. I want to check my own public records myself.\n\n' +
+          'For my state and county specifically, give me the working web address for each of these, and say whether each one is free, pay-per-page, or in person only:\n\n' +
+          '1. County clerk of court, criminal and civil case search.\n' +
+          '2. Statewide trial court case search, if one exists.\n' +
+          '3. County recorder, for liens, deeds and judgments.\n' +
+          '4. County assessor, searchable by owner name.\n' +
+          '5. Secretary of State, business entity search.\n' +
+          '6. State campaign finance contributor search.\n' +
+          '7. State voter registration lookup.\n' +
+          '8. Professional licence lookup for my state.\n' +
+          '9. Marriage and divorce index for my county.\n\n' +
+          'If you are not certain a link is current, say so rather than giving me one that looks right.'
       },
       {
-        title: 'Ask what records exist where you live',
-        body: 'I am running for ' + o + ' in ' + c + '. List the public records that exist about a candidate in this state and where each one is held: court records, property, liens, campaign finance, business filings, voter registration, and professional licences. Give me the actual website for each one.'
+        title: 'Read my old posts back to me the way an opponent would',
+        body: 'Below are things I wrote years ago. For each one, tell me: how it reads with no context, what the worst honest headline would be, and whether it would survive being screenshotted next to my candidate photo.\n\n' +
+          'Rank the five worst and explain what specifically makes each one usable against me. Do not reassure me and do not tell me they are fine because the context is obvious, because the context does not travel.\n\n' +
+          '[paste your old posts here]'
       }
     ];
   }
@@ -2714,7 +2776,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   function build(race, flaggedSections) {
     var name = race.name;
     var city = race.city;
-    var groups = [baseline(name, city)];
+    var groups = [baseline(name, city, race.former)];
     var n = q(name);
     var c = place(city);
 
@@ -2729,7 +2791,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       });
     });
 
-    return { groups: groups, ai: aiPrompts(name, city, race.office) };
+    return { groups: groups, ai: aiPrompts(race, groups) };
   }
 
   window.SelfVetSearches = { build: build, slug: slug };
@@ -2741,8 +2803,9 @@ main[data-view="wizard"] .site-foot { display: none; }
 // the same answers always produce the same register.
 //
 // The whole tool reduces to one judgement per flagged item: what do you do
-// about it. There are only three answers, and which one applies is decided by
-// severity first and likelihood second. That ordering is the argument:
+// about it. There are four answers, and which one applies is decided by
+// severity first, likelihood second, and by whether the material is
+// discoverable at all. That ordering is the argument:
 //
 //   A severe item is worth pre-empting even if it is unlikely to surface,
 //   because the cost of being wrong about "nobody will find it" is the
@@ -2762,15 +2825,23 @@ main[data-view="wizard"] .site-foot { display: none; }
     },
     draft: {
       key: 'draft',
-      rank: 1,
+      rank: 2,
       name: 'Draft a statement',
       short: 'Draft',
       line: 'Do not volunteer it. Have the words written before you need them.',
       detail: 'This is likely to come up and it will cost you something when it does. Writing it now, calmly, is worth more than writing it well under pressure. Two or three sentences, and then a subject change.'
     },
+    contain: {
+      key: 'contain',
+      rank: 1,
+      name: 'Contain it, do not announce it',
+      short: 'Contain',
+      line: 'Say nothing publicly. Get control of the material and know your remedy.',
+      detail: 'Pre-empting works when the thing is a public record that somebody will eventually find, because saying it first converts it from a weapon into a biography. This is not that. This is private material held by a particular person, and announcing it does not defuse it, it publishes it, and afterwards they still have it. Work out who holds it and what your relationship with them is now. Write the two sentences you would say if it ever did surface, and keep them. If it could be shared without your consent, that is a legal question with real remedies in most places, and a lawyer is a better first call than a statement.'
+    },
     prepare: {
       key: 'prepare',
-      rank: 2,
+      rank: 3,
       name: 'Prepare an answer',
       short: 'Prepare',
       line: 'Know what you would say. Do not raise it.',
@@ -2778,13 +2849,26 @@ main[data-view="wizard"] .site-foot { display: none; }
     }
   };
 
-  var TIER_ORDER = ['ahead', 'draft', 'prepare'];
+  var TIER_ORDER = ['ahead', 'contain', 'draft', 'prepare'];
 
   // severity first, then likelihood. See the note at the top of the file.
+  //
+  // One exception, and it is not a hedge. The whole case for pre-empting rests
+  // on the material being discoverable: a bankruptcy, an arrest, a filing. That
+  // is going to be found, so saying it first is the only way to control how it
+  // is framed. Private material held by one person breaks every part of that
+  // reasoning. Announcing it is the publication event, the story is now that
+  // the material exists, and the person holding it is no less able to release
+  // it than they were before. Telling somebody to get ahead of a private
+  // photograph would be actively harmful advice, so the tool does not.
   function tierFor(item) {
     if (!item || !item.severity || !item.likelihood) return null;
-    if (item.severity === 'severe') return 'ahead';
-    if (item.severity === 'serious' && item.likelihood === 'high') return 'draft';
+    if (item.severity === 'severe') {
+      return item.kind === 'private' ? 'contain' : 'ahead';
+    }
+    if (item.severity === 'serious' && item.likelihood === 'high') {
+      return item.kind === 'private' ? 'contain' : 'draft';
+    }
     return 'prepare';
   }
 
@@ -2816,6 +2900,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       scored: scored.length,
       unscored: unscored.length,
       ahead: scored.filter(function (i) { return i.tier === 'ahead'; }).length,
+      contain: scored.filter(function (i) { return i.tier === 'contain'; }).length,
       draft: scored.filter(function (i) { return i.tier === 'draft'; }).length,
       prepare: scored.filter(function (i) { return i.tier === 'prepare'; }).length
     };
@@ -2837,6 +2922,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   function headline(c) {
     if (!c.total) return 'Nothing flagged';
     if (c.ahead) return plural(c.ahead, 'thing', 'things') + ' to get ahead of';
+    if (c.contain) return plural(c.contain, 'thing', 'things') + ' to contain';
     if (c.draft) return plural(c.draft, 'statement', 'statements') + ' to draft';
     return 'Nothing here ends you';
   }
@@ -2848,6 +2934,9 @@ main[data-view="wizard"] .site-foot { display: none; }
     if (c.ahead) {
       return 'The items below marked to get ahead of are the ones that decide this. They are severe enough that being surprised by them is worse than disclosing them, and disclosure only works while it is still your choice. Everything else can wait; these cannot.';
     }
+    if (c.contain && !c.ahead) {
+      return 'What you flagged as most serious is not the kind of thing you get ahead of. It is private, it sits with a particular person rather than in a public file, and saying it yourself would publish it rather than defuse it. The work here is quieter: know who holds it, know what you would say if it ever moved, and get advice before you get loud.';
+    }
     if (c.draft) {
       return 'Nothing you flagged is likely to end a campaign on its own. Several things are likely to come up and cost you a bad news cycle, which is a manageable problem exactly as long as the words are written before the question is asked.';
     }
@@ -2857,7 +2946,7 @@ main[data-view="wizard"] .site-foot { display: none; }
   // Pre-emption is a timing decision, not just a content one. Disclosure works
   // when it is early and voluntary; the same sentence in October is a scandal.
   function timing(days, counts) {
-    if (!counts.ahead) return null;
+    if (!counts.ahead) return null;   // contain items are never disclosed on a schedule
     var n = days === '' || days === null || days === undefined ? null : Number(days);
     if (n === null || isNaN(n)) {
       return 'Pre-empt the severe items now rather than later. There is no version of this where waiting improves the outcome, and the window closes the moment somebody else starts asking.';
@@ -2953,6 +3042,10 @@ main[data-view="wizard"] .site-foot { display: none; }
       claim: 'Scandal costs you most when voters know little else about you. Having a substantive record on the ballot softens it.',
       source: 'Funck, A. S., & McCabe, K. T. (2022). Partisanship, Information, and the Conditional Effects of Scandal on Voting Decisions. Political Behavior, 44(3), 1389–1409.'
     },
+    streisand: {
+      claim: 'Trying to draw attention to something in order to control it is itself the event that makes it big. Where the material is not already circulating, publicising it is the distribution.',
+      source: 'Jansen, S. C., & Martin, B. (2015). The Streisand Effect and Censorship Backfire. International Journal of Communication, 9, 656–671.'
+    },
     selfResearch: {
       claim: 'Running opposition research on your own candidate before anyone else does is standard practice at every level of professional campaigning.',
       source: 'Governing, on self-vetting and the cost of skipping it, and CampaignNow, "Doing Political Campaign Opposition Research on Yourself."'
@@ -2961,6 +3054,7 @@ main[data-view="wizard"] .site-foot { display: none; }
 
   var TIER_CITES = {
     ahead: ['thunder', 'timing', 'specificity', 'hiding', 'followUp', 'reputation'],
+    contain: ['streisand', 'hiding'],
     draft: ['denialCollapse', 'apologyParts', 'imageRepair', 'scct'],
     prepare: ['decay', 'recovery', 'abusePower', 'scct']
   };
@@ -3046,6 +3140,18 @@ main[data-view="wizard"] .site-foot { display: none; }
   ];
 
   var TIER_CASES = {
+    contain: [
+      {
+        who: 'Barbra Streisand',
+        year: 2003,
+        what: 'An aerial photograph of her house sat in a public archive and had been downloaded a handful of times. She sued to have it removed, and the lawsuit put it in front of hundreds of thousands of people.',
+        lesson: 'The response created the audience. The photograph was not the event; the objection was.',
+        background: 'The image was one of thousands in a coastal erosion survey, published online for research. Almost nobody had looked at it, and nobody looking at it knew or cared whose house it was.',
+        reaction: 'Coverage of the lawsuit drove enormous traffic to the image within a month, and the pattern has carried her name ever since.',
+        handling: 'She went loud and legal about material that was, in practical terms, invisible.',
+        outcome: 'The photograph is now permanently attached to her name, which is the precise opposite of what the action was for. Where something is genuinely not circulating, drawing attention to it is the distribution mechanism.'
+      }
+    ],
     ahead: [
       {
         who: 'Bill Clinton',
@@ -3237,6 +3343,7 @@ main[data-view="wizard"] .site-foot { display: none; }
         desc: f.desc,
         likelihood: f.likelihood,
         severity: f.severity,
+        kind: f.kind,
         custom: f.custom
       };
     });
@@ -3320,6 +3427,13 @@ main[data-view="wizard"] .site-foot { display: none; }
     nm.addEventListener('input', function () { state.race.name = nm.value; });
     wrap.appendChild(nm);
 
+    wrap.appendChild(el('label', { for: 'race-former', text: 'Any other name you have gone by (optional)' }));
+    var fm = el('input', { type: 'text', id: 'race-former', placeholder: 'Maiden name, a former married name, a name you changed' });
+    fm.value = state.race.former || '';
+    fm.addEventListener('input', function () { state.race.former = fm.value; });
+    wrap.appendChild(fm);
+    wrap.appendChild(el('p', { class: 'optional', text: 'Worth filling in. Records follow the name you had at the time, so a maiden name or a former married name is often where a court file, a property record, or an old account is still sitting. Researchers check it. Most people never do.' }));
+
     wrap.appendChild(el('label', { for: 'race-city', text: 'Your city or district' }));
     var ct = el('input', { type: 'text', id: 'race-city', placeholder: 'e.g. Norman, Oklahoma' });
     ct.value = state.race.city || '';
@@ -3361,7 +3475,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     var colB = el('div', { class: 'flag-col' });
     var half = Math.ceil(s.items.length / 2);
     s.items.forEach(function (pair, i) {
-      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
+      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false, pair[2]));
     });
 
     // Anything already added by hand in this section, so it survives going back.
@@ -3381,7 +3495,7 @@ main[data-view="wizard"] .site-foot { display: none; }
       var id = s.id + '.own-' + customSeq;
       state.flagged[id] = {
         label: '', section: s.id, sectionName: s.full,
-        desc: '', likelihood: '', severity: '', custom: true
+        desc: '', likelihood: '', severity: '', kind: null, custom: true
       };
       var row = flagRow(s, id, '', true);
       colB.appendChild(row);
@@ -3393,7 +3507,7 @@ main[data-view="wizard"] .site-foot { display: none; }
     return card;
   }
 
-  function flagRow(section, id, label, custom) {
+  function flagRow(section, id, label, custom, kind) {
     var row = el('div', { class: 'flag' + (custom ? ' flag-own' : ''), 'data-flag': id });
     var boxId = 'chk-' + id.replace(/\./g, '-');
 
@@ -3434,7 +3548,7 @@ main[data-view="wizard"] .site-foot { display: none; }
             label: custom ? (row.querySelector('.own-label') || {}).value || '' : label,
             section: section.id,
             sectionName: section.full,
-            desc: '', likelihood: '', severity: '', custom: !!custom
+            desc: '', likelihood: '', severity: '', kind: kind || null, custom: !!custom
           };
         }
       } else if (custom) {

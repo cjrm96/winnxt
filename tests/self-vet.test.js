@@ -77,6 +77,29 @@ async function start(page) {
   check('serious + possible => prepare an answer', await tier('medium', 'serious') === 'prepare');
   check('survivable + likely => prepare an answer', await tier('high', 'survivable') === 'prepare');
   check('survivable + unlikely => prepare an answer', await tier('low', 'survivable') === 'prepare');
+  // The exception, and the most important rule in the file. Pre-empting only
+  // works when the material is discoverable. Telling somebody to announce a
+  // private photograph would be actively harmful: the announcement is the
+  // publication, and the person holding it still holds it afterwards.
+  const kindTier = (kind, likelihood, severity) =>
+    page.evaluate(a => window.SelfVetLogic.tierFor(a), { kind, likelihood, severity });
+
+  check('private material is never sent out to be pre-empted',
+    await kindTier('private', 'low', 'severe') === 'contain' &&
+    await kindTier('private', 'high', 'severe') === 'contain',
+    'severe + private must not route to ahead');
+  check('a serious private item is contained rather than drafted',
+    await kindTier('private', 'high', 'serious') === 'contain');
+  check('a survivable private item is still just an answer to know',
+    await kindTier('private', 'low', 'survivable') === 'prepare');
+  check('public material with the same ratings still gets pre-empted',
+    await kindTier(null, 'low', 'severe') === 'ahead',
+    'the rule must not have swallowed the normal case');
+  check('the intimate and photograph prompts are the ones marked private',
+    await page.evaluate(() => window.SelfVetItems.allItems()
+      .filter(i => i.kind === 'private').map(i => i.id).sort().join(',')) ===
+      'personal.photos,statements.intimate');
+
   check('an unrated item scores nothing', await tier('high', '') === null);
   check('an unflagged item scores nothing', await tier('', '') === null);
 
@@ -92,8 +115,7 @@ async function start(page) {
   check('seven sections, as specified', content.sections === 7, String(content.sections));
   check('a prompt list long enough to jog a memory',
     content.items >= 130 && content.items <= 160, String(content.items));
-  check('every section is equally thorough',
-    content.perSection.every(n => n === content.perSection[0]), content.perSection.join(','));
+  check('no section is thin', content.perSection.every(n => n >= 20), content.perSection.join(','));
   check('no duplicate prompt ids',
     new Set(content.ids).size === content.ids.length);
   // Drawn from what has actually ended careers recently, not just the classic
@@ -307,6 +329,18 @@ async function start(page) {
     /private window while signed out/.test(searchText));
   check('the AI prompts warn that an AI without search will invent results',
     /invent plausible results/.test(searchText));
+  // The prompts hand over the same queries this page generated, so the AI runs
+  // a real list rather than being asked to have a look around.
+  check('the first prompt embeds the actual generated queries',
+    /Run each of these searches/.test(searchText) &&
+    /"Board Candidate" Springfield, Illinois/.test(searchText));
+  check('it demands a line by line account rather than a summary',
+    /Do not summarise them together/.test(searchText) &&
+    /NOTHING FOUND/.test(searchText));
+  check('it tells the AI to stop rather than guess if it cannot search',
+    /say so in your first sentence and stop/.test(searchText));
+  check('one prompt goes after the records offices themselves',
+    /working web address for each of these/.test(searchText));
   check('the AI prompts warn that pasting your name sends it somewhere',
     /sends it to somebody else's system/.test(searchText));
 
@@ -606,6 +640,50 @@ async function start(page) {
     /what your not knowing says about you/.test(intro));
   check('the questionnaire length is stated',
     /about 127 pages/.test(intro));
+
+  // --- containment, end to end --------------------------------------------
+
+  await start(page);
+  await page.fill('#race-name', 'Jane Whitfield');
+  await page.fill('#race-former', 'Jane Kowalski');
+  await page.fill('#race-city', 'Norman, Oklahoma');
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await flag(page, 'legal', 'name-change', 'Changed my surname in 2009', 'high', 'survivable');
+  await page.click('#btn-next');
+  await page.waitForTimeout(300);
+  await flag(page, 'statements', 'intimate', 'Photos sent to an ex in 2016', 'low', 'severe');
+  await toReport(page);
+
+  check('a severe private item lands in contain, not pre-empt',
+    await page.locator('.tier-contain').count() === 1 &&
+    await page.locator('.tier-ahead').count() === 0);
+  check('the headline counts it as something to contain',
+    /1 thing to contain/.test(await page.locator('.verdict').textContent()),
+    await page.locator('.verdict').textContent());
+  const containText = await page.locator('.tier-contain').textContent();
+  check('the advice is to say nothing publicly',
+    /Say nothing publicly/.test(containText));
+  check('it explains why announcing would make it worse',
+    /announcing it does not defuse it, it publishes it/.test(containText));
+  check('it points at a lawyer rather than a statement',
+    /a lawyer is a better first call than a statement/.test(containText));
+  check('the disclosure timing advice does not fire for contained items',
+    !/When to do it/.test(await page.locator('#read').textContent()),
+    'nothing here is disclosed on a schedule');
+  check('the contain tier cites the backfire literature rather than disclosure',
+    /Streisand/.test(await page.locator('#summary-slot, .tier-contain').first().textContent()) ||
+    /Streisand/.test(containText));
+
+  // A legal name change is a court record, so it belongs in Legal.
+  check('a name change is available under Legal',
+    /Changed my surname in 2009/.test(await page.locator('#plan').textContent()));
+
+  // The former name is the one researchers check and candidates do not.
+  check('a former name is written into the searches',
+    (await page.locator('.search-q').allTextContents()).some(q => /Jane Kowalski/.test(q)));
 
   // --- two columns --------------------------------------------------------
   //

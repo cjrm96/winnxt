@@ -27,7 +27,7 @@
   }
 
   // Universal. Everybody runs these, whatever they flagged.
-  function baseline(name, city) {
+  function baseline(name, city, former) {
     var n = q(name);
     var c = place(city);
     return {
@@ -40,7 +40,10 @@
         { s: n + ' (arrested OR charged OR lawsuit OR sued OR settlement OR complaint)', why: 'The words a researcher pairs with a name on the first pass.' },
         { s: n + ' filetype:pdf', why: 'Meeting minutes, agendas, donor lists, rosters, and programmes. This is where a name turns up in a document nobody indexed properly.' },
         { s: n + ' site:' + slug(city) + '.gov', why: 'Your own local government: minutes, agendas, permits, public comment. Check the real domain first, because this is a guess and plenty of towns use something else.' },
-        { s: 'Every other version of your name', why: 'Maiden name, married name, a middle initial, a nickname, and the misspelling people actually use. Run the baseline search again for each one.' }
+        { s: former ? '"' + former.trim() + '" ' + c : 'Every other version of your name',
+          why: former
+            ? 'The name you had at the time is the name the record is filed under. Run every search on this page again with this one, because a researcher will and most candidates never do.'
+            : 'Maiden name, married name, a middle initial, a nickname, and the misspelling people actually use. Run the baseline search again for each one.' }
       ]
     };
   }
@@ -133,26 +136,65 @@
     }
   };
 
-  // The AI pass. Useful and worth two explicit warnings, both of which go on
-  // screen next to it rather than being buried here.
-  function aiPrompts(name, city, office) {
-    var n = String(name || '').trim() || 'YOUR NAME';
-    var c = place(city);
-    var o = String(office || '').trim() || 'local office';
+  // The AI pass.
+  //
+  // These used to be three polite requests to "find anything about me", which
+  // is the prompt everybody already writes and which produces a paragraph of
+  // hedging. What a competent researcher actually does is run a specific list
+  // and account for every line of it, so that is what these ask for. The first
+  // one hands over the exact queries this page just generated, which closes the
+  // loop: the same searches, run by something that can read a hundred results
+  // faster than you can read ten.
+  function aiPrompts(race, groups) {
+    var n = String(race.name || '').trim() || 'YOUR NAME';
+    var c = place(race.city);
+    var o = String(race.office || '').trim() || 'local office';
+    var former = String(race.former || '').trim();
+
+    var lines = [];
+    groups.forEach(function (g) {
+      g.queries.forEach(function (item) {
+        if (item.s.indexOf('"') === 0 || item.s.indexOf('from:') === 0 ||
+            item.s.indexOf('web.archive') === 0) lines.push(item.s);
+      });
+    });
+    var queryBlock = lines.length ? lines.join('\n') : '"YOUR FULL NAME" YOUR CITY';
+
     return [
       {
-        title: 'Ask an AI that can search the web',
-        body: 'Act as an opposition researcher hired to beat me. My name is ' + n +
-          ', I live in ' + c + ', and I am running for ' + o +
-          '. Search the web and tell me everything publicly available about me that could be used against me. List each item with the source link, and rank them by how much damage they would do. Do not be polite about it, and tell me plainly if you cannot find much.'
+        title: 'Run the list and account for every line',
+        body: 'You are doing opposition research on me. I am ' + n +
+          ', in ' + c + ', running for ' + o + '.' +
+          (former ? ' I have also gone by ' + former + '.' : '') +
+          '\n\nRun each of these searches. Do not summarise them together.\n\n' +
+          queryBlock +
+          '\n\nFor every single line, report back in this format:\n' +
+          '1. The query.\n' +
+          '2. What you found, with the source link, or the words NOTHING FOUND.\n' +
+          '3. How damaging it is, and to whom.\n\n' +
+          'Then tell me the three most useful things across the whole set, and the three queries you would run next that are not on this list. Do not soften anything. If you cannot actually search the web, say so in your first sentence and stop, rather than guessing at what might be there.'
       },
       {
-        title: 'Ask it to read your own old posts back to you',
-        body: 'Below are posts I wrote years ago. For each one, tell me how it would read if it were screenshotted with no context and posted by somebody who wants me to lose. Pick the five worst and explain what makes them usable.\n\n[paste your old posts here]'
+        title: 'Find the records offices for my state',
+        body: 'I am running for ' + o + ' in ' + c +
+          '. I want to check my own public records myself.\n\n' +
+          'For my state and county specifically, give me the working web address for each of these, and say whether each one is free, pay-per-page, or in person only:\n\n' +
+          '1. County clerk of court, criminal and civil case search.\n' +
+          '2. Statewide trial court case search, if one exists.\n' +
+          '3. County recorder, for liens, deeds and judgments.\n' +
+          '4. County assessor, searchable by owner name.\n' +
+          '5. Secretary of State, business entity search.\n' +
+          '6. State campaign finance contributor search.\n' +
+          '7. State voter registration lookup.\n' +
+          '8. Professional licence lookup for my state.\n' +
+          '9. Marriage and divorce index for my county.\n\n' +
+          'If you are not certain a link is current, say so rather than giving me one that looks right.'
       },
       {
-        title: 'Ask what records exist where you live',
-        body: 'I am running for ' + o + ' in ' + c + '. List the public records that exist about a candidate in this state and where each one is held: court records, property, liens, campaign finance, business filings, voter registration, and professional licences. Give me the actual website for each one.'
+        title: 'Read my old posts back to me the way an opponent would',
+        body: 'Below are things I wrote years ago. For each one, tell me: how it reads with no context, what the worst honest headline would be, and whether it would survive being screenshotted next to my candidate photo.\n\n' +
+          'Rank the five worst and explain what specifically makes each one usable against me. Do not reassure me and do not tell me they are fine because the context is obvious, because the context does not travel.\n\n' +
+          '[paste your old posts here]'
       }
     ];
   }
@@ -168,7 +210,7 @@
   function build(race, flaggedSections) {
     var name = race.name;
     var city = race.city;
-    var groups = [baseline(name, city)];
+    var groups = [baseline(name, city, race.former)];
     var n = q(name);
     var c = place(city);
 
@@ -183,7 +225,7 @@
       });
     });
 
-    return { groups: groups, ai: aiPrompts(name, city, race.office) };
+    return { groups: groups, ai: aiPrompts(race, groups) };
   }
 
   window.SelfVetSearches = { build: build, slug: slug };

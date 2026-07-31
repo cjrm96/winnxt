@@ -32,6 +32,7 @@
         desc: f.desc,
         likelihood: f.likelihood,
         severity: f.severity,
+        kind: f.kind,
         custom: f.custom
       };
     });
@@ -115,6 +116,13 @@
     nm.addEventListener('input', function () { state.race.name = nm.value; });
     wrap.appendChild(nm);
 
+    wrap.appendChild(el('label', { for: 'race-former', text: 'Any other name you have gone by (optional)' }));
+    var fm = el('input', { type: 'text', id: 'race-former', placeholder: 'Maiden name, a former married name, a name you changed' });
+    fm.value = state.race.former || '';
+    fm.addEventListener('input', function () { state.race.former = fm.value; });
+    wrap.appendChild(fm);
+    wrap.appendChild(el('p', { class: 'optional', text: 'Worth filling in. Records follow the name you had at the time, so a maiden name or a former married name is often where a court file, a property record, or an old account is still sitting. Researchers check it. Most people never do.' }));
+
     wrap.appendChild(el('label', { for: 'race-city', text: 'Your city or district' }));
     var ct = el('input', { type: 'text', id: 'race-city', placeholder: 'e.g. Norman, Oklahoma' });
     ct.value = state.race.city || '';
@@ -156,7 +164,7 @@
     var colB = el('div', { class: 'flag-col' });
     var half = Math.ceil(s.items.length / 2);
     s.items.forEach(function (pair, i) {
-      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false));
+      (i < half ? colA : colB).appendChild(flagRow(s, s.id + '.' + pair[0], pair[1], false, pair[2]));
     });
 
     // Anything already added by hand in this section, so it survives going back.
@@ -176,7 +184,7 @@
       var id = s.id + '.own-' + customSeq;
       state.flagged[id] = {
         label: '', section: s.id, sectionName: s.full,
-        desc: '', likelihood: '', severity: '', custom: true
+        desc: '', likelihood: '', severity: '', kind: null, custom: true
       };
       var row = flagRow(s, id, '', true);
       colB.appendChild(row);
@@ -188,7 +196,7 @@
     return card;
   }
 
-  function flagRow(section, id, label, custom) {
+  function flagRow(section, id, label, custom, kind) {
     var row = el('div', { class: 'flag' + (custom ? ' flag-own' : ''), 'data-flag': id });
     var boxId = 'chk-' + id.replace(/\./g, '-');
 
@@ -229,7 +237,7 @@
             label: custom ? (row.querySelector('.own-label') || {}).value || '' : label,
             section: section.id,
             sectionName: section.full,
-            desc: '', likelihood: '', severity: '', custom: !!custom
+            desc: '', likelihood: '', severity: '', kind: kind || null, custom: !!custom
           };
         }
       } else if (custom) {

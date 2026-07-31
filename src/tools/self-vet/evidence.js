@@ -68,6 +68,10 @@
       claim: 'Scandal costs you most when voters know little else about you. Having a substantive record on the ballot softens it.',
       source: 'Funck, A. S., & McCabe, K. T. (2022). Partisanship, Information, and the Conditional Effects of Scandal on Voting Decisions. Political Behavior, 44(3), 1389–1409.'
     },
+    streisand: {
+      claim: 'Trying to draw attention to something in order to control it is itself the event that makes it big. Where the material is not already circulating, publicising it is the distribution.',
+      source: 'Jansen, S. C., & Martin, B. (2015). The Streisand Effect and Censorship Backfire. International Journal of Communication, 9, 656–671.'
+    },
     selfResearch: {
       claim: 'Running opposition research on your own candidate before anyone else does is standard practice at every level of professional campaigning.',
       source: 'Governing, on self-vetting and the cost of skipping it, and CampaignNow, "Doing Political Campaign Opposition Research on Yourself."'
@@ -76,6 +80,7 @@
 
   var TIER_CITES = {
     ahead: ['thunder', 'timing', 'specificity', 'hiding', 'followUp', 'reputation'],
+    contain: ['streisand', 'hiding'],
     draft: ['denialCollapse', 'apologyParts', 'imageRepair', 'scct'],
     prepare: ['decay', 'recovery', 'abusePower', 'scct']
   };
@@ -161,6 +166,18 @@
   ];
 
   var TIER_CASES = {
+    contain: [
+      {
+        who: 'Barbra Streisand',
+        year: 2003,
+        what: 'An aerial photograph of her house sat in a public archive and had been downloaded a handful of times. She sued to have it removed, and the lawsuit put it in front of hundreds of thousands of people.',
+        lesson: 'The response created the audience. The photograph was not the event; the objection was.',
+        background: 'The image was one of thousands in a coastal erosion survey, published online for research. Almost nobody had looked at it, and nobody looking at it knew or cared whose house it was.',
+        reaction: 'Coverage of the lawsuit drove enormous traffic to the image within a month, and the pattern has carried her name ever since.',
+        handling: 'She went loud and legal about material that was, in practical terms, invisible.',
+        outcome: 'The photograph is now permanently attached to her name, which is the precise opposite of what the action was for. Where something is genuinely not circulating, drawing attention to it is the distribution mechanism.'
+      }
+    ],
     ahead: [
       {
         who: 'Bill Clinton',

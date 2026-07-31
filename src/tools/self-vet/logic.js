@@ -2,8 +2,9 @@
 // the same answers always produce the same register.
 //
 // The whole tool reduces to one judgement per flagged item: what do you do
-// about it. There are only three answers, and which one applies is decided by
-// severity first and likelihood second. That ordering is the argument:
+// about it. There are four answers, and which one applies is decided by
+// severity first, likelihood second, and by whether the material is
+// discoverable at all. That ordering is the argument:
 //
 //   A severe item is worth pre-empting even if it is unlikely to surface,
 //   because the cost of being wrong about "nobody will find it" is the
@@ -23,15 +24,23 @@
     },
     draft: {
       key: 'draft',
-      rank: 1,
+      rank: 2,
       name: 'Draft a statement',
       short: 'Draft',
       line: 'Do not volunteer it. Have the words written before you need them.',
       detail: 'This is likely to come up and it will cost you something when it does. Writing it now, calmly, is worth more than writing it well under pressure. Two or three sentences, and then a subject change.'
     },
+    contain: {
+      key: 'contain',
+      rank: 1,
+      name: 'Contain it, do not announce it',
+      short: 'Contain',
+      line: 'Say nothing publicly. Get control of the material and know your remedy.',
+      detail: 'Pre-empting works when the thing is a public record that somebody will eventually find, because saying it first converts it from a weapon into a biography. This is not that. This is private material held by a particular person, and announcing it does not defuse it, it publishes it, and afterwards they still have it. Work out who holds it and what your relationship with them is now. Write the two sentences you would say if it ever did surface, and keep them. If it could be shared without your consent, that is a legal question with real remedies in most places, and a lawyer is a better first call than a statement.'
+    },
     prepare: {
       key: 'prepare',
-      rank: 2,
+      rank: 3,
       name: 'Prepare an answer',
       short: 'Prepare',
       line: 'Know what you would say. Do not raise it.',
@@ -39,13 +48,26 @@
     }
   };
 
-  var TIER_ORDER = ['ahead', 'draft', 'prepare'];
+  var TIER_ORDER = ['ahead', 'contain', 'draft', 'prepare'];
 
   // severity first, then likelihood. See the note at the top of the file.
+  //
+  // One exception, and it is not a hedge. The whole case for pre-empting rests
+  // on the material being discoverable: a bankruptcy, an arrest, a filing. That
+  // is going to be found, so saying it first is the only way to control how it
+  // is framed. Private material held by one person breaks every part of that
+  // reasoning. Announcing it is the publication event, the story is now that
+  // the material exists, and the person holding it is no less able to release
+  // it than they were before. Telling somebody to get ahead of a private
+  // photograph would be actively harmful advice, so the tool does not.
   function tierFor(item) {
     if (!item || !item.severity || !item.likelihood) return null;
-    if (item.severity === 'severe') return 'ahead';
-    if (item.severity === 'serious' && item.likelihood === 'high') return 'draft';
+    if (item.severity === 'severe') {
+      return item.kind === 'private' ? 'contain' : 'ahead';
+    }
+    if (item.severity === 'serious' && item.likelihood === 'high') {
+      return item.kind === 'private' ? 'contain' : 'draft';
+    }
     return 'prepare';
   }
 
@@ -77,6 +99,7 @@
       scored: scored.length,
       unscored: unscored.length,
       ahead: scored.filter(function (i) { return i.tier === 'ahead'; }).length,
+      contain: scored.filter(function (i) { return i.tier === 'contain'; }).length,
       draft: scored.filter(function (i) { return i.tier === 'draft'; }).length,
       prepare: scored.filter(function (i) { return i.tier === 'prepare'; }).length
     };
@@ -98,6 +121,7 @@
   function headline(c) {
     if (!c.total) return 'Nothing flagged';
     if (c.ahead) return plural(c.ahead, 'thing', 'things') + ' to get ahead of';
+    if (c.contain) return plural(c.contain, 'thing', 'things') + ' to contain';
     if (c.draft) return plural(c.draft, 'statement', 'statements') + ' to draft';
     return 'Nothing here ends you';
   }
@@ -109,6 +133,9 @@
     if (c.ahead) {
       return 'The items below marked to get ahead of are the ones that decide this. They are severe enough that being surprised by them is worse than disclosing them, and disclosure only works while it is still your choice. Everything else can wait; these cannot.';
     }
+    if (c.contain && !c.ahead) {
+      return 'What you flagged as most serious is not the kind of thing you get ahead of. It is private, it sits with a particular person rather than in a public file, and saying it yourself would publish it rather than defuse it. The work here is quieter: know who holds it, know what you would say if it ever moved, and get advice before you get loud.';
+    }
     if (c.draft) {
       return 'Nothing you flagged is likely to end a campaign on its own. Several things are likely to come up and cost you a bad news cycle, which is a manageable problem exactly as long as the words are written before the question is asked.';
     }
@@ -118,7 +145,7 @@
   // Pre-emption is a timing decision, not just a content one. Disclosure works
   // when it is early and voluntary; the same sentence in October is a scandal.
   function timing(days, counts) {
-    if (!counts.ahead) return null;
+    if (!counts.ahead) return null;   // contain items are never disclosed on a schedule
     var n = days === '' || days === null || days === undefined ? null : Number(days);
     if (n === null || isNaN(n)) {
       return 'Pre-empt the severe items now rather than later. There is no version of this where waiting improves the outcome, and the window closes the moment somebody else starts asking.';

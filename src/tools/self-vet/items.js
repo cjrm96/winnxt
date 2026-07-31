@@ -26,6 +26,12 @@
 //   3. Nothing is asked that the tool does not use. Every flagged item ends up
 //      in the register with an action attached.
 //
+// A third element on a prompt marks its kind. 'private' means the material is
+// not a public record but a thing held by a specific person, which changes what
+// you can usefully do about it. See the contain tier in logic.js: announcing a
+// private item is publication, not pre-emption, and the other person still has
+// it afterwards.
+//
 // Each section also carries an opener: one clipped line in the voice of
 // somebody running the session, sitting above the explanatory lede rather than
 // replacing it. The voice belongs to the room. It never costs the reader
@@ -89,7 +95,8 @@
         ['allegation', 'An allegation of harassment, discrimination, or misconduct, formal or informal'],
         ['paid-out', 'A settlement paid by an employer, insurer, or organisation on your behalf'],
         ['police-call', 'A police call to your home or business, whether or not anyone was charged'],
-        ['alleged', "Anything alleged about you in somebody else's filing, including a divorce"]
+        ['alleged', "Anything alleged about you in somebody else's filing, including a divorce"],
+        ['name-change', 'A legal name change, which is a court record in most states']
       ]
     },
     {
@@ -115,7 +122,7 @@
         ['tagged', 'Photos other people posted and tagged you in'],
         ['byline', 'Anything published under your name, including a piece somebody else drafted'],
         ['archive', 'A yearbook, alumni magazine, student newspaper, or old employer newsletter'],
-        ['intimate', 'Intimate messages, photos, or video you sent to anyone'],
+        ['intimate', 'Intimate messages, photos, or video you sent to anyone', 'private'],
         ['burner', 'A pseudonymous account, alt, or burner you posted from'],
         ['hot-mic', 'Something you said on a call or a hot mic you did not know was live'],
         ['plagiarism', "A speech, post, or paper that borrowed somebody else's words without credit"]
@@ -174,7 +181,7 @@
         ['mental', 'Treatment or a diagnosis that appears on a record somewhere'],
         ['complaint', 'A complaint from a neighbour: property, noise, animals, parking'],
         ['affair', 'An affair, or a relationship that overlapped with a marriage'],
-        ['photos', 'Photographs of you that you would not want published'],
+        ['photos', 'Photographs of you that you would not want published', 'private'],
         ['costume', 'A costume, a party, or a night out that would not read now the way it did then'],
         ['rally', 'A rally, protest, or gathering you attended that later became notorious']
       ]
@@ -259,7 +266,10 @@
     var out = [];
     SECTIONS.forEach(function (s) {
       s.items.forEach(function (i) {
-        out.push({ id: s.id + '.' + i[0], section: s.id, sectionName: s.full, label: i[1] });
+        out.push({
+          id: s.id + '.' + i[0], section: s.id, sectionName: s.full,
+          label: i[1], kind: i[2] || null
+        });
       });
     });
     return out;
