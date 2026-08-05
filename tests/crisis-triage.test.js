@@ -1183,7 +1183,7 @@ const base = {
     handoffHeading === 'Continue with AI', handoffHeading);
 
   check('closing CTA points to a professional', await page.locator('.cta').count() === 1);
-  const ctaHref = await page.locator('.cta-link').getAttribute('href');
+  const ctaHref = await page.locator('.cta .cta-link').first().getAttribute('href');
   check('CTA links to winnxt.com', /winnxt\.com/.test(ctaHref), ctaHref);
   check('take it with you section kept', await page.locator('.actions').count() === 1);
 
